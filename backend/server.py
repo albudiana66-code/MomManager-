@@ -352,7 +352,7 @@ async def create_meeting(meeting: MeetingCreate, current_user: User = Depends(re
         "created_at": datetime.now(timezone.utc)
     }
     await db.meetings.insert_one(meeting_doc)
-    del meeting_doc["_id"] if "_id" in meeting_doc else None
+    meeting_doc.pop("_id", None)
     return meeting_doc
 
 @app.put("/api/meetings/{meeting_id}")
