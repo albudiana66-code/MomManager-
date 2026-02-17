@@ -758,7 +758,7 @@ async def get_selfcare(current_user: User = Depends(require_auth)):
             "created_at": datetime.now(timezone.utc)
         }
         await db.selfcare.insert_one(selfcare)
-        del selfcare["_id"] if "_id" in selfcare else None
+        selfcare.pop("_id", None)
     return selfcare
 
 @app.post("/api/selfcare/nutrition/generate")
