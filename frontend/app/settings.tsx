@@ -290,7 +290,7 @@ export default function SettingsScreen() {
                     {lang.name}
                   </Text>
                   {language.code === lang.code && (
-                    <Ionicons name="checkmark-circle" size={24} color="#ec4899" />
+                    <Ionicons name="checkmark-circle" size={24} color="#C5A059" />
                   )}
                 </TouchableOpacity>
               ))}
