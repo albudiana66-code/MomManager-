@@ -17,6 +17,16 @@ import { useSettings } from '../context/SettingsContext';
 
 const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL || '';
 
+// Theme colors
+const GOLD = '#C5A059';
+const GOLD_LIGHT = '#D4B87A';
+const GOLD_MUTED = 'rgba(197, 160, 89, 0.15)';
+const TEXT_DARK = '#3D2B1F';
+const TEXT_SECONDARY = '#6B5D52';
+const TEXT_MUTED = '#9C8B7E';
+const BG_CREAM = '#F5F5DC';
+const BG_LIGHT = '#FAF8F0';
+
 interface Message {
   id: string;
   text: string;
@@ -31,20 +41,20 @@ export function AIChatButton() {
   const [isLoading, setIsLoading] = useState(false);
   const scrollViewRef = useRef<ScrollView>(null);
   const pulseAnim = useRef(new Animated.Value(1)).current;
-  const { language } = useSettings();
+  const { language, t } = useSettings();
 
   useEffect(() => {
-    // Pulse animation for the button
+    // Subtle pulse animation - elegant, not distracting
     const pulse = Animated.loop(
       Animated.sequence([
         Animated.timing(pulseAnim, {
-          toValue: 1.1,
-          duration: 1000,
+          toValue: 1.05,
+          duration: 1500,
           useNativeDriver: true,
         }),
         Animated.timing(pulseAnim, {
           toValue: 1,
-          duration: 1000,
+          duration: 1500,
           useNativeDriver: true,
         }),
       ])
@@ -57,12 +67,12 @@ export function AIChatButton() {
     if (visible && messages.length === 0) {
       // Welcome message
       const welcomeMessages: { [key: string]: string } = {
-        ro: 'Bună, dragă mamă! 💕 Sunt aici pentru tine. Cum te pot ajuta astăzi? Poți să-mi spui orice - sunt aici să te ascult și să te sprijin.',
-        en: 'Hello, dear mom! 💕 I\'m here for you. How can I help you today? You can tell me anything - I\'m here to listen and support you.',
-        es: '¡Hola, querida mamá! 💕 Estoy aquí para ti. ¿Cómo puedo ayudarte hoy? Puedes contarme cualquier cosa.',
-        fr: 'Bonjour, chère maman! 💕 Je suis là pour toi. Comment puis-je t\'aider aujourd\'hui?',
-        de: 'Hallo, liebe Mama! 💕 Ich bin für dich da. Wie kann ich dir heute helfen?',
-        it: 'Ciao, cara mamma! 💕 Sono qui per te. Come posso aiutarti oggi?',
+        ro: 'Bună, dragă mamă! 💛 Sunt asistentul tău personal. Cum te pot ajuta astăzi? Sunt aici să te ascult și să te sprijin în organizarea zilei tale.',
+        en: 'Hello, dear mom! 💛 I\'m your personal assistant. How can I help you today? I\'m here to listen and support you in organizing your day.',
+        es: '¡Hola, querida mamá! 💛 Soy tu asistente personal. ¿Cómo puedo ayudarte hoy?',
+        fr: 'Bonjour, chère maman! 💛 Je suis votre assistante personnelle. Comment puis-je vous aider aujourd\'hui?',
+        de: 'Hallo, liebe Mama! 💛 Ich bin deine persönliche Assistentin. Wie kann ich dir heute helfen?',
+        it: 'Ciao, cara mamma! 💛 Sono la tua assistente personale. Come posso aiutarti oggi?',
       };
       
       const langCode = language.code.split('-')[0];
@@ -112,7 +122,7 @@ export function AIChatButton() {
       
       const aiMessage: Message = {
         id: (Date.now() + 1).toString(),
-        text: data.response || 'Îmi pare rău, am întâmpinat o problemă. Te rog să încerci din nou.',
+        text: data.response || 'I\'m sorry, I encountered an issue. Please try again.',
         isUser: false,
         timestamp: new Date(),
       };
@@ -122,7 +132,7 @@ export function AIChatButton() {
       console.error('AI chat error:', error);
       const errorMessage: Message = {
         id: (Date.now() + 1).toString(),
-        text: 'Îmi pare rău, nu am putut procesa mesajul. Te rog să încerci din nou. 💕',
+        text: 'I\'m sorry, I couldn\'t process your message. Please try again. 💛',
         isUser: false,
         timestamp: new Date(),
       };
@@ -142,14 +152,14 @@ export function AIChatButton() {
 
   return (
     <>
-      {/* Floating Chat Button */}
+      {/* Floating Chat Button - Luxury Gold */}
       <Animated.View style={[styles.floatingButton, { transform: [{ scale: pulseAnim }] }]}>
         <TouchableOpacity
           style={styles.chatButton}
           onPress={() => setVisible(true)}
           activeOpacity={0.8}
         >
-          <Ionicons name="chatbubble-ellipses" size={28} color="#fff" />
+          <Ionicons name="chatbubble-ellipses" size={26} color="#FFFFFF" />
           <View style={styles.aiLabel}>
             <Text style={styles.aiLabelText}>AI</Text>
           </View>
@@ -168,15 +178,15 @@ export function AIChatButton() {
               <View style={styles.chatHeader}>
                 <View style={styles.headerLeft}>
                   <View style={styles.avatarContainer}>
-                    <Ionicons name="heart" size={24} color="#ec4899" />
+                    <Ionicons name="heart" size={22} color={GOLD} />
                   </View>
                   <View>
-                    <Text style={styles.headerTitle}>Mom Assistant</Text>
-                    <Text style={styles.headerSubtitle}>Mereu aici pentru tine 💕</Text>
+                    <Text style={styles.headerTitle}>{t('ai.assistant')}</Text>
+                    <Text style={styles.headerSubtitle}>{t('ai.alwaysHere')} 💛</Text>
                   </View>
                 </View>
                 <TouchableOpacity onPress={() => setVisible(false)} style={styles.closeButton}>
-                  <Ionicons name="close" size={24} color="#6b7280" />
+                  <Ionicons name="close" size={24} color={TEXT_SECONDARY} />
                 </TouchableOpacity>
               </View>
 
@@ -196,7 +206,7 @@ export function AIChatButton() {
                   >
                     {!message.isUser && (
                       <View style={styles.aiAvatar}>
-                        <Ionicons name="heart" size={16} color="#ec4899" />
+                        <Ionicons name="heart" size={14} color={GOLD} />
                       </View>
                     )}
                     <View style={[styles.messageContent, message.isUser && styles.userMessageContent]}>
@@ -209,11 +219,11 @@ export function AIChatButton() {
                 {isLoading && (
                   <View style={styles.loadingBubble}>
                     <View style={styles.aiAvatar}>
-                      <Ionicons name="heart" size={16} color="#ec4899" />
+                      <Ionicons name="heart" size={14} color={GOLD} />
                     </View>
                     <View style={styles.typingIndicator}>
-                      <ActivityIndicator size="small" color="#ec4899" />
-                      <Text style={styles.typingText}>Scriu...</Text>
+                      <ActivityIndicator size="small" color={GOLD} />
+                      <Text style={styles.typingText}>{t('ai.typing')}</Text>
                     </View>
                   </View>
                 )}
@@ -225,8 +235,8 @@ export function AIChatButton() {
                   style={styles.input}
                   value={inputText}
                   onChangeText={setInputText}
-                  placeholder="Scrie-mi ce ai pe suflet..."
-                  placeholderTextColor="#9ca3af"
+                  placeholder={t('ai.placeholder')}
+                  placeholderTextColor={TEXT_MUTED}
                   multiline
                   maxLength={1000}
                   onSubmitEditing={sendMessage}
@@ -236,7 +246,7 @@ export function AIChatButton() {
                   onPress={sendMessage}
                   disabled={!inputText.trim() || isLoading}
                 >
-                  <Ionicons name="send" size={20} color="#fff" />
+                  <Ionicons name="send" size={18} color="#FFFFFF" />
                 </TouchableOpacity>
               </View>
             </View>
@@ -255,44 +265,46 @@ const styles = StyleSheet.create({
     zIndex: 1000,
   },
   chatButton: {
-    width: 60,
-    height: 60,
-    borderRadius: 30,
-    backgroundColor: '#ec4899',
+    width: 58,
+    height: 58,
+    borderRadius: 29,
+    backgroundColor: GOLD,
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#ec4899',
+    // Elegant shadow - no glow
+    shadowColor: '#3D2B1F',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.4,
-    shadowRadius: 8,
-    elevation: 8,
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    elevation: 6,
   },
   aiLabel: {
     position: 'absolute',
-    top: -4,
-    right: -4,
-    backgroundColor: '#8b5cf6',
+    top: -2,
+    right: -2,
+    backgroundColor: TEXT_DARK,
     paddingHorizontal: 6,
     paddingVertical: 2,
     borderRadius: 8,
   },
   aiLabelText: {
-    color: '#fff',
-    fontSize: 10,
+    color: '#FFFFFF',
+    fontSize: 9,
     fontWeight: '700',
+    letterSpacing: 0.5,
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
+    backgroundColor: 'rgba(61, 43, 31, 0.4)',
   },
   keyboardView: {
     flex: 1,
     justifyContent: 'flex-end',
   },
   chatContainer: {
-    backgroundColor: '#fff',
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
+    backgroundColor: '#FFFFFF',
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
     height: '85%',
     overflow: 'hidden',
   },
@@ -302,8 +314,8 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 16,
     borderBottomWidth: 1,
-    borderBottomColor: '#f3f4f6',
-    backgroundColor: '#fdf2f8',
+    borderBottomColor: '#E8E4D9',
+    backgroundColor: BG_LIGHT,
   },
   headerLeft: {
     flexDirection: 'row',
@@ -314,25 +326,28 @@ const styles = StyleSheet.create({
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: '#fce7f3',
+    backgroundColor: GOLD_MUTED,
     justifyContent: 'center',
     alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(197, 160, 89, 0.3)',
   },
   headerTitle: {
     fontSize: 17,
     fontWeight: '700',
-    color: '#9d174d',
+    color: TEXT_DARK,
+    fontFamily: 'PlayfairDisplay_600SemiBold',
   },
   headerSubtitle: {
     fontSize: 13,
-    color: '#be185d',
+    color: GOLD,
   },
   closeButton: {
     padding: 8,
   },
   messagesContainer: {
     flex: 1,
-    backgroundColor: '#fdf2f8',
+    backgroundColor: BG_CREAM,
   },
   messagesContent: {
     padding: 16,
@@ -351,35 +366,35 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
   },
   aiAvatar: {
-    width: 32,
-    height: 32,
-    borderRadius: 16,
-    backgroundColor: '#fce7f3',
+    width: 28,
+    height: 28,
+    borderRadius: 14,
+    backgroundColor: GOLD_MUTED,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 8,
   },
   messageContent: {
-    backgroundColor: '#fff',
-    borderRadius: 18,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
     paddingHorizontal: 16,
-    paddingVertical: 10,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.05,
-    shadowRadius: 2,
-    elevation: 1,
+    paddingVertical: 12,
+    shadowColor: '#3D2B1F',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.04,
+    shadowRadius: 8,
+    elevation: 2,
   },
   userMessageContent: {
-    backgroundColor: '#ec4899',
+    backgroundColor: GOLD,
   },
   messageText: {
     fontSize: 15,
-    color: '#374151',
+    color: TEXT_DARK,
     lineHeight: 22,
   },
   userMessageText: {
-    color: '#fff',
+    color: '#FFFFFF',
   },
   loadingBubble: {
     flexDirection: 'row',
@@ -389,15 +404,15 @@ const styles = StyleSheet.create({
   typingIndicator: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#fff',
-    borderRadius: 18,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 20,
     paddingHorizontal: 16,
-    paddingVertical: 10,
+    paddingVertical: 12,
     gap: 8,
   },
   typingText: {
     fontSize: 14,
-    color: '#9ca3af',
+    color: TEXT_MUTED,
     fontStyle: 'italic',
   },
   inputContainer: {
@@ -405,30 +420,37 @@ const styles = StyleSheet.create({
     alignItems: 'flex-end',
     padding: 12,
     paddingBottom: Platform.OS === 'ios' ? 28 : 12,
-    backgroundColor: '#fff',
+    backgroundColor: '#FFFFFF',
     borderTopWidth: 1,
-    borderTopColor: '#f3f4f6',
+    borderTopColor: '#E8E4D9',
     gap: 10,
   },
   input: {
     flex: 1,
-    backgroundColor: '#f9fafb',
+    backgroundColor: BG_LIGHT,
     borderRadius: 20,
     paddingHorizontal: 16,
-    paddingVertical: 10,
+    paddingVertical: 12,
     fontSize: 15,
-    color: '#1f2937',
+    color: TEXT_DARK,
     maxHeight: 100,
+    borderWidth: 1,
+    borderColor: '#E8E4D9',
   },
   sendButton: {
     width: 44,
     height: 44,
     borderRadius: 22,
-    backgroundColor: '#ec4899',
+    backgroundColor: GOLD,
     justifyContent: 'center',
     alignItems: 'center',
+    shadowColor: '#3D2B1F',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.1,
+    shadowRadius: 6,
+    elevation: 3,
   },
   sendButtonDisabled: {
-    backgroundColor: '#fce7f3',
+    backgroundColor: GOLD_MUTED,
   },
 });
