@@ -106,12 +106,12 @@ export default function KitchenScreen() {
 
   const deleteMealPlan = async (id: string) => {
     Alert.alert(
-      'Șterge Meal Plan',
-      'Ești sigură că vrei să ștergi acest meal plan?',
+      t('kitchen.deleteMealPlan'),
+      t('work.confirmDelete'),
       [
-        { text: 'Anulează', style: 'cancel' },
+        { text: t('common.cancel'), style: 'cancel' },
         {
-          text: 'Șterge',
+          text: t('common.delete'),
           style: 'destructive',
           onPress: async () => {
             try {
