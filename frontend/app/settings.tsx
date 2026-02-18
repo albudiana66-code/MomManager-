@@ -599,17 +599,17 @@ const styles = StyleSheet.create({
   optionText: {
     flex: 1,
     fontSize: 16,
-    color: '#374151',
+    color: '#3D2B1F',
   },
   optionTextActive: {
     fontWeight: '600',
-    color: '#9d174d',
+    color: '#C5A059',
   },
   currencySymbolBox: {
     width: 40,
     height: 40,
     borderRadius: 8,
-    backgroundColor: '#f3f4f6',
+    backgroundColor: 'rgba(197, 160, 89, 0.12)',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
@@ -617,14 +617,14 @@ const styles = StyleSheet.create({
   currencySymbol: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#6b7280',
+    color: '#C5A059',
   },
   currencyInfo: {
     flex: 1,
   },
   currencyCode: {
     fontSize: 12,
-    color: '#9ca3af',
+    color: '#9C8B7E',
     marginTop: 2,
   },
 });
