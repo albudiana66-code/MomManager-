@@ -98,7 +98,7 @@ export default function WorkScreen() {
 
   const saveMeeting = async () => {
     if (!title.trim()) {
-      Alert.alert('Eroare', 'Te rog introdu un titlu');
+      Alert.alert(t('common.error'), t('work.title'));
       return;
     }
 
@@ -121,18 +121,18 @@ export default function WorkScreen() {
       setModalVisible(false);
     } catch (error) {
       console.error('Error saving meeting:', error);
-      Alert.alert('Eroare', 'Nu s-a putut salva \u00eent\u00e2lnirea');
+      Alert.alert(t('common.error'), t('common.error'));
     }
   };
 
   const deleteMeeting = async (id: string) => {
     Alert.alert(
-      '\u0218terge \u00eent\u00e2lnirea',
-      'E\u0219ti sigur\u0103 c\u0103 vrei s\u0103 \u0219tergi aceast\u0103 \u00eent\u00e2lnire?',
+      t('work.deleteMeeting'),
+      t('work.confirmDelete'),
       [
-        { text: 'Anuleaz\u0103', style: 'cancel' },
+        { text: t('common.cancel'), style: 'cancel' },
         {
-          text: '\u0218terge',
+          text: t('common.delete'),
           style: 'destructive',
           onPress: async () => {
             try {
