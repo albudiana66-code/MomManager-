@@ -77,10 +77,10 @@ export default function KitchenScreen() {
       });
       setMealPlans([newPlan, ...mealPlans]);
       setCurrentPlan(newPlan);
-      Alert.alert('Succes', 'Meal plan generat cu succes!');
+      Alert.alert(t('common.success'), t('kitchen.mealPlan') + '!');
     } catch (error) {
       console.error('Error generating meal plan:', error);
-      Alert.alert('Eroare', 'Nu s-a putut genera meal plan-ul');
+      Alert.alert(t('common.error'), t('common.error'));
     } finally {
       setGenerating(false);
     }
