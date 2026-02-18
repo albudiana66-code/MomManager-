@@ -12,11 +12,13 @@
     "confirm": "Confirmă",
     "search": "Caută",
     "settings": "Setări",
-    "logout": "Deconectare"
+    "logout": "Deconectare",
+    "on": "Activ",
+    "off": "Inactiv"
   },
   "tabs": {
     "home": "Acasă",
-    "work": "Work",
+    "work": "Muncă",
     "organize": "Organizare",
     "kitchen": "Bucătărie",
     "kids": "Copii",
@@ -35,9 +37,7 @@
     "workout": "Workout",
     "meetingsToday": "Întâlniri azi",
     "tasksToday": "Taskuri azi",
-    "motivationalQuote": "O mamă organizată este o mamă fericită!",
-    "languageAndCurrency": "Limbă și monedă",
-    "currencyAutoChange": "Moneda se schimbă automat în funcție de limba selectată"
+    "motivationalQuote": "O mamă organizată este o mamă fericită!"
   },
   "work": {
     "calendar": "Calendar",
@@ -50,7 +50,9 @@
     "description": "Descriere (opțional)",
     "color": "Culoare",
     "deleteMeeting": "Șterge întâlnirea",
-    "confirmDelete": "Ești sigură că vrei să ștergi această întâlnire?"
+    "confirmDelete": "Ești sigură că vrei să ștergi această întâlnire?",
+    "exampleTitle": "Ex: Call cu clientul",
+    "meetingNotes": "Note despre întâlnire..."
   },
   "organize": {
     "checklist": "Checklist",
@@ -84,7 +86,8 @@
     },
     "editBudget": "Editează bugetul",
     "setBudget": "Setează bugetul total",
-    "categoryBudget": "Buget categorie"
+    "categoryBudget": "Buget categorie",
+    "budgetHint": "Bugetele categoriilor vor fi ajustate proporțional"
   },
   "kitchen": {
     "mealPlan": "Meal Plan",
@@ -140,7 +143,11 @@
     "confirmDeleteKid": "Ești sigură că vrei să ștergi acest copil?",
     "yearsAndMonths": "ani și",
     "months": "luni",
-    "years": "ani"
+    "years": "ani",
+    "exampleName": "Ex: Maria",
+    "exampleActivity": "Ex: Cursuri de înot",
+    "activityDetails": "Detalii despre activitate...",
+    "exampleMilestone": "Ex: A mers pe bicicletă"
   },
   "selfcare": {
     "title": "Self-Care",
@@ -187,7 +194,11 @@
       "cardio": "cardio",
       "core": "core",
       "stretching": "stretching"
-    }
+    },
+    "exampleGoal": "Ex: energie și sănătate",
+    "exampleRestrictions": "Ex: fără lactate, vegetarian",
+    "exampleCookingTime": "Ex: 30 minute",
+    "exampleWorkoutGoals": "Ex: energie, forță, flexibilitate"
   },
   "settings": {
     "title": "Setări",
@@ -199,10 +210,29 @@
     "languageHint": "Interfața se va traduce în limba aleasă",
     "currencyHint": "Moneda se va aplica la buget și cheltuieli",
     "account": "Cont",
-    "preferences": "Preferințe"
+    "myAccount": "Contul meu",
+    "preferences": "Preferințe",
+    "notifications": "Notificări",
+    "hydrationReminders": "Remindere hidratare",
+    "hydrationHint": "Primește remindere să bei apă",
+    "workCalendarAlerts": "Alerte calendar muncă",
+    "workCalendarHint": "Notificări pentru întâlnirile tale",
+    "foodExpirationAlerts": "Alerte expirare alimente",
+    "foodExpirationHint": "Alerte pentru alimente care expiră",
+    "subscription": "Abonament",
+    "monthlyPlan": "Plan lunar",
+    "yearlyPlan": "Plan anual",
+    "savePercent": "Economisește {{percent}}% cu planul anual",
+    "freeTrial": "7 zile gratuit",
+    "perMonth": "/lună",
+    "perYear": "/an",
+    "exportData": "Exportă datele mele",
+    "exportHint": "Descarcă toate datele tale (conformitate GDPR)",
+    "changeEmail": "Schimbă email",
+    "changePassword": "Schimbă parola"
   },
   "ai": {
-    "assistant": "Mom Assistant",
+    "assistant": "Asistent Mamă",
     "alwaysHere": "Mereu aici pentru tine",
     "typing": "Scriu...",
     "placeholder": "Scrie-mi ce ai pe suflet...",

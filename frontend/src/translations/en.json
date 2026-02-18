@@ -12,7 +12,9 @@
     "confirm": "Confirm",
     "search": "Search",
     "settings": "Settings",
-    "logout": "Logout"
+    "logout": "Logout",
+    "on": "On",
+    "off": "Off"
   },
   "tabs": {
     "home": "Home",
@@ -35,9 +37,7 @@
     "workout": "Workout",
     "meetingsToday": "Meetings Today",
     "tasksToday": "Tasks Today",
-    "motivationalQuote": "An organized mom is a happy mom!",
-    "languageAndCurrency": "Language & Currency",
-    "currencyAutoChange": "Currency changes automatically based on selected language"
+    "motivationalQuote": "An organized mom is a happy mom!"
   },
   "work": {
     "calendar": "Calendar",
@@ -50,7 +50,9 @@
     "description": "Description (optional)",
     "color": "Color",
     "deleteMeeting": "Delete Meeting",
-    "confirmDelete": "Are you sure you want to delete this meeting?"
+    "confirmDelete": "Are you sure you want to delete this meeting?",
+    "exampleTitle": "e.g., Client call",
+    "meetingNotes": "Meeting notes..."
   },
   "organize": {
     "checklist": "Checklist",
@@ -84,7 +86,8 @@
     },
     "editBudget": "Edit Budget",
     "setBudget": "Set total budget",
-    "categoryBudget": "Category budget"
+    "categoryBudget": "Category budget",
+    "budgetHint": "Category budgets will be adjusted proportionally"
   },
   "kitchen": {
     "mealPlan": "Meal Plan",
@@ -140,7 +143,11 @@
     "confirmDeleteKid": "Are you sure you want to delete this child?",
     "yearsAndMonths": "years and",
     "months": "months",
-    "years": "years"
+    "years": "years",
+    "exampleName": "e.g., Emma",
+    "exampleActivity": "e.g., Swimming lessons",
+    "activityDetails": "Activity details...",
+    "exampleMilestone": "e.g., Learned to ride a bike"
   },
   "selfcare": {
     "title": "Self-Care",
@@ -187,7 +194,11 @@
       "cardio": "cardio",
       "core": "core",
       "stretching": "stretching"
-    }
+    },
+    "exampleGoal": "e.g., energy and health",
+    "exampleRestrictions": "e.g., dairy-free, vegetarian",
+    "exampleCookingTime": "e.g., 30 minutes",
+    "exampleWorkoutGoals": "e.g., energy, strength, flexibility"
   },
   "settings": {
     "title": "Settings",
@@ -199,7 +210,26 @@
     "languageHint": "Interface will be translated to the selected language",
     "currencyHint": "Currency will apply to budget and expenses",
     "account": "Account",
-    "preferences": "Preferences"
+    "myAccount": "My Account",
+    "preferences": "Preferences",
+    "notifications": "Notifications",
+    "hydrationReminders": "Hydration reminders",
+    "hydrationHint": "Get reminders to drink water",
+    "workCalendarAlerts": "Work calendar alerts",
+    "workCalendarHint": "Notifications for your meetings",
+    "foodExpirationAlerts": "Food expiration alerts",
+    "foodExpirationHint": "Alerts for expiring food items",
+    "subscription": "Subscription",
+    "monthlyPlan": "Monthly Plan",
+    "yearlyPlan": "Yearly Plan",
+    "savePercent": "Save {{percent}}% with annual plan",
+    "freeTrial": "7-day free trial",
+    "perMonth": "/month",
+    "perYear": "/year",
+    "exportData": "Export my data",
+    "exportHint": "Download all your data (GDPR compliance)",
+    "changeEmail": "Change email",
+    "changePassword": "Change password"
   },
   "ai": {
     "assistant": "Mom Assistant",

@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
+import * as Localization from 'expo-localization';
 
 // Import translations
 import roTranslations from '../translations/ro.json';
@@ -7,6 +8,7 @@ import enTranslations from '../translations/en.json';
 import esTranslations from '../translations/es.json';
 import frTranslations from '../translations/fr.json';
 import deTranslations from '../translations/de.json';
+import itTranslations from '../translations/it.json';
 
 // All translations
 const translations: { [key: string]: any } = {
@@ -15,65 +17,86 @@ const translations: { [key: string]: any } = {
   es: esTranslations,
   fr: frTranslations,
   de: deTranslations,
+  it: itTranslations,
 };
 
-// All world languages with their regions and currencies
+// Languages with their names
 export const LANGUAGES = [
-  { code: 'ro', name: 'Română', region: 'RO', currency: 'RON', currencySymbol: 'lei' },
-  { code: 'en', name: 'English (UK)', region: 'GB', currency: 'GBP', currencySymbol: '£' },
-  { code: 'en-US', name: 'English (US)', region: 'US', currency: 'USD', currencySymbol: '$' },
-  { code: 'es', name: 'Español', region: 'ES', currency: 'EUR', currencySymbol: '€' },
-  { code: 'fr', name: 'Français', region: 'FR', currency: 'EUR', currencySymbol: '€' },
-  { code: 'de', name: 'Deutsch', region: 'DE', currency: 'EUR', currencySymbol: '€' },
-  { code: 'it', name: 'Italiano', region: 'IT', currency: 'EUR', currencySymbol: '€' },
-  { code: 'pt', name: 'Português', region: 'PT', currency: 'EUR', currencySymbol: '€' },
-  { code: 'pt-BR', name: 'Português (Brasil)', region: 'BR', currency: 'BRL', currencySymbol: 'R$' },
-  { code: 'nl', name: 'Nederlands', region: 'NL', currency: 'EUR', currencySymbol: '€' },
-  { code: 'pl', name: 'Polski', region: 'PL', currency: 'PLN', currencySymbol: 'zł' },
-  { code: 'ru', name: 'Русский', region: 'RU', currency: 'RUB', currencySymbol: '₽' },
-  { code: 'uk', name: 'Українська', region: 'UA', currency: 'UAH', currencySymbol: '₴' },
-  { code: 'cs', name: 'Čeština', region: 'CZ', currency: 'CZK', currencySymbol: 'Kč' },
-  { code: 'hu', name: 'Magyar', region: 'HU', currency: 'HUF', currencySymbol: 'Ft' },
-  { code: 'bg', name: 'Български', region: 'BG', currency: 'BGN', currencySymbol: 'лв' },
-  { code: 'hr', name: 'Hrvatski', region: 'HR', currency: 'EUR', currencySymbol: '€' },
-  { code: 'sk', name: 'Slovenčina', region: 'SK', currency: 'EUR', currencySymbol: '€' },
-  { code: 'sl', name: 'Slovenščina', region: 'SI', currency: 'EUR', currencySymbol: '€' },
-  { code: 'sr', name: 'Srpski', region: 'RS', currency: 'RSD', currencySymbol: 'дин' },
-  { code: 'el', name: 'Ελληνικά', region: 'GR', currency: 'EUR', currencySymbol: '€' },
-  { code: 'tr', name: 'Türkçe', region: 'TR', currency: 'TRY', currencySymbol: '₺' },
-  { code: 'ar', name: 'العربية', region: 'SA', currency: 'SAR', currencySymbol: '﷼' },
-  { code: 'he', name: 'עברית', region: 'IL', currency: 'ILS', currencySymbol: '₪' },
-  { code: 'hi', name: 'हिन्दी', region: 'IN', currency: 'INR', currencySymbol: '₹' },
-  { code: 'th', name: 'ไทย', region: 'TH', currency: 'THB', currencySymbol: '฿' },
-  { code: 'vi', name: 'Tiếng Việt', region: 'VN', currency: 'VND', currencySymbol: '₫' },
-  { code: 'id', name: 'Bahasa Indonesia', region: 'ID', currency: 'IDR', currencySymbol: 'Rp' },
-  { code: 'ms', name: 'Bahasa Melayu', region: 'MY', currency: 'MYR', currencySymbol: 'RM' },
-  { code: 'tl', name: 'Filipino', region: 'PH', currency: 'PHP', currencySymbol: '₱' },
-  { code: 'zh', name: '中文 (简体)', region: 'CN', currency: 'CNY', currencySymbol: '¥' },
-  { code: 'zh-TW', name: '中文 (繁體)', region: 'TW', currency: 'TWD', currencySymbol: 'NT$' },
-  { code: 'ja', name: '日本語', region: 'JP', currency: 'JPY', currencySymbol: '¥' },
-  { code: 'ko', name: '한국어', region: 'KR', currency: 'KRW', currencySymbol: '₩' },
-  { code: 'sv', name: 'Svenska', region: 'SE', currency: 'SEK', currencySymbol: 'kr' },
-  { code: 'no', name: 'Norsk', region: 'NO', currency: 'NOK', currencySymbol: 'kr' },
-  { code: 'da', name: 'Dansk', region: 'DK', currency: 'DKK', currencySymbol: 'kr' },
-  { code: 'fi', name: 'Suomi', region: 'FI', currency: 'EUR', currencySymbol: '€' },
-  { code: 'sw', name: 'Kiswahili', region: 'KE', currency: 'KES', currencySymbol: 'KSh' },
-  { code: 'zu', name: 'isiZulu', region: 'ZA', currency: 'ZAR', currencySymbol: 'R' },
-  { code: 'af', name: 'Afrikaans', region: 'ZA', currency: 'ZAR', currencySymbol: 'R' },
+  { code: 'en', name: 'English', flag: '🇬🇧' },
+  { code: 'en-US', name: 'English (US)', flag: '🇺🇸' },
+  { code: 'ro', name: 'Română', flag: '🇷🇴' },
+  { code: 'es', name: 'Español', flag: '🇪🇸' },
+  { code: 'fr', name: 'Français', flag: '🇫🇷' },
+  { code: 'de', name: 'Deutsch', flag: '🇩🇪' },
+  { code: 'it', name: 'Italiano', flag: '🇮🇹' },
+  { code: 'pt', name: 'Português', flag: '🇵🇹' },
+  { code: 'nl', name: 'Nederlands', flag: '🇳🇱' },
+  { code: 'pl', name: 'Polski', flag: '🇵🇱' },
+  { code: 'ru', name: 'Русский', flag: '🇷🇺' },
+  { code: 'uk', name: 'Українська', flag: '🇺🇦' },
+  { code: 'tr', name: 'Türkçe', flag: '🇹🇷' },
+  { code: 'ar', name: 'العربية', flag: '🇸🇦' },
+  { code: 'hi', name: 'हिन्दी', flag: '🇮🇳' },
+  { code: 'zh', name: '中文', flag: '🇨🇳' },
+  { code: 'ja', name: '日本語', flag: '🇯🇵' },
+  { code: 'ko', name: '한국어', flag: '🇰🇷' },
 ];
 
+// All supported currencies
+export const CURRENCIES = [
+  { code: 'GBP', symbol: '£', name: 'British Pound' },
+  { code: 'EUR', symbol: '€', name: 'Euro' },
+  { code: 'USD', symbol: '$', name: 'US Dollar' },
+  { code: 'RON', symbol: 'lei', name: 'Romanian Leu' },
+  { code: 'PLN', symbol: 'zł', name: 'Polish Zloty' },
+  { code: 'CHF', symbol: 'CHF', name: 'Swiss Franc' },
+  { code: 'SEK', symbol: 'kr', name: 'Swedish Krona' },
+  { code: 'NOK', symbol: 'kr', name: 'Norwegian Krone' },
+  { code: 'DKK', symbol: 'kr', name: 'Danish Krone' },
+  { code: 'CZK', symbol: 'Kč', name: 'Czech Koruna' },
+  { code: 'HUF', symbol: 'Ft', name: 'Hungarian Forint' },
+  { code: 'RUB', symbol: '₽', name: 'Russian Ruble' },
+  { code: 'TRY', symbol: '₺', name: 'Turkish Lira' },
+  { code: 'INR', symbol: '₹', name: 'Indian Rupee' },
+  { code: 'CNY', symbol: '¥', name: 'Chinese Yuan' },
+  { code: 'JPY', symbol: '¥', name: 'Japanese Yen' },
+  { code: 'AUD', symbol: 'A$', name: 'Australian Dollar' },
+  { code: 'CAD', symbol: 'C$', name: 'Canadian Dollar' },
+];
+
+// User preferences for notifications
+export interface NotificationPreferences {
+  hydrationReminders: boolean;
+  workCalendarAlerts: boolean;
+  foodExpirationAlerts: boolean;
+}
+
 interface SettingsContextType {
+  // Language
   language: typeof LANGUAGES[0];
   setLanguageCode: (code: string) => void;
+  
+  // Currency (independent from language)
+  currency: typeof CURRENCIES[0];
+  setCurrencyCode: (code: string) => void;
   currencySymbol: string;
   formatCurrency: (amount: number) => string;
-  t: (key: string) => string;
+  
+  // Translation function
+  t: (key: string, params?: { [key: string]: string | number }) => string;
+  
+  // Notification preferences
+  notifications: NotificationPreferences;
+  setNotificationPreference: (key: keyof NotificationPreferences, value: boolean) => void;
+  
+  // Loading state
+  isSettingsLoaded: boolean;
 }
 
 const SettingsContext = createContext<SettingsContextType | undefined>(undefined);
 
-// Helper function to get nested translation
-const getNestedValue = (obj: any, path: string): string => {
+// Helper function to get nested translation value
+const getNestedValue = (obj: any, path: string, params?: { [key: string]: string | number }): string => {
   const keys = path.split('.');
   let result = obj;
   for (const key of keys) {
@@ -83,11 +106,47 @@ const getNestedValue = (obj: any, path: string): string => {
       return path; // Return key if translation not found
     }
   }
+  
+  if (typeof result === 'string' && params) {
+    // Replace {{param}} placeholders
+    return result.replace(/\{\{(\w+)\}\}/g, (match, key) => {
+      return params[key]?.toString() || match;
+    });
+  }
+  
   return typeof result === 'string' ? result : path;
 };
 
+// Detect browser/device language and return matching language
+const detectLanguage = (): typeof LANGUAGES[0] => {
+  try {
+    const deviceLocale = Localization.locale;
+    const localeCode = deviceLocale?.split('-')[0] || 'en';
+    
+    // First try exact match
+    const exactMatch = LANGUAGES.find(l => l.code === deviceLocale);
+    if (exactMatch) return exactMatch;
+    
+    // Then try base language match
+    const baseMatch = LANGUAGES.find(l => l.code === localeCode || l.code.startsWith(localeCode));
+    if (baseMatch) return baseMatch;
+    
+    // Default to English
+    return LANGUAGES.find(l => l.code === 'en') || LANGUAGES[0];
+  } catch {
+    return LANGUAGES.find(l => l.code === 'en') || LANGUAGES[0];
+  }
+};
+
 export function SettingsProvider({ children }: { children: ReactNode }) {
-  const [language, setLanguage] = useState(LANGUAGES[0]); // Default to Romanian
+  const [language, setLanguage] = useState(LANGUAGES.find(l => l.code === 'en') || LANGUAGES[0]);
+  const [currency, setCurrency] = useState(CURRENCIES.find(c => c.code === 'GBP') || CURRENCIES[0]);
+  const [notifications, setNotifications] = useState<NotificationPreferences>({
+    hydrationReminders: true,
+    workCalendarAlerts: true,
+    foodExpirationAlerts: false,
+  });
+  const [isSettingsLoaded, setIsSettingsLoaded] = useState(false);
 
   useEffect(() => {
     loadSettings();
@@ -95,13 +154,33 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
 
   const loadSettings = async () => {
     try {
-      const savedLang = await AsyncStorage.getItem('language');
+      // Load saved language or detect from device
+      const savedLang = await AsyncStorage.getItem('app_language');
       if (savedLang) {
         const lang = LANGUAGES.find(l => l.code === savedLang);
         if (lang) setLanguage(lang);
+      } else {
+        // Auto-detect language from device
+        const detectedLang = detectLanguage();
+        setLanguage(detectedLang);
+      }
+
+      // Load saved currency
+      const savedCurrency = await AsyncStorage.getItem('app_currency');
+      if (savedCurrency) {
+        const curr = CURRENCIES.find(c => c.code === savedCurrency);
+        if (curr) setCurrency(curr);
+      }
+
+      // Load notification preferences
+      const savedNotifications = await AsyncStorage.getItem('app_notifications');
+      if (savedNotifications) {
+        setNotifications(JSON.parse(savedNotifications));
       }
     } catch (error) {
       console.error('Error loading settings:', error);
+    } finally {
+      setIsSettingsLoaded(true);
     }
   };
 
@@ -109,27 +188,43 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     const lang = LANGUAGES.find(l => l.code === code);
     if (lang) {
       setLanguage(lang);
-      await AsyncStorage.setItem('language', code);
+      await AsyncStorage.setItem('app_language', code);
     }
   };
 
-  const formatCurrency = (amount: number) => {
-    return `${amount.toFixed(2)} ${language.currencySymbol}`;
+  const setCurrencyCode = async (code: string) => {
+    const curr = CURRENCIES.find(c => c.code === code);
+    if (curr) {
+      setCurrency(curr);
+      await AsyncStorage.setItem('app_currency', code);
+    }
   };
 
-  // Translation function
-  const t = (key: string): string => {
-    // Get base language code (e.g., 'en' from 'en-US')
+  const setNotificationPreference = async (key: keyof NotificationPreferences, value: boolean) => {
+    const updated = { ...notifications, [key]: value };
+    setNotifications(updated);
+    await AsyncStorage.setItem('app_notifications', JSON.stringify(updated));
+  };
+
+  const formatCurrency = (amount: number) => {
+    // Format with currency symbol
+    if (currency.code === 'RON') {
+      return `${amount.toFixed(2)} ${currency.symbol}`;
+    }
+    return `${currency.symbol}${amount.toFixed(2)}`;
+  };
+
+  // Translation function with fallback chain
+  const t = (key: string, params?: { [key: string]: string | number }): string => {
     const baseLang = language.code.split('-')[0];
     
-    // Try exact language first, then base language, then fallback to English, then Romanian
+    // Fallback chain: exact match -> base language -> English
     const translationSource = 
       translations[language.code] || 
       translations[baseLang] || 
-      translations['en'] || 
-      translations['ro'];
+      translations['en'];
     
-    return getNestedValue(translationSource, key);
+    return getNestedValue(translationSource, key, params);
   };
 
   return (
@@ -137,9 +232,14 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
       value={{
         language,
         setLanguageCode,
-        currencySymbol: language.currencySymbol,
+        currency,
+        setCurrencyCode,
+        currencySymbol: currency.symbol,
         formatCurrency,
         t,
+        notifications,
+        setNotificationPreference,
+        isSettingsLoaded,
       }}
     >
       {children}
