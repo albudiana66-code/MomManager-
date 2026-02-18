@@ -15,27 +15,53 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { api } from '../../src/utils/api';
 import { format } from 'date-fns';
-import { ro } from 'date-fns/locale';
+import { ro, enUS, es, fr, de } from 'date-fns/locale';
 import * as ImagePicker from 'expo-image-picker';
 import { v4 as uuidv4 } from 'uuid';
+import { useSettings } from '../../src/context/SettingsContext';
 
 type TabType = 'checklist' | 'budget' | 'receipts';
 
-const DEFAULT_CATEGORIES = [
-  { name: 'Alimente', budget: 2000, spent: 0 },
-  { name: 'Utilit\u0103\u021bi', budget: 800, spent: 0 },
-  { name: 'Transport', budget: 500, spent: 0 },
-  { name: 'S\u0103n\u0103tate', budget: 300, spent: 0 },
-  { name: 'Educa\u021bie', budget: 400, spent: 0 },
-  { name: 'Divertisment', budget: 300, spent: 0 },
-];
+const dateLocales: { [key: string]: any } = {
+  ro: ro,
+  en: enUS,
+  'en-US': enUS,
+  es: es,
+  fr: fr,
+  de: de,
+};
 
 export default function OrganizeScreen() {
+  const { t, currencySymbol, language } = useSettings();
   const [activeTab, setActiveTab] = useState<TabType>('checklist');
   const [refreshing, setRefreshing] = useState(false);
   const today = new Date();
   const todayStr = format(today, 'yyyy-MM-dd');
   const currentMonth = format(today, 'yyyy-MM');
+  const dateLocale = dateLocales[language.code] || dateLocales[language.code.split('-')[0]] || enUS;
+
+  // Translated category names
+  const getCategoryName = (key: string) => {
+    const categoryMap: { [key: string]: string } = {
+      'Alimente': t('organize.categories.food'),
+      'Utilități': t('organize.categories.utilities'),
+      'Transport': t('organize.categories.transport'),
+      'Sănătate': t('organize.categories.health'),
+      'Educație': t('organize.categories.education'),
+      'Divertisment': t('organize.categories.entertainment'),
+    };
+    return categoryMap[key] || key;
+  };
+
+  // Default categories with translation keys
+  const DEFAULT_CATEGORIES = [
+    { name: 'Alimente', budget: 2000, spent: 0 },
+    { name: 'Utilități', budget: 800, spent: 0 },
+    { name: 'Transport', budget: 500, spent: 0 },
+    { name: 'Sănătate', budget: 300, spent: 0 },
+    { name: 'Educație', budget: 400, spent: 0 },
+    { name: 'Divertisment', budget: 300, spent: 0 },
+  ];
 
   // Checklist state
   const [checklistItems, setChecklistItems] = useState<any[]>([]);
@@ -46,6 +72,11 @@ export default function OrganizeScreen() {
   const [editCategoryModal, setEditCategoryModal] = useState(false);
   const [editingCategory, setEditingCategory] = useState<any>(null);
   const [categorySpent, setCategorySpent] = useState('');
+  const [categoryBudgetAmount, setCategoryBudgetAmount] = useState('');
+  
+  // Edit total budget
+  const [editTotalBudgetModal, setEditTotalBudgetModal] = useState(false);
+  const [totalBudgetInput, setTotalBudgetInput] = useState('');
 
   // Receipts state
   const [receipts, setReceipts] = useState<any[]>([]);
@@ -136,13 +167,15 @@ export default function OrganizeScreen() {
     }
   };
 
-  // Budget functions
-  const updateCategorySpent = async () => {
+  // Budget functions - Update category spent and budget
+  const updateCategory = async () => {
     if (!editingCategory) return;
 
     const spent = parseFloat(categorySpent) || 0;
+    const newBudget = parseFloat(categoryBudgetAmount) || editingCategory.budget;
+    
     const updatedCategories = budget.categories.map((cat: any) =>
-      cat.name === editingCategory.name ? { ...cat, spent } : cat
+      cat.name === editingCategory.name ? { ...cat, spent, budget: newBudget } : cat
     );
 
     setBudget({ ...budget, categories: updatedCategories });
@@ -155,12 +188,38 @@ export default function OrganizeScreen() {
     }
   };
 
+  // Update total budget - redistribute proportionally
+  const updateTotalBudget = async () => {
+    const newTotal = parseFloat(totalBudgetInput);
+    if (!newTotal || newTotal <= 0) {
+      Alert.alert(t('common.error'), t('organize.invalidBudget') || 'Please enter a valid amount');
+      return;
+    }
+
+    const currentTotal = budget.categories.reduce((sum: number, cat: any) => sum + cat.budget, 0);
+    const ratio = newTotal / currentTotal;
+
+    const updatedCategories = budget.categories.map((cat: any) => ({
+      ...cat,
+      budget: Math.round(cat.budget * ratio),
+    }));
+
+    setBudget({ ...budget, categories: updatedCategories });
+    setEditTotalBudgetModal(false);
+
+    try {
+      await api.saveBudget({ month: currentMonth, categories: updatedCategories });
+    } catch (error) {
+      console.error('Error updating total budget:', error);
+    }
+  };
+
   // Receipt functions
   const scanReceipt = async () => {
     try {
       const permission = await ImagePicker.requestCameraPermissionsAsync();
       if (!permission.granted) {
-        Alert.alert('Permisiune necesar\u0103', 'Avem nevoie de acces la camer\u0103 pentru scanare');
+        Alert.alert(t('common.error'), t('organize.cameraPermission') || 'Camera permission required');
         return;
       }
 
@@ -174,10 +233,10 @@ export default function OrganizeScreen() {
         try {
           const receipt = await api.scanReceipt(result.assets[0].base64);
           setReceipts([receipt, ...receipts]);
-          Alert.alert('Succes', 'Bonul a fost scanat \u0219i ad\u0103ugat!');
+          Alert.alert(t('common.success'), t('organize.receiptAdded') || 'Receipt scanned successfully!');
         } catch (error) {
           console.error('Error scanning receipt:', error);
-          Alert.alert('Eroare', 'Nu s-a putut procesa bonul');
+          Alert.alert(t('common.error'), t('organize.receiptError') || 'Could not process receipt');
         } finally {
           setScanning(false);
         }
@@ -191,7 +250,7 @@ export default function OrganizeScreen() {
     try {
       const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
       if (!permission.granted) {
-        Alert.alert('Permisiune necesar\u0103', 'Avem nevoie de acces la galerie');
+        Alert.alert(t('common.error'), t('organize.galleryPermission') || 'Gallery permission required');
         return;
       }
 
@@ -205,10 +264,10 @@ export default function OrganizeScreen() {
         try {
           const receipt = await api.scanReceipt(result.assets[0].base64);
           setReceipts([receipt, ...receipts]);
-          Alert.alert('Succes', 'Bonul a fost scanat \u0219i ad\u0103ugat!');
+          Alert.alert(t('common.success'), t('organize.receiptAdded') || 'Receipt scanned successfully!');
         } catch (error) {
           console.error('Error scanning receipt:', error);
-          Alert.alert('Eroare', 'Nu s-a putut procesa bonul');
+          Alert.alert(t('common.error'), t('organize.receiptError') || 'Could not process receipt');
         } finally {
           setScanning(false);
         }
@@ -245,7 +304,7 @@ export default function OrganizeScreen() {
             color={activeTab === 'checklist' ? '#fff' : '#10b981'}
           />
           <Text style={[styles.tabText, activeTab === 'checklist' && styles.tabTextActive]}>
-            Checklist
+            {t('organize.checklist')}
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
@@ -258,7 +317,7 @@ export default function OrganizeScreen() {
             color={activeTab === 'budget' ? '#fff' : '#10b981'}
           />
           <Text style={[styles.tabText, activeTab === 'budget' && styles.tabTextActive]}>
-            Buget
+            {t('organize.budget')}
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
@@ -271,7 +330,7 @@ export default function OrganizeScreen() {
             color={activeTab === 'receipts' ? '#fff' : '#10b981'}
           />
           <Text style={[styles.tabText, activeTab === 'receipts' && styles.tabTextActive]}>
-            Bonuri
+            {t('organize.receipts')}
           </Text>
         </TouchableOpacity>
       </View>
@@ -286,9 +345,9 @@ export default function OrganizeScreen() {
         {activeTab === 'checklist' && (
           <View>
             <View style={styles.headerCard}>
-              <Text style={styles.headerTitle}>Checklist Zilnic</Text>
+              <Text style={styles.headerTitle}>{t('organize.dailyChecklist')}</Text>
               <Text style={styles.headerSubtitle}>
-                {format(today, 'EEEE, d MMMM', { locale: ro })}
+                {format(today, 'EEEE, d MMMM', { locale: dateLocale })}
               </Text>
               <View style={styles.progressContainer}>
                 <View style={styles.progressBar}>
@@ -302,7 +361,7 @@ export default function OrganizeScreen() {
                   />
                 </View>
                 <Text style={styles.progressText}>
-                  {completedTasks}/{checklistItems.length} complete
+                  {completedTasks}/{checklistItems.length} {t('organize.complete')}
                 </Text>
               </View>
             </View>
@@ -312,7 +371,7 @@ export default function OrganizeScreen() {
                 style={styles.addTaskInput}
                 value={newTask}
                 onChangeText={setNewTask}
-                placeholder="Adaug\u0103 un task nou..."
+                placeholder={t('organize.addTask')}
                 placeholderTextColor="#9ca3af"
                 onSubmitEditing={addTask}
               />
@@ -347,23 +406,35 @@ export default function OrganizeScreen() {
         {activeTab === 'budget' && budget && (
           <View>
             <View style={styles.headerCard}>
-              <Text style={styles.headerTitle}>Buget Familie</Text>
+              <View style={styles.budgetHeaderRow}>
+                <Text style={styles.headerTitle}>{t('organize.familyBudget')}</Text>
+                <TouchableOpacity 
+                  style={styles.editBudgetButton}
+                  onPress={() => {
+                    setTotalBudgetInput(totalBudget.toString());
+                    setEditTotalBudgetModal(true);
+                  }}
+                >
+                  <Ionicons name="pencil" size={16} color="#10b981" />
+                  <Text style={styles.editBudgetText}>{t('common.edit')}</Text>
+                </TouchableOpacity>
+              </View>
               <Text style={styles.headerSubtitle}>
-                {format(today, 'MMMM yyyy', { locale: ro })}
+                {format(today, 'MMMM yyyy', { locale: dateLocale })}
               </Text>
               <View style={styles.budgetSummary}>
                 <View style={styles.budgetItem}>
-                  <Text style={styles.budgetLabel}>Total Buget</Text>
-                  <Text style={styles.budgetValue}>{totalBudget} RON</Text>
+                  <Text style={styles.budgetLabel}>{t('organize.totalBudget')}</Text>
+                  <Text style={styles.budgetValue}>{totalBudget} {currencySymbol}</Text>
                 </View>
                 <View style={styles.budgetItem}>
-                  <Text style={styles.budgetLabel}>Cheltuit</Text>
-                  <Text style={[styles.budgetValue, { color: '#ef4444' }]}>{totalSpent} RON</Text>
+                  <Text style={styles.budgetLabel}>{t('organize.spent')}</Text>
+                  <Text style={[styles.budgetValue, { color: '#ef4444' }]}>{totalSpent} {currencySymbol}</Text>
                 </View>
                 <View style={styles.budgetItem}>
-                  <Text style={styles.budgetLabel}>R\u0103mas</Text>
+                  <Text style={styles.budgetLabel}>{t('organize.remaining')}</Text>
                   <Text style={[styles.budgetValue, { color: '#10b981' }]}>
-                    {totalBudget - totalSpent} RON
+                    {totalBudget - totalSpent} {currencySymbol}
                   </Text>
                 </View>
               </View>
@@ -380,13 +451,14 @@ export default function OrganizeScreen() {
                   onPress={() => {
                     setEditingCategory(cat);
                     setCategorySpent(cat.spent.toString());
+                    setCategoryBudgetAmount(cat.budget.toString());
                     setEditCategoryModal(true);
                   }}
                 >
                   <View style={styles.categoryHeader}>
-                    <Text style={styles.categoryName}>{cat.name}</Text>
+                    <Text style={styles.categoryName}>{getCategoryName(cat.name)}</Text>
                     <Text style={[styles.categorySpent, isOver && { color: '#ef4444' }]}>
-                      {cat.spent} / {cat.budget} RON
+                      {cat.spent} / {cat.budget} {currencySymbol}
                     </Text>
                   </View>
                   <View style={styles.categoryProgress}>
@@ -410,9 +482,9 @@ export default function OrganizeScreen() {
         {activeTab === 'receipts' && (
           <View>
             <View style={styles.headerCard}>
-              <Text style={styles.headerTitle}>Bonuri Scanate</Text>
+              <Text style={styles.headerTitle}>{t('organize.scannedReceipts')}</Text>
               <Text style={styles.headerSubtitle}>
-                Scaneaz\u0103 bonurile pentru a le ad\u0103uga automat la buget
+                {t('organize.scanReceiptsHint')}
               </Text>
               <View style={styles.scanButtons}>
                 <TouchableOpacity
@@ -421,7 +493,7 @@ export default function OrganizeScreen() {
                   disabled={scanning}
                 >
                   <Ionicons name="camera" size={24} color="#fff" />
-                  <Text style={styles.scanButtonText}>Camer\u0103</Text>
+                  <Text style={styles.scanButtonText}>{t('organize.camera')}</Text>
                 </TouchableOpacity>
                 <TouchableOpacity
                   style={[styles.scanButton, { backgroundColor: '#6366f1' }]}
@@ -429,7 +501,7 @@ export default function OrganizeScreen() {
                   disabled={scanning}
                 >
                   <Ionicons name="images" size={24} color="#fff" />
-                  <Text style={styles.scanButtonText}>Galerie</Text>
+                  <Text style={styles.scanButtonText}>{t('organize.gallery')}</Text>
                 </TouchableOpacity>
               </View>
             </View>
@@ -437,7 +509,7 @@ export default function OrganizeScreen() {
             {scanning && (
               <View style={styles.scanningContainer}>
                 <ActivityIndicator size="large" color="#10b981" />
-                <Text style={styles.scanningText}>Se proceseaz\u0103 bonul cu AI...</Text>
+                <Text style={styles.scanningText}>{t('organize.processingAI')}</Text>
               </View>
             )}
 
@@ -446,7 +518,7 @@ export default function OrganizeScreen() {
                 <View style={styles.receiptHeader}>
                   <View>
                     <Text style={styles.receiptStore}>
-                      {receipt.parsed_data?.store || 'Magazin necunoscut'}
+                      {receipt.parsed_data?.store || t('organize.unknownStore')}
                     </Text>
                     <Text style={styles.receiptDate}>
                       {receipt.parsed_data?.date || format(new Date(receipt.created_at), 'dd/MM/yyyy')}
@@ -461,20 +533,20 @@ export default function OrganizeScreen() {
                     {receipt.parsed_data.items.slice(0, 3).map((item: any, idx: number) => (
                       <View key={idx} style={styles.receiptItem}>
                         <Text style={styles.receiptItemName}>{item.name}</Text>
-                        <Text style={styles.receiptItemPrice}>{item.price} RON</Text>
+                        <Text style={styles.receiptItemPrice}>{item.price} {currencySymbol}</Text>
                       </View>
                     ))}
                     {receipt.parsed_data.items.length > 3 && (
                       <Text style={styles.moreItems}>
-                        +{receipt.parsed_data.items.length - 3} alte produse
+                        +{receipt.parsed_data.items.length - 3} {t('organize.otherProducts')}
                       </Text>
                     )}
                   </View>
                 )}
                 <View style={styles.receiptTotal}>
-                  <Text style={styles.receiptTotalLabel}>Total</Text>
+                  <Text style={styles.receiptTotalLabel}>{t('organize.total')}</Text>
                   <Text style={styles.receiptTotalValue}>
-                    {receipt.parsed_data?.total || '0'} RON
+                    {receipt.parsed_data?.total || '0'} {currencySymbol}
                   </Text>
                 </View>
               </View>
@@ -483,7 +555,7 @@ export default function OrganizeScreen() {
             {receipts.length === 0 && !scanning && (
               <View style={styles.emptyState}>
                 <Ionicons name="receipt-outline" size={48} color="#d1d5db" />
-                <Text style={styles.emptyText}>Niciun bon scanat</Text>
+                <Text style={styles.emptyText}>{t('organize.noReceipts')}</Text>
               </View>
             )}
           </View>
@@ -495,13 +567,24 @@ export default function OrganizeScreen() {
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Actualizeaz\u0103 {editingCategory?.name}</Text>
+              <Text style={styles.modalTitle}>
+                {t('organize.updateCategory')} {editingCategory ? getCategoryName(editingCategory.name) : ''}
+              </Text>
               <TouchableOpacity onPress={() => setEditCategoryModal(false)}>
                 <Ionicons name="close" size={24} color="#6b7280" />
               </TouchableOpacity>
             </View>
             <View style={styles.modalBody}>
-              <Text style={styles.inputLabel}>Sum\u0103 cheltuit\u0103 (RON)</Text>
+              <Text style={styles.inputLabel}>{t('organize.categoryBudget')} ({currencySymbol})</Text>
+              <TextInput
+                style={styles.input}
+                value={categoryBudgetAmount}
+                onChangeText={setCategoryBudgetAmount}
+                keyboardType="numeric"
+                placeholder="0"
+              />
+              
+              <Text style={styles.inputLabel}>{t('organize.spentAmount')} ({currencySymbol})</Text>
               <TextInput
                 style={styles.input}
                 value={categorySpent}
@@ -509,8 +592,38 @@ export default function OrganizeScreen() {
                 keyboardType="numeric"
                 placeholder="0"
               />
-              <TouchableOpacity style={styles.saveButton} onPress={updateCategorySpent}>
-                <Text style={styles.saveButtonText}>Salveaz\u0103</Text>
+              <TouchableOpacity style={styles.saveButton} onPress={updateCategory}>
+                <Text style={styles.saveButtonText}>{t('common.save')}</Text>
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Edit Total Budget Modal */}
+      <Modal visible={editTotalBudgetModal} animationType="slide" transparent>
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>{t('organize.editBudget')}</Text>
+              <TouchableOpacity onPress={() => setEditTotalBudgetModal(false)}>
+                <Ionicons name="close" size={24} color="#6b7280" />
+              </TouchableOpacity>
+            </View>
+            <View style={styles.modalBody}>
+              <Text style={styles.inputLabel}>{t('organize.setBudget')} ({currencySymbol})</Text>
+              <TextInput
+                style={styles.input}
+                value={totalBudgetInput}
+                onChangeText={setTotalBudgetInput}
+                keyboardType="numeric"
+                placeholder={totalBudget.toString()}
+              />
+              <Text style={styles.budgetHint}>
+                {t('organize.budgetHint') || 'Category budgets will be adjusted proportionally'}
+              </Text>
+              <TouchableOpacity style={styles.saveButton} onPress={updateTotalBudget}>
+                <Text style={styles.saveButtonText}>{t('common.save')}</Text>
               </TouchableOpacity>
             </View>
           </View>
@@ -565,6 +678,25 @@ const styles = StyleSheet.create({
     shadowOpacity: 0.05,
     shadowRadius: 8,
     elevation: 3,
+  },
+  budgetHeaderRow: {
+    flexDirection: 'row',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+  },
+  editBudgetButton: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#d1fae5',
+    paddingVertical: 6,
+    paddingHorizontal: 12,
+    borderRadius: 20,
+    gap: 4,
+  },
+  editBudgetText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#10b981',
   },
   headerTitle: {
     fontSize: 22,
@@ -833,6 +965,12 @@ const styles = StyleSheet.create({
     color: '#1f2937',
     marginBottom: 16,
     backgroundColor: '#f9fafb',
+  },
+  budgetHint: {
+    fontSize: 13,
+    color: '#9ca3af',
+    fontStyle: 'italic',
+    marginBottom: 16,
   },
   saveButton: {
     backgroundColor: '#10b981',
