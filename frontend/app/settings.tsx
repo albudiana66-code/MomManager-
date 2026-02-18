@@ -58,7 +58,7 @@ export default function SettingsScreen() {
             style={styles.backButton} 
             onPress={() => router.back()}
           >
-            <Ionicons name="arrow-back" size={24} color="#9d174d" />
+            <Ionicons name="arrow-back" size={24} color="#C5A059" />
           </TouchableOpacity>
           <Text style={styles.title}>{t('settings.title')}</Text>
           <View style={{ width: 40 }} />
