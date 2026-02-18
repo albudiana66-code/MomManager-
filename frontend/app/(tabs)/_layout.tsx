@@ -2,12 +2,14 @@ import React from 'react';
 import { Tabs } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../../src/context/AuthContext';
+import { useSettings } from '../../src/context/SettingsContext';
 import { LoadingScreen } from '../../src/components/LoadingScreen';
 import { useRouter } from 'expo-router';
 import { useEffect } from 'react';
 
 export default function TabsLayout() {
   const { isLoading, isAuthenticated } = useAuth();
+  const { t } = useSettings();
   const router = useRouter();
 
   useEffect(() => {
@@ -51,7 +53,7 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Acasă',
+          title: t('tabs.home'),
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="home" size={size} color={color} />
           ),
@@ -60,7 +62,7 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="work"
         options={{
-          title: 'Work',
+          title: t('tabs.work'),
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="calendar" size={size} color={color} />
           ),
@@ -69,7 +71,7 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="organize"
         options={{
-          title: 'Organizare',
+          title: t('tabs.organize'),
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="checkbox" size={size} color={color} />
           ),
@@ -78,7 +80,7 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="kitchen"
         options={{
-          title: 'Bucătărie',
+          title: t('tabs.kitchen'),
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="restaurant" size={size} color={color} />
           ),
@@ -87,7 +89,7 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="kids"
         options={{
-          title: 'Copii',
+          title: t('tabs.kids'),
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="people" size={size} color={color} />
           ),
@@ -96,7 +98,7 @@ export default function TabsLayout() {
       <Tabs.Screen
         name="selfcare"
         options={{
-          title: 'Self-Care',
+          title: t('tabs.selfcare'),
           tabBarIcon: ({ color, size }) => (
             <Ionicons name="heart" size={size} color={color} />
           ),
