@@ -237,7 +237,7 @@ export default function KitchenScreen() {
                     <Ionicons name="sunny" size={24} color="#f59e0b" />
                   </View>
                   <View style={styles.mealContent}>
-                    <Text style={styles.mealLabel}>Mic dejun</Text>
+                    <Text style={styles.mealLabel}>{t('kitchen.meals.breakfast')}</Text>
                     <Text style={styles.mealText}>{currentMeals.breakfast}</Text>
                   </View>
                 </View>
@@ -247,7 +247,7 @@ export default function KitchenScreen() {
                     <Ionicons name="restaurant" size={24} color="#3b82f6" />
                   </View>
                   <View style={styles.mealContent}>
-                    <Text style={styles.mealLabel}>Prânz</Text>
+                    <Text style={styles.mealLabel}>{t('kitchen.meals.lunch')}</Text>
                     <Text style={styles.mealText}>{currentMeals.lunch}</Text>
                   </View>
                 </View>
@@ -257,7 +257,7 @@ export default function KitchenScreen() {
                     <Ionicons name="moon" size={24} color="#8b5cf6" />
                   </View>
                   <View style={styles.mealContent}>
-                    <Text style={styles.mealLabel}>Cină</Text>
+                    <Text style={styles.mealLabel}>{t('kitchen.meals.dinner')}</Text>
                     <Text style={styles.mealText}>{currentMeals.dinner}</Text>
                   </View>
                 </View>
@@ -273,9 +273,9 @@ export default function KitchenScreen() {
                 <Ionicons name="cart" size={24} color="#f59e0b" />
               </View>
               <View style={styles.shoppingContent}>
-                <Text style={styles.shoppingTitle}>Listă de cumpărături</Text>
+                <Text style={styles.shoppingTitle}>{t('kitchen.shoppingList')}</Text>
                 <Text style={styles.shoppingSubtitle}>
-                  {checkedCount}/{totalCount} produse bifate
+                  {checkedCount}/{totalCount} {t('kitchen.itemsChecked')}
                 </Text>
               </View>
               <Ionicons name="chevron-forward" size={24} color="#9ca3af" />
@@ -287,7 +287,7 @@ export default function KitchenScreen() {
               onPress={() => deleteMealPlan(currentPlan.id)}
             >
               <Ionicons name="trash-outline" size={20} color="#ef4444" />
-              <Text style={styles.deleteButtonText}>Șterge meal plan</Text>
+              <Text style={styles.deleteButtonText}>{t('kitchen.deleteMealPlan')}</Text>
             </TouchableOpacity>
           </>
         )}
@@ -295,16 +295,16 @@ export default function KitchenScreen() {
         {!generating && !currentPlan && (
           <View style={styles.emptyState}>
             <Ionicons name="restaurant-outline" size={64} color="#d1d5db" />
-            <Text style={styles.emptyTitle}>Niciun meal plan</Text>
+            <Text style={styles.emptyTitle}>{t('kitchen.noMealPlan')}</Text>
             <Text style={styles.emptySubtitle}>
-              Generează un meal plan personalizat cu AI
+              {t('kitchen.generateHint')}
             </Text>
             <TouchableOpacity
               style={styles.emptyButton}
               onPress={() => setPreferencesModal(true)}
             >
               <Ionicons name="sparkles" size={20} color="#fff" />
-              <Text style={styles.emptyButtonText}>Generează acum</Text>
+              <Text style={styles.emptyButtonText}>{t('kitchen.generateNow')}</Text>
             </TouchableOpacity>
           </View>
         )}
