@@ -171,8 +171,8 @@ export default function PrivacyScreen() {
           </Text>
           <Text style={styles.sectionText}>
             {isRomanian
-              ? 'Pentru întrebări despre confidențialitate sau pentru a vă exercita drepturile GDPR:\n\nDiana-Elena Albu\nData Controller\nEmail: privacy@mommanager.app\n\nAutoritatea de supraveghere: Information Commissioner\'s Office (ICO), UK'
-              : 'For privacy questions or to exercise your GDPR rights:\n\nDiana-Elena Albu\nData Controller\nEmail: privacy@mommanager.app\n\nSupervisory authority: Information Commissioner\'s Office (ICO), UK'}
+              ? 'Pentru întrebări despre confidențialitate sau pentru a vă exercita drepturile GDPR:\n\nDiana-Elena Albu\nProprietar & Data Controller - MomManager 2026\nEmail: dianaalbu661@yahoo.com\n\nAutoritatea de supraveghere: Information Commissioner\'s Office (ICO), UK'
+              : 'For privacy questions or to exercise your GDPR rights:\n\nDiana-Elena Albu\nOwner & Data Controller - MomManager 2026\nEmail: dianaalbu661@yahoo.com\n\nSupervisory authority: Information Commissioner\'s Office (ICO), UK'}
           </Text>
         </View>
 

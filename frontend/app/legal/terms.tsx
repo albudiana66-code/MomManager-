@@ -114,8 +114,8 @@ export default function TermsScreen() {
           </Text>
           <Text style={styles.sectionText}>
             {isRomanian
-              ? 'Pentru întrebări despre acești termeni, vă rugăm să ne contactați:\n\nDiana-Elena Albu\nSole Trader\nEmail: contact@mommanager.app'
-              : 'For questions about these terms, please contact us:\n\nDiana-Elena Albu\nSole Trader\nEmail: contact@mommanager.app'}
+              ? 'Pentru întrebări despre acești termeni, vă rugăm să ne contactați:\n\nDiana-Elena Albu\nProprietar MomManager 2026\nEmail: dianaalbu661@yahoo.com'
+              : 'For questions about these terms, please contact us:\n\nDiana-Elena Albu\nOwner of MomManager 2026\nEmail: dianaalbu661@yahoo.com'}
           </Text>
         </View>
 
