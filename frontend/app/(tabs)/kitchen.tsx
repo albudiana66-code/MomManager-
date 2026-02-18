@@ -15,11 +15,16 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { api } from '../../src/utils/api';
 import { format, startOfWeek, addDays } from 'date-fns';
-import { ro } from 'date-fns/locale';
-
-const DAYS = ['Luni', 'Marți', 'Miercuri', 'Joi', 'Vineri', 'Sâmbătă', 'Duminică'];
+import { ro, enUS, es, fr, de, it } from 'date-fns/locale';
+import { useSettings } from '../../src/context/SettingsContext';
 
 export default function KitchenScreen() {
+  const { t, language } = useSettings();
+  
+  // Get translated days array
+  const DAYS_KEYS = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
+  const DAYS = DAYS_KEYS.map(key => t(`kitchen.days.${key}`));
+  
   const [mealPlans, setMealPlans] = useState<any[]>([]);
   const [currentPlan, setCurrentPlan] = useState<any>(null);
   const [refreshing, setRefreshing] = useState(false);
@@ -30,8 +35,8 @@ export default function KitchenScreen() {
   const [shoppingModal, setShoppingModal] = useState(false);
 
   // Preferences
-  const [adultPrefs, setAdultPrefs] = useState('mese sănătoase, echilibrate');
-  const [kidPrefs, setKidPrefs] = useState('mese simple, kid-friendly');
+  const [adultPrefs, setAdultPrefs] = useState('');
+  const [kidPrefs, setKidPrefs] = useState('');
   const [restrictions, setRestrictions] = useState('');
   const [numAdults, setNumAdults] = useState('2');
   const [numKids, setNumKids] = useState('1');
