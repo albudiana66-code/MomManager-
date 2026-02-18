@@ -12,7 +12,9 @@
     "confirm": "Confirmer",
     "search": "Rechercher",
     "settings": "Paramètres",
-    "logout": "Déconnexion"
+    "logout": "Déconnexion",
+    "on": "Activé",
+    "off": "Désactivé"
   },
   "tabs": {
     "home": "Accueil",
@@ -20,7 +22,7 @@
     "organize": "Organiser",
     "kitchen": "Cuisine",
     "kids": "Enfants",
-    "selfcare": "Bien-être"
+    "selfcare": "Self-Care"
   },
   "home": {
     "greeting": "Bonjour",
@@ -30,46 +32,46 @@
     "children": "Enfants",
     "quickActions": "Actions rapides",
     "meeting": "Réunion",
-    "checklist": "Liste",
+    "checklist": "Liste de tâches",
     "mealPlan": "Menu",
-    "workout": "Sport",
+    "workout": "Entraînement",
     "meetingsToday": "Réunions aujourd'hui",
     "tasksToday": "Tâches aujourd'hui",
-    "motivationalQuote": "Une maman organisée est une maman heureuse!",
-    "languageAndCurrency": "Langue et devise",
-    "currencyAutoChange": "La devise change automatiquement selon la langue sélectionnée"
+    "motivationalQuote": "Une maman organisée est une maman heureuse !"
   },
   "work": {
     "calendar": "Calendrier",
     "addMeeting": "Ajouter une réunion",
     "editMeeting": "Modifier la réunion",
-    "noMeetings": "Aucune réunion programmée",
+    "noMeetings": "Aucune réunion prévue",
     "title": "Titre",
     "startTime": "Heure de début",
     "endTime": "Heure de fin",
     "description": "Description (optionnel)",
     "color": "Couleur",
     "deleteMeeting": "Supprimer la réunion",
-    "confirmDelete": "Êtes-vous sûre de vouloir supprimer cette réunion?"
+    "confirmDelete": "Êtes-vous sûre de vouloir supprimer cette réunion ?",
+    "exampleTitle": "Ex: Appel client",
+    "meetingNotes": "Notes de la réunion..."
   },
   "organize": {
     "checklist": "Liste",
     "budget": "Budget",
     "receipts": "Reçus",
     "dailyChecklist": "Liste quotidienne",
-    "complete": "terminées",
-    "addTask": "Ajouter une nouvelle tâche...",
-    "familyBudget": "Budget Familial",
-    "totalBudget": "Budget Total",
+    "complete": "complétées",
+    "addTask": "Ajouter une tâche...",
+    "familyBudget": "Budget familial",
+    "totalBudget": "Budget total",
     "spent": "Dépensé",
     "remaining": "Restant",
     "updateCategory": "Mettre à jour",
     "spentAmount": "Montant dépensé",
-    "scannedReceipts": "Reçus Scannés",
-    "scanReceiptsHint": "Scannez les reçus pour les ajouter automatiquement au budget",
-    "camera": "Caméra",
+    "scannedReceipts": "Reçus scannés",
+    "scanReceiptsHint": "Scannez les reçus pour les ajouter automatiquement",
+    "camera": "Appareil photo",
     "gallery": "Galerie",
-    "processingAI": "Traitement du reçu par IA...",
+    "processingAI": "Traitement du reçu avec l'IA...",
     "unknownStore": "Magasin inconnu",
     "otherProducts": "autres produits",
     "total": "Total",
@@ -84,10 +86,11 @@
     },
     "editBudget": "Modifier le budget",
     "setBudget": "Définir le budget total",
-    "categoryBudget": "Budget de catégorie"
+    "categoryBudget": "Budget catégorie",
+    "budgetHint": "Les budgets des catégories seront ajustés proportionnellement"
   },
   "kitchen": {
-    "mealPlan": "Menu de la Semaine",
+    "mealPlan": "Menu hebdomadaire",
     "generate": "Générer",
     "generating": "L'IA génère votre menu...",
     "generatingHint": "Ce processus peut prendre quelques secondes",
@@ -99,7 +102,7 @@
     "noMealPlan": "Pas de menu",
     "generateHint": "Générez un menu personnalisé avec l'IA",
     "generateNow": "Générer maintenant",
-    "preferences": "Préférences du Menu",
+    "preferences": "Préférences du menu",
     "adultPreferences": "Préférences adultes",
     "kidPreferences": "Préférences enfants",
     "dietaryRestrictions": "Restrictions alimentaires",
@@ -122,14 +125,14 @@
     }
   },
   "kids": {
-    "myKids": "Mes Enfants",
+    "myKids": "Mes enfants",
     "activities": "Activités",
     "milestones": "Étapes",
     "addKid": "Ajouter un enfant",
     "addActivity": "Ajouter une activité",
     "addMilestone": "Ajouter une étape",
     "noKids": "Aucun enfant ajouté",
-    "noKidsHint": "Ajoutez vos enfants pour suivre activités et étapes",
+    "noKidsHint": "Ajoutez vos enfants pour suivre leurs activités et étapes",
     "noActivities": "Aucune activité enregistrée",
     "name": "Nom",
     "birthDate": "Date de naissance (optionnel)",
@@ -137,14 +140,18 @@
     "notes": "Notes (optionnel)",
     "milestoneName": "Nom de l'étape",
     "deleteKid": "Supprimer l'enfant",
-    "confirmDeleteKid": "Êtes-vous sûre de vouloir supprimer cet enfant?",
+    "confirmDeleteKid": "Êtes-vous sûre de vouloir supprimer cet enfant ?",
     "yearsAndMonths": "ans et",
     "months": "mois",
-    "years": "ans"
+    "years": "ans",
+    "exampleName": "Ex: Marie",
+    "exampleActivity": "Ex: Cours de natation",
+    "activityDetails": "Détails de l'activité...",
+    "exampleMilestone": "Ex: A appris à faire du vélo"
   },
   "selfcare": {
-    "title": "Bien-être",
-    "motivationalTitle": "Votre temps compte!",
+    "title": "Self-Care",
+    "motivationalTitle": "Votre temps compte !",
     "motivationalText": "Même 15 minutes par jour font la différence pour votre santé.",
     "nutrition": "Nutrition",
     "sport": "Sport",
@@ -157,14 +164,14 @@
     "dailyMealPlan": "Plan alimentaire quotidien",
     "generateNewWorkout": "Générer un nouvel entraînement",
     "creatingWorkout": "L'IA crée votre entraînement...",
-    "noWorkouts": "Aucun entraînement enregistré",
+    "noWorkouts": "Aucun entraînement sauvegardé",
     "exercises": "exercices",
     "deleteWorkout": "Supprimer l'entraînement",
-    "confirmDeleteWorkout": "Êtes-vous sûre de vouloir supprimer cet entraînement?",
+    "confirmDeleteWorkout": "Êtes-vous sûre de vouloir supprimer cet entraînement ?",
     "age": "Âge",
     "activityLevel": "Niveau d'activité",
     "dietaryRestrictions": "Restrictions alimentaires (optionnel)",
-    "cookingTime": "Temps de cuisine",
+    "cookingTime": "Temps de cuisson",
     "focusArea": "Zone de focus",
     "fitnessLevel": "Niveau de fitness",
     "duration": "Durée",
@@ -187,7 +194,11 @@
       "cardio": "cardio",
       "core": "abdos",
       "stretching": "étirements"
-    }
+    },
+    "exampleGoal": "Ex: énergie et santé",
+    "exampleRestrictions": "Ex: sans lactose, végétarien",
+    "exampleCookingTime": "Ex: 30 minutes",
+    "exampleWorkoutGoals": "Ex: énergie, force, flexibilité"
   },
   "settings": {
     "title": "Paramètres",
@@ -199,14 +210,33 @@
     "languageHint": "L'interface sera traduite dans la langue sélectionnée",
     "currencyHint": "La devise s'appliquera au budget et aux dépenses",
     "account": "Compte",
-    "preferences": "Préférences"
+    "myAccount": "Mon compte",
+    "preferences": "Préférences",
+    "notifications": "Notifications",
+    "hydrationReminders": "Rappels d'hydratation",
+    "hydrationHint": "Recevez des rappels pour boire de l'eau",
+    "workCalendarAlerts": "Alertes du calendrier",
+    "workCalendarHint": "Notifications pour vos réunions",
+    "foodExpirationAlerts": "Alertes de péremption",
+    "foodExpirationHint": "Alertes pour les aliments qui périment",
+    "subscription": "Abonnement",
+    "monthlyPlan": "Plan mensuel",
+    "yearlyPlan": "Plan annuel",
+    "savePercent": "Économisez {{percent}}% avec le plan annuel",
+    "freeTrial": "7 jours d'essai gratuit",
+    "perMonth": "/mois",
+    "perYear": "/an",
+    "exportData": "Exporter mes données",
+    "exportHint": "Téléchargez toutes vos données (conformité RGPD)",
+    "changeEmail": "Changer d'email",
+    "changePassword": "Changer de mot de passe"
   },
   "ai": {
-    "assistant": "Assistante Maman",
-    "alwaysHere": "Toujours là pour toi",
+    "assistant": "Assistant Maman",
+    "alwaysHere": "Toujours là pour vous",
     "typing": "En train d'écrire...",
-    "placeholder": "Dis-moi ce que tu as sur le cœur...",
-    "welcome": "Bonjour, chère maman! 💕 Je suis là pour toi. Comment puis-je t'aider aujourd'hui? Tu peux me dire n'importe quoi - je suis là pour t'écouter et te soutenir."
+    "placeholder": "Dites-moi ce que vous avez en tête...",
+    "welcome": "Bonjour, chère maman ! 💕 Je suis là pour vous. Comment puis-je vous aider aujourd'hui ? Vous pouvez me dire n'importe quoi - je suis là pour vous écouter et vous soutenir."
   },
   "auth": {
     "continueWithGoogle": "Continuer avec Google",
@@ -215,13 +245,13 @@
   "landing": {
     "title": "MomManager",
     "subtitle": "2026",
-    "description": "L'écosystème tout-en-un pour les mamans qui travaillent",
+    "description": "L'écosystème tout-en-un pour les mamans actives",
     "features": {
-      "work": "Calendrier pour réunions",
+      "work": "Calendrier de réunions",
       "organize": "Listes et budget",
       "kitchen": "Menu et courses",
       "kids": "Activités et étapes",
-      "selfcare": "Nutrition et sport"
+      "selfcare": "Nutrition et fitness"
     }
   }
 }
