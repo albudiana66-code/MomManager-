@@ -1,10 +1,26 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import AsyncStorage from '@react-native-async-storage/async-storage';
 
+// Import translations
+import roTranslations from '../translations/ro.json';
+import enTranslations from '../translations/en.json';
+import esTranslations from '../translations/es.json';
+import frTranslations from '../translations/fr.json';
+import deTranslations from '../translations/de.json';
+
+// All translations
+const translations: { [key: string]: any } = {
+  ro: roTranslations,
+  en: enTranslations,
+  es: esTranslations,
+  fr: frTranslations,
+  de: deTranslations,
+};
+
 // All world languages with their regions and currencies
 export const LANGUAGES = [
   { code: 'ro', name: 'Română', region: 'RO', currency: 'RON', currencySymbol: 'lei' },
-  { code: 'en', name: 'English', region: 'GB', currency: 'GBP', currencySymbol: '£' },
+  { code: 'en', name: 'English (UK)', region: 'GB', currency: 'GBP', currencySymbol: '£' },
   { code: 'en-US', name: 'English (US)', region: 'US', currency: 'USD', currencySymbol: '$' },
   { code: 'es', name: 'Español', region: 'ES', currency: 'EUR', currencySymbol: '€' },
   { code: 'fr', name: 'Français', region: 'FR', currency: 'EUR', currencySymbol: '€' },
@@ -27,15 +43,7 @@ export const LANGUAGES = [
   { code: 'tr', name: 'Türkçe', region: 'TR', currency: 'TRY', currencySymbol: '₺' },
   { code: 'ar', name: 'العربية', region: 'SA', currency: 'SAR', currencySymbol: '﷼' },
   { code: 'he', name: 'עברית', region: 'IL', currency: 'ILS', currencySymbol: '₪' },
-  { code: 'fa', name: 'فارسی', region: 'IR', currency: 'IRR', currencySymbol: '﷼' },
   { code: 'hi', name: 'हिन्दी', region: 'IN', currency: 'INR', currencySymbol: '₹' },
-  { code: 'bn', name: 'বাংলা', region: 'BD', currency: 'BDT', currencySymbol: '৳' },
-  { code: 'ta', name: 'தமிழ்', region: 'IN', currency: 'INR', currencySymbol: '₹' },
-  { code: 'te', name: 'తెలుగు', region: 'IN', currency: 'INR', currencySymbol: '₹' },
-  { code: 'mr', name: 'मराठी', region: 'IN', currency: 'INR', currencySymbol: '₹' },
-  { code: 'gu', name: 'ગુજરાતી', region: 'IN', currency: 'INR', currencySymbol: '₹' },
-  { code: 'pa', name: 'ਪੰਜਾਬੀ', region: 'IN', currency: 'INR', currencySymbol: '₹' },
-  { code: 'ur', name: 'اردو', region: 'PK', currency: 'PKR', currencySymbol: '₨' },
   { code: 'th', name: 'ไทย', region: 'TH', currency: 'THB', currencySymbol: '฿' },
   { code: 'vi', name: 'Tiếng Việt', region: 'VN', currency: 'VND', currencySymbol: '₫' },
   { code: 'id', name: 'Bahasa Indonesia', region: 'ID', currency: 'IDR', currencySymbol: 'Rp' },
@@ -49,16 +57,9 @@ export const LANGUAGES = [
   { code: 'no', name: 'Norsk', region: 'NO', currency: 'NOK', currencySymbol: 'kr' },
   { code: 'da', name: 'Dansk', region: 'DK', currency: 'DKK', currencySymbol: 'kr' },
   { code: 'fi', name: 'Suomi', region: 'FI', currency: 'EUR', currencySymbol: '€' },
-  { code: 'et', name: 'Eesti', region: 'EE', currency: 'EUR', currencySymbol: '€' },
-  { code: 'lv', name: 'Latviešu', region: 'LV', currency: 'EUR', currencySymbol: '€' },
-  { code: 'lt', name: 'Lietuvių', region: 'LT', currency: 'EUR', currencySymbol: '€' },
   { code: 'sw', name: 'Kiswahili', region: 'KE', currency: 'KES', currencySymbol: 'KSh' },
   { code: 'zu', name: 'isiZulu', region: 'ZA', currency: 'ZAR', currencySymbol: 'R' },
   { code: 'af', name: 'Afrikaans', region: 'ZA', currency: 'ZAR', currencySymbol: 'R' },
-  { code: 'am', name: 'አማርኛ', region: 'ET', currency: 'ETB', currencySymbol: 'Br' },
-  { code: 'ha', name: 'Hausa', region: 'NG', currency: 'NGN', currencySymbol: '₦' },
-  { code: 'ig', name: 'Igbo', region: 'NG', currency: 'NGN', currencySymbol: '₦' },
-  { code: 'yo', name: 'Yorùbá', region: 'NG', currency: 'NGN', currencySymbol: '₦' },
 ];
 
 interface SettingsContextType {
@@ -66,9 +67,24 @@ interface SettingsContextType {
   setLanguageCode: (code: string) => void;
   currencySymbol: string;
   formatCurrency: (amount: number) => string;
+  t: (key: string) => string;
 }
 
 const SettingsContext = createContext<SettingsContextType | undefined>(undefined);
+
+// Helper function to get nested translation
+const getNestedValue = (obj: any, path: string): string => {
+  const keys = path.split('.');
+  let result = obj;
+  for (const key of keys) {
+    if (result && typeof result === 'object' && key in result) {
+      result = result[key];
+    } else {
+      return path; // Return key if translation not found
+    }
+  }
+  return typeof result === 'string' ? result : path;
+};
 
 export function SettingsProvider({ children }: { children: ReactNode }) {
   const [language, setLanguage] = useState(LANGUAGES[0]); // Default to Romanian
@@ -101,6 +117,21 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     return `${amount.toFixed(2)} ${language.currencySymbol}`;
   };
 
+  // Translation function
+  const t = (key: string): string => {
+    // Get base language code (e.g., 'en' from 'en-US')
+    const baseLang = language.code.split('-')[0];
+    
+    // Try exact language first, then base language, then fallback to English, then Romanian
+    const translationSource = 
+      translations[language.code] || 
+      translations[baseLang] || 
+      translations['en'] || 
+      translations['ro'];
+    
+    return getNestedValue(translationSource, key);
+  };
+
   return (
     <SettingsContext.Provider
       value={{
@@ -108,6 +139,7 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
         setLanguageCode,
         currencySymbol: language.currencySymbol,
         formatCurrency,
+        t,
       }}
     >
       {children}
