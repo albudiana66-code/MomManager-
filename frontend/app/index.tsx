@@ -1,16 +1,18 @@
 import React, { useEffect } from 'react';
-import { View, Text, StyleSheet, TouchableOpacity, Image, ScrollView, Dimensions } from 'react-native';
+import { View, Text, StyleSheet, TouchableOpacity, ScrollView, Dimensions } from 'react-native';
 import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../src/context/AuthContext';
 import { LoadingScreen } from '../src/components/LoadingScreen';
 import { useSettings } from '../src/context/SettingsContext';
+import { useTheme } from '../src/context/ThemeContext';
 
 const { width } = Dimensions.get('window');
 
 export default function LandingPage() {
   const { user, isLoading, isAuthenticated, login } = useAuth();
   const { t } = useSettings();
+  const { theme, fontsLoaded } = useTheme();
   const router = useRouter();
 
   useEffect(() => {
@@ -19,7 +21,7 @@ export default function LandingPage() {
     }
   }, [isLoading, isAuthenticated]);
 
-  if (isLoading) {
+  if (isLoading || !fontsLoaded) {
     return <LoadingScreen />;
   }
 
@@ -33,20 +35,37 @@ export default function LandingPage() {
 
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
+      {/* Decorative floral pattern overlay */}
+      <View style={styles.patternOverlay} />
+      
       <View style={styles.header}>
+        {/* Logo */}
         <View style={styles.logoContainer}>
-          <Ionicons name="heart" size={48} color="#ec4899" />
+          <View style={styles.logoInner}>
+            <Ionicons name="heart" size={36} color="#C5A059" />
+          </View>
         </View>
+        
+        {/* Title with serif font */}
         <Text style={styles.title}>{t('landing.title')}</Text>
         <Text style={styles.subtitle}>{t('landing.subtitle')}</Text>
+        
+        {/* Decorative line */}
+        <View style={styles.decorativeLine}>
+          <View style={styles.lineLeft} />
+          <Ionicons name="diamond" size={12} color="#C5A059" />
+          <View style={styles.lineRight} />
+        </View>
+        
         <Text style={styles.tagline}>{t('landing.description')}</Text>
       </View>
 
+      {/* Features Grid */}
       <View style={styles.featuresContainer}>
         {features.map((feature, index) => (
           <View key={index} style={styles.featureCard}>
             <View style={styles.featureIcon}>
-              <Ionicons name={feature.icon as any} size={28} color="#ec4899" />
+              <Ionicons name={feature.icon as any} size={28} color="#C5A059" />
             </View>
             <Text style={styles.featureTitle}>{feature.title}</Text>
             <Text style={styles.featureDesc}>{feature.desc}</Text>
@@ -54,8 +73,9 @@ export default function LandingPage() {
         ))}
       </View>
 
+      {/* Login Button */}
       <TouchableOpacity style={styles.loginButton} onPress={login}>
-        <Ionicons name="logo-google" size={24} color="#fff" style={styles.googleIcon} />
+        <Ionicons name="logo-google" size={22} color="#FFFFFF" style={styles.googleIcon} />
         <Text style={styles.loginButtonText}>{t('auth.continueWithGoogle')}</Text>
       </TouchableOpacity>
 
@@ -84,50 +104,78 @@ export default function LandingPage() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fdf2f8',
+    backgroundColor: '#F5F5DC',
   },
   content: {
     padding: 24,
+    paddingTop: 60,
     alignItems: 'center',
-    minHeight: '100%',
+  },
+  patternOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    opacity: 0.05,
   },
   header: {
     alignItems: 'center',
-    marginTop: 40,
     marginBottom: 32,
   },
   logoContainer: {
-    width: 96,
-    height: 96,
-    borderRadius: 48,
-    backgroundColor: '#fce7f3',
+    marginBottom: 20,
+  },
+  logoInner: {
+    width: 80,
+    height: 80,
+    borderRadius: 40,
+    backgroundColor: '#FFFFFF',
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 16,
-    shadowColor: '#ec4899',
+    shadowColor: '#3D2B1F',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.3,
-    shadowRadius: 8,
-    elevation: 8,
+    shadowOpacity: 0.08,
+    shadowRadius: 20,
+    elevation: 5,
+    borderWidth: 2,
+    borderColor: 'rgba(197, 160, 89, 0.3)',
   },
   title: {
-    fontSize: 36,
-    fontWeight: '800',
-    color: '#9d174d',
-    letterSpacing: -1,
+    fontSize: 38,
+    fontFamily: 'PlayfairDisplay_700Bold',
+    color: '#3D2B1F',
+    letterSpacing: 1,
   },
   subtitle: {
-    fontSize: 24,
-    fontWeight: '300',
-    color: '#ec4899',
-    marginTop: -4,
+    fontSize: 16,
+    fontFamily: 'PlayfairDisplay_400Regular_Italic',
+    color: '#C5A059',
+    marginTop: 4,
+    letterSpacing: 4,
+  },
+  decorativeLine: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginVertical: 16,
+    gap: 12,
+  },
+  lineLeft: {
+    width: 50,
+    height: 1,
+    backgroundColor: '#C5A059',
+  },
+  lineRight: {
+    width: 50,
+    height: 1,
+    backgroundColor: '#C5A059',
   },
   tagline: {
-    fontSize: 16,
-    color: '#be185d',
+    fontSize: 15,
+    color: '#6B5D52',
     textAlign: 'center',
-    marginTop: 12,
-    maxWidth: 280,
+    fontStyle: 'italic',
+    lineHeight: 22,
   },
   featuresContainer: {
     flexDirection: 'row',
@@ -135,89 +183,94 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     gap: 12,
     marginBottom: 32,
-    maxWidth: 400,
+    width: '100%',
   },
   featureCard: {
-    width: width > 400 ? 110 : (width - 72) / 3,
-    backgroundColor: '#fff',
-    borderRadius: 16,
-    padding: 12,
+    width: (width - 72) / 2,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 24,
+    padding: 20,
     alignItems: 'center',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
+    shadowColor: '#3D2B1F',
+    shadowOffset: { width: 0, height: 4 },
     shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
+    shadowRadius: 20,
+    elevation: 4,
   },
   featureIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: '#fce7f3',
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: 'rgba(197, 160, 89, 0.12)',
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 8,
+    marginBottom: 12,
   },
   featureTitle: {
-    fontSize: 12,
-    fontWeight: '700',
-    color: '#9d174d',
+    fontSize: 15,
+    fontFamily: 'PlayfairDisplay_600SemiBold',
+    color: '#3D2B1F',
+    marginBottom: 4,
     textAlign: 'center',
   },
   featureDesc: {
-    fontSize: 10,
-    color: '#be185d',
+    fontSize: 12,
+    color: '#9C8B7E',
     textAlign: 'center',
-    marginTop: 2,
+    lineHeight: 16,
   },
   loginButton: {
     flexDirection: 'row',
-    backgroundColor: '#ec4899',
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#C5A059',
+    borderRadius: 16,
     paddingVertical: 16,
     paddingHorizontal: 32,
-    borderRadius: 30,
-    alignItems: 'center',
-    shadowColor: '#ec4899',
+    width: '100%',
+    shadowColor: '#3D2B1F',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.4,
-    shadowRadius: 8,
-    elevation: 8,
+    shadowOpacity: 0.15,
+    shadowRadius: 12,
+    elevation: 5,
+    marginBottom: 16,
   },
   googleIcon: {
     marginRight: 12,
   },
   loginButtonText: {
-    color: '#fff',
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '600',
+    color: '#FFFFFF',
+    letterSpacing: 0.5,
   },
   footer: {
-    marginTop: 32,
+    marginTop: 16,
     fontSize: 14,
-    color: '#be185d',
-    opacity: 0.7,
+    color: '#6B5D52',
+    fontStyle: 'italic',
   },
   legalLinks: {
     flexDirection: 'row',
     justifyContent: 'center',
     alignItems: 'center',
-    marginTop: 20,
+    marginTop: 24,
     gap: 10,
   },
   legalLink: {
     fontSize: 12,
-    color: '#ec4899',
+    color: '#C5A059',
     fontWeight: '500',
   },
   legalSeparator: {
     fontSize: 12,
-    color: '#d1d5db',
+    color: '#D4B87A',
   },
   copyrightText: {
     marginTop: 12,
     marginBottom: 30,
     fontSize: 10,
-    color: '#9ca3af',
+    color: '#9C8B7E',
     textAlign: 'center',
     lineHeight: 14,
     paddingHorizontal: 20,
