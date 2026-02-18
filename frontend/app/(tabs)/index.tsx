@@ -198,6 +198,30 @@ export default function HomeScreen() {
           </Text>
         </View>
       </ScrollView>
+
+      {/* AI Chat Button */}
+      <AIChatButton />
+
+      {/* Settings Modal */}
+      <Modal visible={settingsVisible} animationType="slide" transparent>
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContent}>
+            <View style={styles.modalHeader}>
+              <Text style={styles.modalTitle}>Setări</Text>
+              <TouchableOpacity onPress={() => setSettingsVisible(false)}>
+                <Ionicons name="close" size={24} color="#6b7280" />
+              </TouchableOpacity>
+            </View>
+            <View style={styles.modalBody}>
+              <Text style={styles.settingsLabel}>Limbă și monedă</Text>
+              <LanguageSelector />
+              <Text style={styles.settingsHint}>
+                Moneda se schimbă automat în funcție de limba selectată
+              </Text>
+            </View>
+          </View>
+        </View>
+      </Modal>
     </SafeAreaView>
   );
 }
