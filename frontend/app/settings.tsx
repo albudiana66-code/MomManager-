@@ -537,17 +537,17 @@ const styles = StyleSheet.create({
   },
   legalLink: {
     fontSize: 12,
-    color: '#ec4899',
+    color: '#C5A059',
     fontWeight: '500',
   },
   legalSeparator: {
     fontSize: 12,
-    color: '#d1d5db',
+    color: '#D4B87A',
   },
   copyrightFull: {
     textAlign: 'center',
     fontSize: 10,
-    color: '#9ca3af',
+    color: '#9C8B7E',
     marginTop: 8,
     marginBottom: 30,
     paddingHorizontal: 20,
@@ -555,13 +555,13 @@ const styles = StyleSheet.create({
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
+    backgroundColor: 'rgba(61, 43, 31, 0.4)',
     justifyContent: 'flex-end',
   },
   modalContent: {
-    backgroundColor: '#fff',
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
+    backgroundColor: '#FFFFFF',
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
     maxHeight: '70%',
   },
   modalHeader: {
@@ -570,12 +570,13 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 20,
     borderBottomWidth: 1,
-    borderBottomColor: '#f3f4f6',
+    borderBottomColor: '#E8E4D9',
   },
   modalTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#1f2937',
+    color: '#3D2B1F',
+    fontFamily: 'PlayfairDisplay_600SemiBold',
   },
   modalBody: {
     padding: 16,
@@ -589,7 +590,7 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   optionRowActive: {
-    backgroundColor: '#fce7f3',
+    backgroundColor: 'rgba(197, 160, 89, 0.15)',
   },
   optionFlag: {
     fontSize: 24,
