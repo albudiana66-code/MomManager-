@@ -210,37 +210,6 @@ export default function HomeScreen() {
 
       {/* AI Chat Button */}
       <AIChatButton />
-
-      {/* Settings Modal */}
-      <Modal visible={settingsVisible} animationType="slide" transparent>
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>{t('settings.title')}</Text>
-              <TouchableOpacity onPress={() => setSettingsVisible(false)}>
-                <Ionicons name="close" size={24} color="#6b7280" />
-              </TouchableOpacity>
-            </View>
-            <View style={styles.modalBody}>
-              <Text style={styles.settingsLabel}>{t('settings.language')}</Text>
-              <LanguageSelector />
-              <Text style={styles.settingsHint}>
-                {t('settings.languageHint')}
-              </Text>
-              
-              <View style={styles.currencyInfoBox}>
-                <Ionicons name="information-circle-outline" size={20} color="#6366f1" />
-                <Text style={styles.currencyInfoText}>
-                  {t('settings.currency')}: <Text style={styles.currencyHighlight}>{language.currency} ({currencySymbol})</Text>
-                </Text>
-              </View>
-              <Text style={styles.settingsHint}>
-                {t('settings.currencyHint')}
-              </Text>
-            </View>
-          </View>
-        </View>
-      </Modal>
     </SafeAreaView>
   );
 }
