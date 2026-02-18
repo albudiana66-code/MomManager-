@@ -266,7 +266,7 @@ export default function WorkScreen() {
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>
-                {editingMeeting ? 'Editeaz\u0103 \u00eent\u00e2lnirea' : 'Ad\u0103ugare \u00eent\u00e2lnire'}
+                {editingMeeting ? t('work.editMeeting') : t('work.addMeeting')}
               </Text>
               <TouchableOpacity onPress={() => setModalVisible(false)}>
                 <Ionicons name="close" size={24} color="#6b7280" />
@@ -274,16 +274,16 @@ export default function WorkScreen() {
             </View>
 
             <ScrollView style={styles.modalBody}>
-              <Text style={styles.inputLabel}>Titlu</Text>
+              <Text style={styles.inputLabel}>{t('work.title')}</Text>
               <TextInput
                 style={styles.input}
                 value={title}
                 onChangeText={setTitle}
-                placeholder="Ex: Call cu clientul"
+                placeholder={t('work.exampleTitle')}
                 placeholderTextColor="#9ca3af"
               />
 
-              <Text style={styles.inputLabel}>Or\u0103 \u00eenceput</Text>
+              <Text style={styles.inputLabel}>{t('work.startTime')}</Text>
               <TextInput
                 style={styles.input}
                 value={startTime}
@@ -292,7 +292,7 @@ export default function WorkScreen() {
                 placeholderTextColor="#9ca3af"
               />
 
-              <Text style={styles.inputLabel}>Or\u0103 sf\u00e2r\u0219it</Text>
+              <Text style={styles.inputLabel}>{t('work.endTime')}</Text>
               <TextInput
                 style={styles.input}
                 value={endTime}
@@ -301,18 +301,18 @@ export default function WorkScreen() {
                 placeholderTextColor="#9ca3af"
               />
 
-              <Text style={styles.inputLabel}>Descriere (op\u021bional)</Text>
+              <Text style={styles.inputLabel}>{t('work.description')}</Text>
               <TextInput
                 style={[styles.input, styles.textArea]}
                 value={description}
                 onChangeText={setDescription}
-                placeholder="Note despre \u00eent\u00e2lnire..."
+                placeholder={t('work.meetingNotes')}
                 placeholderTextColor="#9ca3af"
                 multiline
                 numberOfLines={3}
               />
 
-              <Text style={styles.inputLabel}>Culoare</Text>
+              <Text style={styles.inputLabel}>{t('work.color')}</Text>
               <View style={styles.colorPicker}>
                 {COLORS.map((color) => (
                   <TouchableOpacity
@@ -333,7 +333,7 @@ export default function WorkScreen() {
             </ScrollView>
 
             <TouchableOpacity style={styles.saveButton} onPress={saveMeeting}>
-              <Text style={styles.saveButtonText}>Salveaz\u0103</Text>
+              <Text style={styles.saveButtonText}>{t('common.save')}</Text>
             </TouchableOpacity>
           </View>
         </View>
