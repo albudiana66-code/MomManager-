@@ -15,13 +15,22 @@ import { useAuth } from '../../src/context/AuthContext';
 import { useSettings } from '../../src/context/SettingsContext';
 import { api } from '../../src/utils/api';
 import { format } from 'date-fns';
-import { ro } from 'date-fns/locale';
+import { ro, enUS, es, fr, de } from 'date-fns/locale';
 import { AIChatButton } from '../../src/components/AIChatButton';
 import { LanguageSelector } from '../../src/components/LanguageSelector';
 
+const dateLocales: { [key: string]: any } = {
+  ro: ro,
+  en: enUS,
+  'en-US': enUS,
+  es: es,
+  fr: fr,
+  de: de,
+};
+
 export default function HomeScreen() {
   const { user, logout } = useAuth();
-  const { language, currencySymbol } = useSettings();
+  const { language, currencySymbol, t } = useSettings();
   const router = useRouter();
   const [refreshing, setRefreshing] = useState(false);
   const [todayMeetings, setTodayMeetings] = useState<any[]>([]);
@@ -31,6 +40,7 @@ export default function HomeScreen() {
 
   const today = new Date();
   const todayStr = format(today, 'yyyy-MM-dd');
+  const dateLocale = dateLocales[language.code] || dateLocales[language.code.split('-')[0]] || enUS;
 
   const loadData = async () => {
     try {
@@ -62,10 +72,10 @@ export default function HomeScreen() {
   const totalTasks = todayChecklist?.items?.length || 0;
 
   const quickActions = [
-    { icon: 'add-circle', label: 'Întâlnire', route: '/(tabs)/work', color: '#6366f1' },
-    { icon: 'list', label: 'Checklist', route: '/(tabs)/organize', color: '#10b981' },
-    { icon: 'fast-food', label: 'Meal Plan', route: '/(tabs)/kitchen', color: '#f59e0b' },
-    { icon: 'fitness', label: 'Workout', route: '/(tabs)/selfcare', color: '#ec4899' },
+    { icon: 'add-circle', label: t('home.meeting'), route: '/(tabs)/work', color: '#6366f1' },
+    { icon: 'list', label: t('home.checklist'), route: '/(tabs)/organize', color: '#10b981' },
+    { icon: 'fast-food', label: t('home.mealPlan'), route: '/(tabs)/kitchen', color: '#f59e0b' },
+    { icon: 'fitness', label: t('home.workout'), route: '/(tabs)/selfcare', color: '#ec4899' },
   ];
 
   return (
@@ -79,9 +89,9 @@ export default function HomeScreen() {
         {/* Header */}
         <View style={styles.header}>
           <View>
-            <Text style={styles.greeting}>Bună, {user?.name?.split(' ')[0]}!</Text>
+            <Text style={styles.greeting}>{t('home.greeting')}, {user?.name?.split(' ')[0]}!</Text>
             <Text style={styles.date}>
-              {format(today, "EEEE, d MMMM", { locale: ro })}
+              {format(today, "EEEE, d MMMM", { locale: dateLocale })}
             </Text>
           </View>
           <View style={styles.headerButtons}>
@@ -95,44 +105,45 @@ export default function HomeScreen() {
         </View>
 
         {/* Language & Currency Info */}
-        <View style={styles.langCard}>
+        <TouchableOpacity style={styles.langCard} onPress={() => setSettingsVisible(true)}>
           <Ionicons name="globe-outline" size={18} color="#ec4899" />
           <Text style={styles.langText}>{language.name}</Text>
           <View style={styles.currencyBadge}>
             <Text style={styles.currencyText}>{currencySymbol}</Text>
           </View>
-        </View>
+          <Ionicons name="chevron-forward" size={16} color="#9ca3af" />
+        </TouchableOpacity>
 
         {/* Today Summary */}
         <View style={styles.summaryCard}>
-          <Text style={styles.sectionTitle}>Rezumatul zilei</Text>
+          <Text style={styles.sectionTitle}>{t('home.daySummary')}</Text>
           <View style={styles.summaryRow}>
             <View style={styles.summaryItem}>
               <View style={[styles.summaryIcon, { backgroundColor: '#e0e7ff' }]}>
                 <Ionicons name="calendar" size={24} color="#6366f1" />
               </View>
               <Text style={styles.summaryValue}>{todayMeetings.length}</Text>
-              <Text style={styles.summaryLabel}>Întâlniri</Text>
+              <Text style={styles.summaryLabel}>{t('home.meetings')}</Text>
             </View>
             <View style={styles.summaryItem}>
               <View style={[styles.summaryIcon, { backgroundColor: '#d1fae5' }]}>
                 <Ionicons name="checkbox" size={24} color="#10b981" />
               </View>
               <Text style={styles.summaryValue}>{completedTasks}/{totalTasks}</Text>
-              <Text style={styles.summaryLabel}>Taskuri</Text>
+              <Text style={styles.summaryLabel}>{t('home.tasks')}</Text>
             </View>
             <View style={styles.summaryItem}>
               <View style={[styles.summaryIcon, { backgroundColor: '#fce7f3' }]}>
                 <Ionicons name="people" size={24} color="#ec4899" />
               </View>
               <Text style={styles.summaryValue}>{kidsCount}</Text>
-              <Text style={styles.summaryLabel}>Copii</Text>
+              <Text style={styles.summaryLabel}>{t('home.children')}</Text>
             </View>
           </View>
         </View>
 
         {/* Quick Actions */}
-        <Text style={styles.sectionTitle}>Acțiuni rapide</Text>
+        <Text style={styles.sectionTitle}>{t('home.quickActions')}</Text>
         <View style={styles.quickActions}>
           {quickActions.map((action, index) => (
             <TouchableOpacity
@@ -151,7 +162,7 @@ export default function HomeScreen() {
         {/* Today's Meetings */}
         {todayMeetings.length > 0 && (
           <View style={styles.sectionCard}>
-            <Text style={styles.sectionTitle}>Întâlniri azi</Text>
+            <Text style={styles.sectionTitle}>{t('home.meetingsToday')}</Text>
             {todayMeetings.slice(0, 3).map((meeting) => (
               <View key={meeting.id} style={styles.meetingItem}>
                 <View style={[styles.meetingDot, { backgroundColor: meeting.color }]} />
@@ -169,7 +180,7 @@ export default function HomeScreen() {
         {/* Today's Tasks */}
         {todayChecklist && todayChecklist.items?.length > 0 && (
           <View style={styles.sectionCard}>
-            <Text style={styles.sectionTitle}>Taskuri azi</Text>
+            <Text style={styles.sectionTitle}>{t('home.tasksToday')}</Text>
             {todayChecklist.items.slice(0, 4).map((item: any) => (
               <View key={item.id} style={styles.taskItem}>
                 <Ionicons
@@ -194,7 +205,7 @@ export default function HomeScreen() {
         <View style={styles.quoteCard}>
           <Ionicons name="sparkles" size={24} color="#ec4899" />
           <Text style={styles.quoteText}>
-            "O mamă organizată este o mamă fericită!"
+            "{t('home.motivationalQuote')}"
           </Text>
         </View>
       </ScrollView>
@@ -207,16 +218,26 @@ export default function HomeScreen() {
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Setări</Text>
+              <Text style={styles.modalTitle}>{t('settings.title')}</Text>
               <TouchableOpacity onPress={() => setSettingsVisible(false)}>
                 <Ionicons name="close" size={24} color="#6b7280" />
               </TouchableOpacity>
             </View>
             <View style={styles.modalBody}>
-              <Text style={styles.settingsLabel}>Limbă și monedă</Text>
+              <Text style={styles.settingsLabel}>{t('settings.language')}</Text>
               <LanguageSelector />
               <Text style={styles.settingsHint}>
-                Moneda se schimbă automat în funcție de limba selectată
+                {t('settings.languageHint')}
+              </Text>
+              
+              <View style={styles.currencyInfoBox}>
+                <Ionicons name="information-circle-outline" size={20} color="#6366f1" />
+                <Text style={styles.currencyInfoText}>
+                  {t('settings.currency')}: <Text style={styles.currencyHighlight}>{language.currency} ({currencySymbol})</Text>
+                </Text>
+              </View>
+              <Text style={styles.settingsHint}>
+                {t('settings.currencyHint')}
               </Text>
             </View>
           </View>
@@ -277,20 +298,21 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     backgroundColor: '#fff',
     borderRadius: 12,
-    paddingVertical: 10,
+    paddingVertical: 12,
     paddingHorizontal: 14,
     marginBottom: 16,
     gap: 8,
   },
   langText: {
+    flex: 1,
     fontSize: 14,
     color: '#374151',
     fontWeight: '500',
   },
   currencyBadge: {
     backgroundColor: '#fce7f3',
-    paddingHorizontal: 8,
-    paddingVertical: 3,
+    paddingHorizontal: 10,
+    paddingVertical: 4,
     borderRadius: 6,
   },
   currencyText: {
@@ -371,6 +393,7 @@ const styles = StyleSheet.create({
     fontSize: 15,
     fontWeight: '600',
     color: '#374151',
+    flex: 1,
   },
   sectionCard: {
     backgroundColor: '#fff',
@@ -476,5 +499,21 @@ const styles = StyleSheet.create({
     color: '#9ca3af',
     marginTop: 12,
     fontStyle: 'italic',
+  },
+  currencyInfoBox: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#eef2ff',
+    padding: 12,
+    borderRadius: 10,
+    marginTop: 20,
+    gap: 8,
+  },
+  currencyInfoText: {
+    fontSize: 14,
+    color: '#4338ca',
+  },
+  currencyHighlight: {
+    fontWeight: '700',
   },
 });
