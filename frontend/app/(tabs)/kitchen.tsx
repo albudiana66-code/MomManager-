@@ -315,42 +315,42 @@ export default function KitchenScreen() {
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Preferințe Meal Plan</Text>
+              <Text style={styles.modalTitle}>{t('kitchen.preferences')}</Text>
               <TouchableOpacity onPress={() => setPreferencesModal(false)}>
                 <Ionicons name="close" size={24} color="#6b7280" />
               </TouchableOpacity>
             </View>
             <ScrollView style={styles.modalBody}>
-              <Text style={styles.inputLabel}>Preferințe adulți</Text>
+              <Text style={styles.inputLabel}>{t('kitchen.adultPreferences')}</Text>
               <TextInput
                 style={styles.input}
                 value={adultPrefs}
                 onChangeText={setAdultPrefs}
-                placeholder="Ex: mese sănătoase, echilibrate"
+                placeholder={t('selfcare.exampleGoal')}
                 placeholderTextColor="#9ca3af"
               />
 
-              <Text style={styles.inputLabel}>Preferințe copii</Text>
+              <Text style={styles.inputLabel}>{t('kitchen.kidPreferences')}</Text>
               <TextInput
                 style={styles.input}
                 value={kidPrefs}
                 onChangeText={setKidPrefs}
-                placeholder="Ex: mese simple, kid-friendly"
+                placeholder={t('selfcare.exampleGoal')}
                 placeholderTextColor="#9ca3af"
               />
 
-              <Text style={styles.inputLabel}>Restricții alimentare</Text>
+              <Text style={styles.inputLabel}>{t('kitchen.dietaryRestrictions')}</Text>
               <TextInput
                 style={styles.input}
                 value={restrictions}
                 onChangeText={setRestrictions}
-                placeholder="Ex: fără lactate, vegetarian"
+                placeholder={t('selfcare.exampleRestrictions')}
                 placeholderTextColor="#9ca3af"
               />
 
               <View style={styles.numberRow}>
                 <View style={styles.numberInput}>
-                  <Text style={styles.inputLabel}>Nr. adulți</Text>
+                  <Text style={styles.inputLabel}>{t('kitchen.numAdults')}</Text>
                   <TextInput
                     style={styles.input}
                     value={numAdults}
@@ -359,7 +359,7 @@ export default function KitchenScreen() {
                   />
                 </View>
                 <View style={styles.numberInput}>
-                  <Text style={styles.inputLabel}>Nr. copii</Text>
+                  <Text style={styles.inputLabel}>{t('kitchen.numKids')}</Text>
                   <TextInput
                     style={styles.input}
                     value={numKids}
@@ -371,7 +371,7 @@ export default function KitchenScreen() {
             </ScrollView>
             <TouchableOpacity style={styles.saveButton} onPress={generateMealPlan}>
               <Ionicons name="sparkles" size={20} color="#fff" />
-              <Text style={styles.saveButtonText}>Generează cu AI</Text>
+              <Text style={styles.saveButtonText}>{t('kitchen.generateWithAI')}</Text>
             </TouchableOpacity>
           </View>
         </View>
@@ -382,7 +382,7 @@ export default function KitchenScreen() {
         <View style={styles.modalOverlay}>
           <View style={[styles.modalContent, { maxHeight: '80%' }]}>
             <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Listă de cumpărături</Text>
+              <Text style={styles.modalTitle}>{t('kitchen.shoppingList')}</Text>
               <TouchableOpacity onPress={() => setShoppingModal(false)}>
                 <Ionicons name="close" size={24} color="#6b7280" />
               </TouchableOpacity>
