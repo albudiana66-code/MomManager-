@@ -15,14 +15,26 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { api } from '../../src/utils/api';
 import { format, addDays, startOfWeek, isSameDay, parseISO } from 'date-fns';
-import { ro } from 'date-fns/locale';
+import { ro, enUS, es, fr, de, it } from 'date-fns/locale';
 import { Meeting } from '../../src/types';
+import { useSettings } from '../../src/context/SettingsContext';
 
 const COLORS = [
   '#6366f1', '#ec4899', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4', '#84cc16'
 ];
 
+const dateLocales: { [key: string]: any } = {
+  ro: ro,
+  en: enUS,
+  'en-US': enUS,
+  es: es,
+  fr: fr,
+  de: de,
+  it: it,
+};
+
 export default function WorkScreen() {
+  const { t, language } = useSettings();
   const [meetings, setMeetings] = useState<Meeting[]>([]);
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [weekDates, setWeekDates] = useState<Date[]>([]);
@@ -35,6 +47,8 @@ export default function WorkScreen() {
   const [endTime, setEndTime] = useState('10:00');
   const [description, setDescription] = useState('');
   const [selectedColor, setSelectedColor] = useState(COLORS[0]);
+
+  const dateLocale = dateLocales[language.code] || dateLocales[language.code.split('-')[0]] || enUS;
 
   useEffect(() => {
     const start = startOfWeek(selectedDate, { weekStartsOn: 1 });
