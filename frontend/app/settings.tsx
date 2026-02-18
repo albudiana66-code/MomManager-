@@ -435,7 +435,7 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 10,
-    backgroundColor: '#eef2ff',
+    backgroundColor: 'rgba(197, 160, 89, 0.12)',
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
@@ -446,11 +446,11 @@ const styles = StyleSheet.create({
   settingLabel: {
     fontSize: 15,
     fontWeight: '600',
-    color: '#1f2937',
+    color: '#3D2B1F',
   },
   settingHint: {
     fontSize: 12,
-    color: '#9ca3af',
+    color: '#9C8B7E',
     marginTop: 2,
   },
   settingValue: {
@@ -460,25 +460,25 @@ const styles = StyleSheet.create({
   },
   settingValueText: {
     fontSize: 13,
-    color: '#6b7280',
+    color: '#6B5D52',
   },
   subscriptionCard: {
-    backgroundColor: '#fff',
-    borderRadius: 16,
+    backgroundColor: '#FFFFFF',
+    borderRadius: 24,
     padding: 16,
     marginBottom: 12,
     borderWidth: 2,
-    borderColor: '#e5e7eb',
+    borderColor: '#E8E4D9',
   },
   subscriptionCardHighlight: {
-    backgroundColor: '#ec4899',
-    borderColor: '#ec4899',
+    backgroundColor: '#C5A059',
+    borderColor: '#C5A059',
   },
   saveBadge: {
     position: 'absolute',
     top: -10,
     right: 16,
-    backgroundColor: '#10b981',
+    backgroundColor: '#7A9E7E',
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 12,
@@ -486,7 +486,7 @@ const styles = StyleSheet.create({
   saveBadgeText: {
     fontSize: 11,
     fontWeight: '700',
-    color: '#fff',
+    color: '#FFFFFF',
   },
   subscriptionHeader: {
     flexDirection: 'row',
@@ -496,12 +496,12 @@ const styles = StyleSheet.create({
   subscriptionName: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#1f2937',
+    color: '#3D2B1F',
   },
   priceTag: {
     flexDirection: 'row',
     alignItems: 'baseline',
-    backgroundColor: '#fce7f3',
+    backgroundColor: 'rgba(197, 160, 89, 0.15)',
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 20,
@@ -510,21 +510,21 @@ const styles = StyleSheet.create({
   priceAmount: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#ec4899',
+    color: '#C5A059',
   },
   pricePeriod: {
     fontSize: 12,
-    color: '#be185d',
+    color: '#A68A45',
   },
   trialText: {
     fontSize: 13,
-    color: '#6b7280',
+    color: '#6B5D52',
     marginTop: 8,
   },
   copyright: {
     textAlign: 'center',
     fontSize: 12,
-    color: '#9ca3af',
+    color: '#9C8B7E',
     marginTop: 16,
     fontWeight: '600',
   },
