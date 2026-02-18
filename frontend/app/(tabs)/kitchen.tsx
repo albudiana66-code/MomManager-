@@ -144,7 +144,7 @@ export default function KitchenScreen() {
       >
         {/* Header */}
         <View style={styles.header}>
-          <Text style={styles.title}>Meal Plan</Text>
+          <Text style={styles.title}>{t('kitchen.mealPlan')}</Text>
           <TouchableOpacity
             style={styles.generateButton}
             onPress={() => setPreferencesModal(true)}
@@ -155,7 +155,7 @@ export default function KitchenScreen() {
             ) : (
               <>
                 <Ionicons name="sparkles" size={20} color="#fff" />
-                <Text style={styles.generateButtonText}>Generează</Text>
+                <Text style={styles.generateButtonText}>{t('kitchen.generate')}</Text>
               </>
             )}
           </TouchableOpacity>
@@ -164,8 +164,8 @@ export default function KitchenScreen() {
         {generating && (
           <View style={styles.generatingContainer}>
             <ActivityIndicator size="large" color="#f59e0b" />
-            <Text style={styles.generatingText}>AI generează meal plan-ul tău...</Text>
-            <Text style={styles.generatingSubtext}>Acest proces poate dura câteva secunde</Text>
+            <Text style={styles.generatingText}>{t('kitchen.generating')}</Text>
+            <Text style={styles.generatingSubtext}>{t('kitchen.generatingHint')}</Text>
           </View>
         )}
 
@@ -183,7 +183,7 @@ export default function KitchenScreen() {
                   color={showAdult ? '#fff' : '#f59e0b'}
                 />
                 <Text style={[styles.toggleText, showAdult && styles.toggleTextActive]}>
-                  Adulți
+                  {t('kitchen.adults')}
                 </Text>
               </TouchableOpacity>
               <TouchableOpacity
@@ -196,7 +196,7 @@ export default function KitchenScreen() {
                   color={!showAdult ? '#fff' : '#f59e0b'}
                 />
                 <Text style={[styles.toggleText, !showAdult && styles.toggleTextActive]}>
-                  Copii
+                  {t('kitchen.kids')}
                 </Text>
               </TouchableOpacity>
             </View>
