@@ -201,7 +201,7 @@ export default function HomeScreen() {
 
         {/* Motivational Quote */}
         <View style={styles.quoteCard}>
-          <Ionicons name="sparkles" size={24} color="#ec4899" />
+          <Ionicons name="sparkles" size={24} color="#C5A059" />
           <Text style={styles.quoteText}>
             "{t('home.motivationalQuote')}"
           </Text>
@@ -217,7 +217,7 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fdf2f8',
+    backgroundColor: '#F5F5DC',
   },
   content: {
     padding: 20,
@@ -237,14 +237,15 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 20,
-    backgroundColor: '#fce7f3',
+    backgroundColor: 'rgba(197, 160, 89, 0.15)',
     justifyContent: 'center',
     alignItems: 'center',
   },
   greeting: {
     fontSize: 28,
     fontWeight: '700',
-    color: '#9d174d',
+    color: '#3D2B1F',
+    fontFamily: 'PlayfairDisplay_700Bold',
   },
   date: {
     fontSize: 16,
