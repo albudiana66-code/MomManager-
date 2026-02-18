@@ -420,11 +420,11 @@ const styles = StyleSheet.create({
   },
   taskCompleted: {
     textDecorationLine: 'line-through',
-    color: '#9ca3af',
+    color: '#9C8B7E',
   },
   quoteCard: {
-    backgroundColor: '#fce7f3',
-    borderRadius: 20,
+    backgroundColor: 'rgba(197, 160, 89, 0.12)',
+    borderRadius: 24,
     padding: 20,
     flexDirection: 'row',
     alignItems: 'center',
@@ -435,6 +435,7 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 15,
     fontStyle: 'italic',
-    color: '#9d174d',
+    color: '#3D2B1F',
+    fontFamily: 'PlayfairDisplay_400Regular_Italic',
   },
 });
