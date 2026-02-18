@@ -6,7 +6,6 @@ import {
   ScrollView,
   TouchableOpacity,
   RefreshControl,
-  Modal,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -15,9 +14,8 @@ import { useAuth } from '../../src/context/AuthContext';
 import { useSettings } from '../../src/context/SettingsContext';
 import { api } from '../../src/utils/api';
 import { format } from 'date-fns';
-import { ro, enUS, es, fr, de } from 'date-fns/locale';
+import { ro, enUS, es, fr, de, it } from 'date-fns/locale';
 import { AIChatButton } from '../../src/components/AIChatButton';
-import { LanguageSelector } from '../../src/components/LanguageSelector';
 
 const dateLocales: { [key: string]: any } = {
   ro: ro,
@@ -26,6 +24,7 @@ const dateLocales: { [key: string]: any } = {
   es: es,
   fr: fr,
   de: de,
+  it: it,
 };
 
 export default function HomeScreen() {
