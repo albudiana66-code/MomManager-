@@ -233,12 +233,25 @@ const styles = StyleSheet.create({
   },
   content: {
     padding: 20,
+    paddingBottom: 100,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 24,
+    marginBottom: 16,
+  },
+  headerButtons: {
+    flexDirection: 'row',
+    gap: 8,
+  },
+  settingsButton: {
+    width: 40,
+    height: 40,
+    borderRadius: 20,
+    backgroundColor: '#fce7f3',
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   greeting: {
     fontSize: 28,
@@ -252,12 +265,38 @@ const styles = StyleSheet.create({
     textTransform: 'capitalize',
   },
   logoutButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
+    width: 40,
+    height: 40,
+    borderRadius: 20,
     backgroundColor: '#fce7f3',
     justifyContent: 'center',
     alignItems: 'center',
+  },
+  langCard: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: '#fff',
+    borderRadius: 12,
+    paddingVertical: 10,
+    paddingHorizontal: 14,
+    marginBottom: 16,
+    gap: 8,
+  },
+  langText: {
+    fontSize: 14,
+    color: '#374151',
+    fontWeight: '500',
+  },
+  currencyBadge: {
+    backgroundColor: '#fce7f3',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 6,
+  },
+  currencyText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: '#ec4899',
   },
   summaryCard: {
     backgroundColor: '#fff',
