@@ -524,6 +524,32 @@ const styles = StyleSheet.create({
     fontSize: 12,
     color: '#9ca3af',
     marginTop: 16,
+    fontWeight: '600',
+  },
+  legalLinks: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 12,
+    gap: 10,
+  },
+  legalLink: {
+    fontSize: 12,
+    color: '#ec4899',
+    fontWeight: '500',
+  },
+  legalSeparator: {
+    fontSize: 12,
+    color: '#d1d5db',
+  },
+  copyrightFull: {
+    textAlign: 'center',
+    fontSize: 10,
+    color: '#9ca3af',
+    marginTop: 8,
+    marginBottom: 30,
+    paddingHorizontal: 20,
+    lineHeight: 14,
   },
   modalOverlay: {
     flex: 1,
