@@ -6,22 +6,28 @@ import {
   ScrollView,
   TouchableOpacity,
   RefreshControl,
+  Modal,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import { useAuth } from '../../src/context/AuthContext';
+import { useSettings } from '../../src/context/SettingsContext';
 import { api } from '../../src/utils/api';
 import { format } from 'date-fns';
 import { ro } from 'date-fns/locale';
+import { AIChatButton } from '../../src/components/AIChatButton';
+import { LanguageSelector } from '../../src/components/LanguageSelector';
 
 export default function HomeScreen() {
   const { user, logout } = useAuth();
+  const { language, currencySymbol } = useSettings();
   const router = useRouter();
   const [refreshing, setRefreshing] = useState(false);
   const [todayMeetings, setTodayMeetings] = useState<any[]>([]);
   const [todayChecklist, setTodayChecklist] = useState<any>(null);
   const [kidsCount, setKidsCount] = useState(0);
+  const [settingsVisible, setSettingsVisible] = useState(false);
 
   const today = new Date();
   const todayStr = format(today, 'yyyy-MM-dd');
