@@ -93,7 +93,7 @@ export default function HomeScreen() {
             </Text>
           </View>
           <View style={styles.headerButtons}>
-            <TouchableOpacity onPress={() => setSettingsVisible(true)} style={styles.settingsButton}>
+            <TouchableOpacity onPress={() => router.push('/settings')} style={styles.settingsButton}>
               <Ionicons name="settings-outline" size={22} color="#9d174d" />
             </TouchableOpacity>
             <TouchableOpacity onPress={logout} style={styles.logoutButton}>
@@ -103,9 +103,9 @@ export default function HomeScreen() {
         </View>
 
         {/* Language & Currency Info */}
-        <TouchableOpacity style={styles.langCard} onPress={() => setSettingsVisible(true)}>
+        <TouchableOpacity style={styles.langCard} onPress={() => router.push('/settings')}>
           <Ionicons name="globe-outline" size={18} color="#ec4899" />
-          <Text style={styles.langText}>{language.name}</Text>
+          <Text style={styles.langText}>{language.flag} {language.name}</Text>
           <View style={styles.currencyBadge}>
             <Text style={styles.currencyText}>{currencySymbol}</Text>
           </View>
