@@ -241,7 +241,22 @@ export default function SettingsScreen() {
         </View>
 
         {/* Copyright */}
-        <Text style={styles.copyright}>© 2026 Diana-Elena Albu Sole Trader</Text>
+        <Text style={styles.copyright}>© 2026 MomManager by Diana-Elena Albu. All rights reserved.</Text>
+        
+        {/* Legal Links */}
+        <View style={styles.legalLinks}>
+          <TouchableOpacity onPress={() => router.push('/legal/terms')}>
+            <Text style={styles.legalLink}>Terms & Conditions</Text>
+          </TouchableOpacity>
+          <Text style={styles.legalSeparator}>•</Text>
+          <TouchableOpacity onPress={() => router.push('/legal/privacy')}>
+            <Text style={styles.legalLink}>Privacy Policy</Text>
+          </TouchableOpacity>
+        </View>
+        
+        <Text style={styles.copyrightFull}>
+          Unauthorized reproduction or distribution of this app's content, code, or design is strictly prohibited.
+        </Text>
       </ScrollView>
 
       {/* Language Selection Modal */}
