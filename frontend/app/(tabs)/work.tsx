@@ -159,7 +159,7 @@ export default function WorkScreen() {
       >
         {/* Header */}
         <View style={styles.header}>
-          <Text style={styles.title}>Calendar</Text>
+          <Text style={styles.title}>{t('work.calendar')}</Text>
           <TouchableOpacity style={styles.addButton} onPress={openAddModal}>
             <Ionicons name="add" size={24} color="#fff" />
           </TouchableOpacity>
@@ -167,7 +167,7 @@ export default function WorkScreen() {
 
         {/* Month Display */}
         <Text style={styles.monthText}>
-          {format(selectedDate, 'MMMM yyyy', { locale: ro })}
+          {format(selectedDate, 'MMMM yyyy', { locale: dateLocale })}
         </Text>
 
         {/* Week Calendar */}
@@ -193,7 +193,7 @@ export default function WorkScreen() {
                     isSelected && styles.dayNameSelected,
                   ]}
                 >
-                  {format(date, 'EEE', { locale: ro })}
+                  {format(date, 'EEE', { locale: dateLocale })}
                 </Text>
                 <Text
                   style={[
@@ -214,15 +214,15 @@ export default function WorkScreen() {
         {/* Selected Date Meetings */}
         <View style={styles.meetingsSection}>
           <Text style={styles.sectionTitle}>
-            {format(selectedDate, 'EEEE, d MMMM', { locale: ro })}
+            {format(selectedDate, 'EEEE, d MMMM', { locale: dateLocale })}
           </Text>
 
           {dayMeetings.length === 0 ? (
             <View style={styles.emptyState}>
               <Ionicons name="calendar-outline" size={48} color="#d1d5db" />
-              <Text style={styles.emptyText}>Nicio \u00eent\u00e2lnire programat\u0103</Text>
+              <Text style={styles.emptyText}>{t('work.noMeetings')}</Text>
               <TouchableOpacity style={styles.emptyButton} onPress={openAddModal}>
-                <Text style={styles.emptyButtonText}>Adaug\u0103 o \u00eent\u00e2lnire</Text>
+                <Text style={styles.emptyButtonText}>{t('work.addMeeting')}</Text>
               </TouchableOpacity>
             </View>
           ) : (
