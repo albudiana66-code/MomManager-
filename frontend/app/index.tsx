@@ -60,6 +60,23 @@ export default function LandingPage() {
       </TouchableOpacity>
 
       <Text style={styles.footer}>{t('auth.tagline')}</Text>
+      
+      {/* Legal Links */}
+      <View style={styles.legalLinks}>
+        <TouchableOpacity onPress={() => router.push('/legal/terms')}>
+          <Text style={styles.legalLink}>Terms</Text>
+        </TouchableOpacity>
+        <Text style={styles.legalSeparator}>•</Text>
+        <TouchableOpacity onPress={() => router.push('/legal/privacy')}>
+          <Text style={styles.legalLink}>Privacy</Text>
+        </TouchableOpacity>
+      </View>
+      
+      {/* Copyright */}
+      <Text style={styles.copyrightText}>
+        © 2026 MomManager by Diana-Elena Albu. All rights reserved.{'\n'}
+        Unauthorized reproduction or distribution is strictly prohibited.
+      </Text>
     </ScrollView>
   );
 }
