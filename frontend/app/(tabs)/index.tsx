@@ -70,10 +70,10 @@ export default function HomeScreen() {
   const totalTasks = todayChecklist?.items?.length || 0;
 
   const quickActions = [
-    { icon: 'add-circle', label: t('home.meeting'), route: '/(tabs)/work', color: '#6366f1' },
-    { icon: 'list', label: t('home.checklist'), route: '/(tabs)/organize', color: '#10b981' },
-    { icon: 'fast-food', label: t('home.mealPlan'), route: '/(tabs)/kitchen', color: '#f59e0b' },
-    { icon: 'fitness', label: t('home.workout'), route: '/(tabs)/selfcare', color: '#ec4899' },
+    { icon: 'add-circle', label: t('home.meeting'), route: '/(tabs)/work', color: '#C5A059' },
+    { icon: 'list', label: t('home.checklist'), route: '/(tabs)/organize', color: '#C5A059' },
+    { icon: 'fast-food', label: t('home.mealPlan'), route: '/(tabs)/kitchen', color: '#C5A059' },
+    { icon: 'fitness', label: t('home.workout'), route: '/(tabs)/selfcare', color: '#C5A059' },
   ];
 
   return (
