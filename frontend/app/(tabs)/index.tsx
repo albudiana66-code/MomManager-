@@ -35,7 +35,6 @@ export default function HomeScreen() {
   const [todayMeetings, setTodayMeetings] = useState<any[]>([]);
   const [todayChecklist, setTodayChecklist] = useState<any>(null);
   const [kidsCount, setKidsCount] = useState(0);
-  const [settingsVisible, setSettingsVisible] = useState(false);
 
   const today = new Date();
   const todayStr = format(today, 'yyyy-MM-dd');
