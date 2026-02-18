@@ -84,9 +84,23 @@ export default function HomeScreen() {
               {format(today, "EEEE, d MMMM", { locale: ro })}
             </Text>
           </View>
-          <TouchableOpacity onPress={logout} style={styles.logoutButton}>
-            <Ionicons name="log-out-outline" size={24} color="#9d174d" />
-          </TouchableOpacity>
+          <View style={styles.headerButtons}>
+            <TouchableOpacity onPress={() => setSettingsVisible(true)} style={styles.settingsButton}>
+              <Ionicons name="settings-outline" size={22} color="#9d174d" />
+            </TouchableOpacity>
+            <TouchableOpacity onPress={logout} style={styles.logoutButton}>
+              <Ionicons name="log-out-outline" size={22} color="#9d174d" />
+            </TouchableOpacity>
+          </View>
+        </View>
+
+        {/* Language & Currency Info */}
+        <View style={styles.langCard}>
+          <Ionicons name="globe-outline" size={18} color="#ec4899" />
+          <Text style={styles.langText}>{language.name}</Text>
+          <View style={styles.currencyBadge}>
+            <Text style={styles.currencyText}>{currencySymbol}</Text>
+          </View>
         </View>
 
         {/* Today Summary */}
