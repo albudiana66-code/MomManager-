@@ -4,11 +4,13 @@ import { useRouter } from 'expo-router';
 import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../src/context/AuthContext';
 import { LoadingScreen } from '../src/components/LoadingScreen';
+import { useSettings } from '../src/context/SettingsContext';
 
 const { width } = Dimensions.get('window');
 
 export default function LandingPage() {
   const { user, isLoading, isAuthenticated, login } = useAuth();
+  const { t } = useSettings();
   const router = useRouter();
 
   useEffect(() => {
@@ -22,11 +24,11 @@ export default function LandingPage() {
   }
 
   const features = [
-    { icon: 'calendar-outline', title: 'Work', desc: 'Calendar pentru întâlniri' },
-    { icon: 'checkbox-outline', title: 'Organizare', desc: 'Checklist-uri și buget' },
-    { icon: 'restaurant-outline', title: 'Bucătărie', desc: 'Meal plan și cumpărături' },
-    { icon: 'people-outline', title: 'Copii', desc: 'Activități și milestones' },
-    { icon: 'heart-outline', title: 'Self-Care', desc: 'Nutriție și sport' },
+    { icon: 'calendar-outline', title: t('tabs.work'), desc: t('landing.features.work') },
+    { icon: 'checkbox-outline', title: t('tabs.organize'), desc: t('landing.features.organize') },
+    { icon: 'restaurant-outline', title: t('tabs.kitchen'), desc: t('landing.features.kitchen') },
+    { icon: 'people-outline', title: t('tabs.kids'), desc: t('landing.features.kids') },
+    { icon: 'heart-outline', title: t('tabs.selfcare'), desc: t('landing.features.selfcare') },
   ];
 
   return (
@@ -35,9 +37,9 @@ export default function LandingPage() {
         <View style={styles.logoContainer}>
           <Ionicons name="heart" size={48} color="#ec4899" />
         </View>
-        <Text style={styles.title}>MomManager</Text>
-        <Text style={styles.subtitle}>2026</Text>
-        <Text style={styles.tagline}>Ecosistemul all-in-one pentru mame care lucrează</Text>
+        <Text style={styles.title}>{t('landing.title')}</Text>
+        <Text style={styles.subtitle}>{t('landing.subtitle')}</Text>
+        <Text style={styles.tagline}>{t('landing.description')}</Text>
       </View>
 
       <View style={styles.featuresContainer}>
@@ -54,10 +56,10 @@ export default function LandingPage() {
 
       <TouchableOpacity style={styles.loginButton} onPress={login}>
         <Ionicons name="logo-google" size={24} color="#fff" style={styles.googleIcon} />
-        <Text style={styles.loginButtonText}>Continuă cu Google</Text>
+        <Text style={styles.loginButtonText}>{t('auth.continueWithGoogle')}</Text>
       </TouchableOpacity>
 
-      <Text style={styles.footer}>Organizează-ți viața de mamă modernă</Text>
+      <Text style={styles.footer}>{t('auth.tagline')}</Text>
     </ScrollView>
   );
 }
