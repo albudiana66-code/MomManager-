@@ -197,4 +197,29 @@ const styles = StyleSheet.create({
     color: '#be185d',
     opacity: 0.7,
   },
+  legalLinks: {
+    flexDirection: 'row',
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginTop: 20,
+    gap: 10,
+  },
+  legalLink: {
+    fontSize: 12,
+    color: '#ec4899',
+    fontWeight: '500',
+  },
+  legalSeparator: {
+    fontSize: 12,
+    color: '#d1d5db',
+  },
+  copyrightText: {
+    marginTop: 12,
+    marginBottom: 30,
+    fontSize: 10,
+    color: '#9ca3af',
+    textAlign: 'center',
+    lineHeight: 14,
+    paddingHorizontal: 20,
+  },
 });
