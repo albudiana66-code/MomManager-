@@ -903,6 +903,96 @@ async def delete_workout(workout_id: str, current_user: User = Depends(require_a
         raise HTTPException(status_code=404, detail="Workout not found")
     return {"message": "Workout deleted"}
 
+# ============== AI Chat Endpoint ==============
+
+class ChatMessage(BaseModel):
+    role: str
+    content: str
+
+class ChatRequest(BaseModel):
+    message: str
+    language: str = "ro"
+    history: List[ChatMessage] = []
+
+@app.post("/api/ai/chat")
+async def ai_chat(request: Request):
+    """Empathetic AI chat for moms"""
+    body = await request.json()
+    message = body.get("message", "")
+    language = body.get("language", "ro")
+    history = body.get("history", [])
+    
+    if not message:
+        raise HTTPException(status_code=400, detail="Message is required")
+    
+    if not EMERGENT_LLM_KEY:
+        raise HTTPException(status_code=500, detail="AI service not configured")
+    
+    from emergentintegrations.llm.chat import LlmChat, UserMessage
+    
+    # Language-specific system messages
+    system_messages = {
+        "ro": """Ești Mom Assistant - o prietenă empatică și înțelegătoare pentru mamele care lucrează.
+
+REGULI FOARTE IMPORTANTE:
+- Fii mereu caldă, înțelegătoare și suportivă
+- Nu judeca NICIODATĂ o mamă pentru deciziile ei
+- Nu critica, nu jigni, nu folosi un ton negativ NICIODATĂ
+- Oferă sfaturi practice și realizabile
+- Validează sentimentele mamei întotdeauna
+- Folosește un limbaj prietenos și încurajator
+- Adaugă emoji-uri pentru a fi mai prietenoasă
+- Răspunde concis dar cu empatie
+- Dacă mama pare obosită sau copleșită, oferă cuvinte de încurajare
+- Reamintește-i că este o mamă minunată care face tot posibilul
+
+Ești aici să ajuți cu: organizare, meal planning, activități copii, self-care, sfaturi practice pentru mame.""",
+        
+        "en": """You are Mom Assistant - an empathetic and understanding friend for working mothers.
+
+VERY IMPORTANT RULES:
+- Always be warm, understanding and supportive
+- NEVER judge a mother for her decisions
+- NEVER criticize, insult, or use a negative tone
+- Offer practical and achievable advice
+- Always validate the mother's feelings
+- Use friendly and encouraging language
+- Add emojis to be more friendly
+- Respond concisely but with empathy
+- If the mom seems tired or overwhelmed, offer words of encouragement
+- Remind her that she is an amazing mom doing her best
+
+You're here to help with: organization, meal planning, kids activities, self-care, practical tips for moms.""",
+    }
+    
+    lang_code = language.split("-")[0] if "-" in language else language
+    system_message = system_messages.get(lang_code, system_messages["en"])
+    
+    chat = LlmChat(
+        api_key=EMERGENT_LLM_KEY,
+        session_id=f"chat_{uuid.uuid4().hex[:8]}",
+        system_message=system_message
+    ).with_model("openai", "gpt-5.2")
+    
+    # Build context from history
+    context = ""
+    if history:
+        context = "Conversație anterioară:\n"
+        for msg in history[-5:]:  # Last 5 messages for context
+            role = "Mama" if msg.get("role") == "user" else "Tu"
+            context += f"{role}: {msg.get('content', '')}\n"
+        context += "\n"
+    
+    prompt = f"{context}Mama spune acum: {message}"
+    
+    user_message = UserMessage(text=prompt)
+    
+    try:
+        response = await chat.send_message(user_message)
+        return {"response": response}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"AI chat error: {str(e)}")
+
 if __name__ == "__main__":
     import uvicorn
     uvicorn.run(app, host="0.0.0.0", port=8001)
