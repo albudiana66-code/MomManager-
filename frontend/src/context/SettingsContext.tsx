@@ -144,6 +144,12 @@ interface SettingsContextType {
   notifications: NotificationPreferences;
   setNotificationPreference: (key: keyof NotificationPreferences, value: boolean) => void;
   
+  // Theme (Day/Night)
+  themeMode: ThemeMode;
+  toggleTheme: () => void;
+  colors: typeof THEMES.dark;
+  isDarkMode: boolean;
+  
   // Loading state
   isSettingsLoaded: boolean;
 }
