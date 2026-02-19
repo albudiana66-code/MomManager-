@@ -207,6 +207,7 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     workCalendarAlerts: true,
     foodExpirationAlerts: false,
   });
+  const [themeMode, setThemeMode] = useState<ThemeMode>('dark');
   const [isSettingsLoaded, setIsSettingsLoaded] = useState(false);
 
   useEffect(() => {
