@@ -206,6 +206,22 @@ class ApiClient {
     });
   }
 
+  // Physical Profile
+  async savePhysicalProfile(profile: any) {
+    return this.request('/selfcare/profile', {
+      method: 'POST',
+      body: JSON.stringify(profile),
+    });
+  }
+
+  // Strength Meals AI
+  async generateStrengthMeals(data: any) {
+    return this.request('/selfcare/strength-meals/generate', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
   // AI Chat
   async sendChatMessage(message: string, language: string, history: any[] = []) {
     return this.request('/ai/chat', {
