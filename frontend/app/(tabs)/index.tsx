@@ -77,55 +77,69 @@ export default function HomeScreen() {
         {/* Header */}
         <View style={styles.header}>
           <View>
-            <Text style={styles.greeting}>{t('home.greeting')}</Text>
-            <Text style={styles.userName}>{user?.name?.split(' ')[0]}</Text>
+            <Text style={[styles.greeting, { color: C.textMuted }]}>{t('home.greeting')}</Text>
+            <Text style={[styles.userName, { color: C.text }]}>{user?.name?.split(' ')[0]}</Text>
           </View>
-          <TouchableOpacity 
-            style={styles.iconButton} 
-            onPress={() => router.push('/settings')}
-          >
-            <Ionicons name="settings-outline" size={22} color={C.textSecondary} />
-          </TouchableOpacity>
+          <View style={styles.headerButtons}>
+            {/* Day/Night Toggle */}
+            <TouchableOpacity 
+              style={[styles.iconButton, { backgroundColor: C.surface }]} 
+              onPress={toggleTheme}
+            >
+              <Ionicons 
+                name={isDarkMode ? 'sunny-outline' : 'moon-outline'} 
+                size={22} 
+                color={isDarkMode ? C.gold : C.purple} 
+              />
+            </TouchableOpacity>
+            {/* Settings */}
+            <TouchableOpacity 
+              style={[styles.iconButton, { backgroundColor: C.surface }]} 
+              onPress={() => router.push('/settings')}
+            >
+              <Ionicons name="settings-outline" size={22} color={C.textSecondary} />
+            </TouchableOpacity>
+          </View>
         </View>
 
         {/* Date Card */}
         <LinearGradient
-          colors={['#252532', '#1E1E2A']}
-          style={styles.dateCard}
+          colors={isDarkMode ? ['#252532', '#1E1E2A'] : ['#F8F9FA', '#FFFFFF']}
+          style={[styles.dateCard, !isDarkMode && { borderWidth: 1, borderColor: C.border }]}
         >
           <View style={styles.dateContent}>
-            <Text style={styles.dateDay}>
+            <Text style={[styles.dateDay, { color: C.text }]}>
               {format(today, 'EEEE', { locale: dateLocale })}
             </Text>
-            <Text style={styles.dateNumber}>
+            <Text style={[styles.dateNumber, { color: C.textMuted }]}>
               {format(today, 'd MMMM yyyy', { locale: dateLocale })}
             </Text>
           </View>
-          <View style={styles.dateBadge}>
-            <Ionicons name="sunny" size={24} color={C.gold} />
+          <View style={[styles.dateBadge, { backgroundColor: C.goldGlow }]}>
+            <Ionicons name={isDarkMode ? 'moon' : 'sunny'} size={24} color={C.gold} />
           </View>
         </LinearGradient>
 
         {/* Quick Stats */}
         <View style={styles.statsGrid}>
-          <LinearGradient colors={['#252532', '#1E1E2A']} style={styles.statCard}>
+          <LinearGradient colors={isDarkMode ? ['#252532', '#1E1E2A'] : ['#F8F9FA', '#FFFFFF']} style={[styles.statCard, !isDarkMode && { borderWidth: 1, borderColor: C.border }]}>
             <View style={[styles.statIcon, { backgroundColor: C.primaryGlow }]}>
               <Ionicons name="videocam" size={20} color={C.primary} />
             </View>
-            <Text style={styles.statValue}>{todayMeetings.length}</Text>
-            <Text style={styles.statLabel}>{t('home.meetings')}</Text>
+            <Text style={[styles.statValue, { color: C.text }]}>{todayMeetings.length}</Text>
+            <Text style={[styles.statLabel, { color: C.textMuted }]}>{t('home.meetings')}</Text>
           </LinearGradient>
           
-          <LinearGradient colors={['#252532', '#1E1E2A']} style={styles.statCard}>
-            <View style={[styles.statIcon, { backgroundColor: 'rgba(59, 130, 246, 0.15)' }]}>
+          <LinearGradient colors={isDarkMode ? ['#252532', '#1E1E2A'] : ['#F8F9FA', '#FFFFFF']} style={[styles.statCard, !isDarkMode && { borderWidth: 1, borderColor: C.border }]}>
+            <View style={[styles.statIcon, { backgroundColor: C.blueGlow }]}>
               <Ionicons name="checkbox" size={20} color={C.blue} />
             </View>
-            <Text style={styles.statValue}>{completedTasks}/{totalTasks}</Text>
-            <Text style={styles.statLabel}>{t('home.tasks')}</Text>
+            <Text style={[styles.statValue, { color: C.text }]}>{completedTasks}/{totalTasks}</Text>
+            <Text style={[styles.statLabel, { color: C.textMuted }]}>{t('home.tasks')}</Text>
           </LinearGradient>
           
-          <LinearGradient colors={['#252532', '#1E1E2A']} style={styles.statCard}>
-            <View style={[styles.statIcon, { backgroundColor: 'rgba(139, 92, 246, 0.15)' }]}>
+          <LinearGradient colors={isDarkMode ? ['#252532', '#1E1E2A'] : ['#F8F9FA', '#FFFFFF']} style={[styles.statCard, !isDarkMode && { borderWidth: 1, borderColor: C.border }]}>
+            <View style={[styles.statIcon, { backgroundColor: C.purpleGlow }]}>
               <Ionicons name="people" size={20} color={C.purple} />
             </View>
             <Text style={styles.statValue}>{kidsCount}</Text>
