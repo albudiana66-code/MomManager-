@@ -198,7 +198,7 @@ export default function HomeScreen() {
                   <View style={[styles.actionIcon, { backgroundColor: `${action.color}20` }]}>
                     <Ionicons name={action.icon as any} size={22} color={action.color} />
                   </View>
-                  <Text style={styles.actionLabel}>{action.label}</Text>
+                  <Text style={[styles.actionLabel, { color: C.text }]}>{action.label}</Text>
                 </LinearGradient>
               </TouchableOpacity>
             ))}
@@ -207,11 +207,11 @@ export default function HomeScreen() {
 
         {/* Motivational Quote */}
         <LinearGradient
-          colors={['#252532', '#1E1E2A']}
-          style={styles.quoteCard}
+          colors={isDarkMode ? ['#252532', '#1E1E2A'] : ['#F8F9FA', '#FFFFFF']}
+          style={[styles.quoteCard, !isDarkMode && { borderWidth: 1, borderColor: C.border }]}
         >
           <Ionicons name="sparkles" size={20} color={C.primary} />
-          <Text style={styles.quoteText}>"{t('home.motivationalQuote')}"</Text>
+          <Text style={[styles.quoteText, { color: C.textSecondary }]}>"{t('home.motivationalQuote')}"</Text>
         </LinearGradient>
       </ScrollView>
 
@@ -223,7 +223,6 @@ export default function HomeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: C.bg,
   },
   content: {
     padding: 20,
@@ -235,22 +234,23 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 24,
   },
+  headerButtons: {
+    flexDirection: 'row',
+    gap: 10,
+  },
   greeting: {
     fontSize: 14,
-    color: C.textMuted,
     letterSpacing: 0.5,
   },
   userName: {
     fontSize: 28,
     fontWeight: '700',
-    color: C.text,
     marginTop: 4,
   },
   iconButton: {
     width: 44,
     height: 44,
     borderRadius: 14,
-    backgroundColor: C.surface,
     justifyContent: 'center',
     alignItems: 'center',
   },
