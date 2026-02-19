@@ -274,6 +274,12 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
     await AsyncStorage.setItem('app_notifications', JSON.stringify(updated));
   };
 
+  const toggleTheme = async () => {
+    const newTheme: ThemeMode = themeMode === 'dark' ? 'light' : 'dark';
+    setThemeMode(newTheme);
+    await AsyncStorage.setItem('app_theme', newTheme);
+  };
+
   const formatCurrency = (amount: number) => {
     // Format with currency symbol
     if (currency.code === 'RON') {
