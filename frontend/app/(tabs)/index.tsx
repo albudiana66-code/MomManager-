@@ -142,8 +142,8 @@ export default function HomeScreen() {
             <View style={[styles.statIcon, { backgroundColor: C.purpleGlow }]}>
               <Ionicons name="people" size={20} color={C.purple} />
             </View>
-            <Text style={styles.statValue}>{kidsCount}</Text>
-            <Text style={styles.statLabel}>{t('home.children')}</Text>
+            <Text style={[styles.statValue, { color: C.text }]}>{kidsCount}</Text>
+            <Text style={[styles.statLabel, { color: C.textMuted }]}>{t('home.children')}</Text>
           </LinearGradient>
         </View>
 
@@ -179,7 +179,7 @@ export default function HomeScreen() {
 
         {/* Quick Actions */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>{t('home.quickActions')}</Text>
+          <Text style={[styles.sectionTitle, { color: C.text }]}>{t('home.quickActions')}</Text>
           <View style={styles.actionsGrid}>
             {[
               { icon: 'book-outline', label: language.code === 'ro' ? 'Povești AI' : 'AI Stories', route: '/(tabs)/kids', color: C.purple },
@@ -193,9 +193,8 @@ export default function HomeScreen() {
                 onPress={() => router.push(action.route as any)}
               >
                 <LinearGradient
-                  colors={['#252532', '#1E1E2A']}
-                  style={styles.actionGradient}
-                >
+                  colors={isDarkMode ? ['#252532', '#1E1E2A'] : ['#F8F9FA', '#FFFFFF']}
+                  style={[styles.actionGradient, !isDarkMode && { borderWidth: 1, borderColor: C.border }]}>
                   <View style={[styles.actionIcon, { backgroundColor: `${action.color}20` }]}>
                     <Ionicons name={action.icon as any} size={22} color={action.color} />
                   </View>
