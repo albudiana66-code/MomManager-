@@ -313,6 +313,10 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
         t,
         notifications,
         setNotificationPreference,
+        themeMode,
+        toggleTheme,
+        colors: THEMES[themeMode],
+        isDarkMode: themeMode === 'dark',
         isSettingsLoaded,
       }}
     >
