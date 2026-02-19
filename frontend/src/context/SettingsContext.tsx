@@ -239,6 +239,12 @@ export function SettingsProvider({ children }: { children: ReactNode }) {
       if (savedNotifications) {
         setNotifications(JSON.parse(savedNotifications));
       }
+
+      // Load theme mode
+      const savedTheme = await AsyncStorage.getItem('app_theme');
+      if (savedTheme === 'light' || savedTheme === 'dark') {
+        setThemeMode(savedTheme);
+      }
     } catch (error) {
       console.error('Error loading settings:', error);
     } finally {
