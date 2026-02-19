@@ -66,7 +66,7 @@ export default function HomeScreen() {
   const totalTasks = todayChecklist?.tasks?.length || 0;
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: C.bg }]}>
       <ScrollView
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
