@@ -923,6 +923,247 @@ async def delete_workout(workout_id: str, current_user: User = Depends(require_a
         raise HTTPException(status_code=404, detail="Workout not found")
     return {"message": "Workout deleted"}
 
+# ============== Physical Profile Endpoint ==============
+
+@app.post("/api/selfcare/profile")
+async def save_physical_profile(request: Request, current_user: User = Depends(require_auth)):
+    """Save physical profile for workout customization"""
+    body = await request.json()
+    
+    profile = {
+        "current_weight": body.get("current_weight"),
+        "target_weight": body.get("target_weight"),
+        "height": body.get("height"),
+        "health_conditions": body.get("health_conditions", ["none"]),
+        "other_condition": body.get("other_condition", ""),
+    }
+    
+    await db.selfcare.update_one(
+        {"user_id": current_user.user_id},
+        {"$set": {"physical_profile": profile}},
+        upsert=True
+    )
+    
+    return profile
+
+# ============== Strength Meals Endpoint ==============
+
+@app.post("/api/selfcare/strength-meals/generate")
+async def generate_strength_meals(request: Request, current_user: User = Depends(require_auth)):
+    """Generate strength/muscle building meal plan with AI"""
+    body = await request.json()
+    profile = body.get("physical_profile", {})
+    language = body.get("language", "ro")
+    
+    if not EMERGENT_LLM_KEY:
+        raise HTTPException(status_code=500, detail="AI service not configured")
+    
+    current_weight = profile.get("current_weight", 70)
+    target_weight = profile.get("target_weight", 65)
+    height = profile.get("height", 165)
+    health_conditions = profile.get("health_conditions", ["none"])
+    
+    from emergentintegrations.llm.chat import LlmChat, UserMessage
+    
+    lang_code = language.split("-")[0] if "-" in language else language
+    
+    # Calculate base needs
+    weight_goal = "lose" if current_weight > target_weight else "gain" if current_weight < target_weight else "maintain"
+    
+    health_notes = ""
+    if health_conditions and "none" not in health_conditions:
+        conditions_text = ", ".join(health_conditions)
+        health_notes = f"\nATENȚIE: Clienta are următoarele probleme de sănătate: {conditions_text}. Adaptează mesele corespunzător."
+    
+    system_msg = f"""Ești un nutriționist specialist în masă musculară și fitness pentru femei.
+Creează un plan de mese pentru creșterea masei musculare și {
+    'slăbit' if weight_goal == 'lose' else 'menținere' if weight_goal == 'maintain' else 'creștere în greutate'}.
+
+Date client:
+- Greutate actuală: {current_weight} kg
+- Greutate dorită: {target_weight} kg  
+- Înălțime: {height} cm
+{health_notes}
+
+Returnează DOAR JSON valid în acest format:
+{{
+    "daily_calories": 1800,
+    "protein_grams": 120,
+    "meals": [
+        {{"name": "Mic dejun", "foods": "2 ouă, 100g ovăz, 1 banană", "calories": 450}},
+        {{"name": "Gustare 1", "foods": "Shake proteic, 30g nuci", "calories": 300}},
+        {{"name": "Prânz", "foods": "150g piept pui, 200g orez, legume", "calories": 500}},
+        {{"name": "Gustare 2", "foods": "150g brânză cottage, fructe", "calories": 200}},
+        {{"name": "Cină", "foods": "150g somon, cartofi dulci, salată", "calories": 450}}
+    ],
+    "tips": "Sfaturi pentru masă musculară..."
+}}
+
+Răspunde în limba {'română' if lang_code == 'ro' else 'engleză'}. Calculează caloriile corect pentru obiectiv."""
+
+    chat = LlmChat(
+        api_key=EMERGENT_LLM_KEY,
+        session_id=f"strength_meals_{uuid.uuid4().hex[:8]}",
+        system_message=system_msg
+    ).with_model("openai", "gpt-5.2")
+    
+    prompt = f"Creează un plan de mese pentru masă musculară cu {current_weight}kg actual, țintă {target_weight}kg, înălțime {height}cm."
+    
+    user_message = UserMessage(text=prompt)
+    
+    try:
+        response = await chat.send_message(user_message)
+        import json
+        
+        try:
+            if "```json" in response:
+                json_str = response.split("```json")[1].split("```")[0]
+            elif "```" in response:
+                json_str = response.split("```")[1].split("```")[0]
+            else:
+                json_str = response
+            
+            meals_data = json.loads(json_str.strip())
+        except:
+            raise HTTPException(status_code=500, detail="Failed to parse AI response")
+        
+        # Save to database
+        await db.selfcare.update_one(
+            {"user_id": current_user.user_id},
+            {"$set": {"strength_meals": meals_data}},
+            upsert=True
+        )
+        
+        return meals_data
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"AI processing error: {str(e)}")
+
+# ============== AI Workout with Physical Profile ==============
+
+@app.post("/api/selfcare/workout-ai/generate")
+async def generate_workout_ai(request: Request, current_user: User = Depends(require_auth)):
+    """Generate AI workout based on location (home/gym) and physical profile"""
+    body = await request.json()
+    location = body.get("location", "home")
+    workout_type = body.get("workout_type", "full_body")
+    language = body.get("language", "ro")
+    profile = body.get("physical_profile", {})
+    
+    if not EMERGENT_LLM_KEY:
+        raise HTTPException(status_code=500, detail="AI service not configured")
+    
+    from emergentintegrations.llm.chat import LlmChat, UserMessage
+    
+    lang_code = language.split("-")[0] if "-" in language else language
+    
+    # Health conditions handling
+    health_conditions = profile.get("health_conditions", ["none"]) if profile else ["none"]
+    health_notes = ""
+    
+    condition_adaptations = {
+        "back_pain": "EVITĂ exerciții care pun presiune pe coloană (deadlifts, sit-ups). Preferă exerciții cu sprijin pentru spate.",
+        "knee_issues": "EVITĂ sărituri, genuflexiuni adânci, lunges. Preferă exerciții în șezut sau întins.",
+        "heart_condition": "EVITĂ exerciții cu intensitate mare. Menține pulsul moderat. Include pauze mai lungi.",
+        "pregnancy": "EVITĂ exerciții pe burtă, sărituri, greutăți mari. Preferă exerciții ușoare și stretching.",
+        "postpartum": "Concentrează-te pe exerciții pentru întărirea abdomenului și bazinului. Evită exerciții intense.",
+        "joint_pain": "EVITĂ mișcări repetitive și cu impact. Preferă exerciții lente și controlate.",
+    }
+    
+    if health_conditions and "none" not in health_conditions:
+        adaptations = []
+        for cond in health_conditions:
+            if cond in condition_adaptations:
+                adaptations.append(condition_adaptations[cond])
+        if adaptations:
+            health_notes = "\n\nATENȚIE - CONDIȚII MEDICALE:\n" + "\n".join(adaptations)
+    
+    location_instructions = {
+        "home": {
+            "ro": "Creează un antrenament pentru ACASĂ, FĂRĂ echipament. Folosește doar greutatea corporală.",
+            "en": "Create a workout for HOME, WITHOUT equipment. Use bodyweight only."
+        },
+        "gym": {
+            "ro": "Creează un antrenament pentru SALĂ, CU echipament. Include exerciții cu gantere, benzi elastice, aparate.",
+            "en": "Create a workout for GYM, WITH equipment. Include exercises with dumbbells, resistance bands, machines."
+        }
+    }
+    
+    workout_type_names = {
+        "full_body": "Full Body",
+        "cardio": "Cardio",
+        "strength": "Forță/Strength",
+        "yoga": "Yoga",
+        "stretching": "Stretching"
+    }
+    
+    loc_instruction = location_instructions.get(location, location_instructions["home"]).get(lang_code, location_instructions["home"]["en"])
+    type_name = workout_type_names.get(workout_type, "Full Body")
+    
+    system_msg = f"""Ești un antrenor personal pentru mame ocupate. Creezi antrenamente eficiente de 15-25 minute.
+
+{loc_instruction}
+
+Tip antrenament: {type_name}
+{health_notes}
+
+Returnează DOAR JSON valid în acest format:
+{{
+    "name": "Numele antrenamentului",
+    "duration": "20 min",
+    "location": "{location}",
+    "exercises": [
+        {{"name": "Numele exercițiului", "duration": "30 sec", "reps": "10 repetări", "description": "Descriere scurtă"}},
+        ...8-12 exerciții
+    ],
+    "tips": "Sfaturi pentru execuție corectă"
+}}
+
+Răspunde în limba {'română' if lang_code == 'ro' else 'engleză'}. Include încălzire și relaxare."""
+
+    chat = LlmChat(
+        api_key=EMERGENT_LLM_KEY,
+        session_id=f"workout_ai_{uuid.uuid4().hex[:8]}",
+        system_message=system_msg
+    ).with_model("openai", "gpt-5.2")
+    
+    loc_name = "acasă" if location == "home" else "sală" if lang_code == "ro" else "home" if location == "home" else "gym"
+    prompt = f"Creează un antrenament {type_name} pentru {loc_name}."
+    
+    user_message = UserMessage(text=prompt)
+    
+    try:
+        response = await chat.send_message(user_message)
+        import json
+        
+        try:
+            if "```json" in response:
+                json_str = response.split("```json")[1].split("```")[0]
+            elif "```" in response:
+                json_str = response.split("```")[1].split("```")[0]
+            else:
+                json_str = response
+            
+            workout_data = json.loads(json_str.strip())
+        except:
+            raise HTTPException(status_code=500, detail="Failed to parse AI response")
+        
+        workout_data["id"] = f"workout_{uuid.uuid4().hex[:8]}"
+        workout_data["location"] = location
+        
+        await db.selfcare.update_one(
+            {"user_id": current_user.user_id},
+            {"$push": {"workout_routines": workout_data}},
+            upsert=True
+        )
+        
+        return workout_data
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"AI workout generation error: {str(e)}")
+
 # ============== AI Stories Endpoints ==============
 
 @app.get("/api/stories")
