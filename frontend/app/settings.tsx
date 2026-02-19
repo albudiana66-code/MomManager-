@@ -108,17 +108,50 @@ export default function SettingsScreen() {
             style={styles.settingRow}
             onPress={() => setCurrencyModalVisible(true)}
           >
-            <LinearGradient colors={['#252532', '#1E1E2A']} style={styles.settingGradient}>
+            <LinearGradient colors={isDarkMode ? ['#252532', '#1E1E2A'] : ['#F8F9FA', '#FFFFFF']} style={[styles.settingGradient, !isDarkMode && { borderWidth: 1, borderColor: C.border }]}>
               <View style={[styles.settingIcon, { backgroundColor: C.greenGlow }]}>
                 <Ionicons name="wallet-outline" size={20} color={C.green} />
               </View>
               <View style={styles.settingContent}>
-                <Text style={styles.settingLabel}>{t('settings.currency')}</Text>
-                <Text style={styles.settingHint}>{t('settings.currencyHint')}</Text>
+                <Text style={[styles.settingLabel, { color: C.text }]}>{t('settings.currency')}</Text>
+                <Text style={[styles.settingHint, { color: C.textMuted }]}>{t('settings.currencyHint')}</Text>
               </View>
               <View style={styles.settingValue}>
-                <Text style={styles.settingValueText}>{currencySymbol} {currency.code}</Text>
+                <Text style={[styles.settingValueText, { color: C.textSecondary }]}>{currencySymbol} {currency.code}</Text>
                 <Ionicons name="chevron-forward" size={18} color={C.textMuted} />
+              </View>
+            </LinearGradient>
+          </TouchableOpacity>
+
+          {/* Day/Night Mode Toggle */}
+          <TouchableOpacity 
+            style={styles.settingRow}
+            onPress={toggleTheme}
+          >
+            <LinearGradient colors={isDarkMode ? ['#252532', '#1E1E2A'] : ['#F8F9FA', '#FFFFFF']} style={[styles.settingGradient, !isDarkMode && { borderWidth: 1, borderColor: C.border }]}>
+              <View style={[styles.settingIcon, { backgroundColor: isDarkMode ? C.goldGlow : C.purpleGlow }]}>
+                <Ionicons 
+                  name={isDarkMode ? 'sunny' : 'moon'} 
+                  size={20} 
+                  color={isDarkMode ? C.gold : C.purple} 
+                />
+              </View>
+              <View style={styles.settingContent}>
+                <Text style={[styles.settingLabel, { color: C.text }]}>
+                  {isRo ? 'Mod Zi/Noapte' : 'Day/Night Mode'}
+                </Text>
+                <Text style={[styles.settingHint, { color: C.textMuted }]}>
+                  {isDarkMode 
+                    ? (isRo ? 'Activ: Mod Noapte 🌙' : 'Active: Night Mode 🌙')
+                    : (isRo ? 'Activ: Mod Zi ☀️' : 'Active: Day Mode ☀️')}
+                </Text>
+              </View>
+              <View style={[styles.themeToggle, { backgroundColor: isDarkMode ? C.gold : C.purple }]}>
+                <Ionicons 
+                  name={isDarkMode ? 'moon' : 'sunny'} 
+                  size={16} 
+                  color="#fff" 
+                />
               </View>
             </LinearGradient>
           </TouchableOpacity>
