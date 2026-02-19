@@ -24,7 +24,7 @@ const dateLocales: { [key: string]: any } = {
 
 export default function HomeScreen() {
   const { user, logout } = useAuth();
-  const { language, currencySymbol, t, colors: C, isDarkMode, toggleTheme } = useSettings();
+  const { language, currencySymbol, t, colors: C, isDarkMode } = useSettings();
   const router = useRouter();
   const [refreshing, setRefreshing] = useState(false);
   const [todayMeetings, setTodayMeetings] = useState<any[]>([]);
