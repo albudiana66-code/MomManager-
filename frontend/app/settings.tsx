@@ -411,7 +411,6 @@ export default function SettingsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: C.bg,
   },
   content: {
     padding: 20,
@@ -427,14 +426,12 @@ const styles = StyleSheet.create({
     width: 40,
     height: 40,
     borderRadius: 12,
-    backgroundColor: C.surface,
     justifyContent: 'center',
     alignItems: 'center',
   },
   title: {
     fontSize: 22,
     fontWeight: '700',
-    color: C.text,
   },
   profileCard: {
     flexDirection: 'row',
@@ -447,7 +444,6 @@ const styles = StyleSheet.create({
     width: 52,
     height: 52,
     borderRadius: 16,
-    backgroundColor: C.primaryGlow,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 14,
@@ -458,11 +454,9 @@ const styles = StyleSheet.create({
   profileName: {
     fontSize: 18,
     fontWeight: '700',
-    color: C.text,
   },
   profileEmail: {
     fontSize: 14,
-    color: C.textMuted,
     marginTop: 2,
   },
   section: {
@@ -471,7 +465,6 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 12,
     fontWeight: '600',
-    color: C.primary,
     textTransform: 'uppercase',
     letterSpacing: 1,
     marginBottom: 12,
