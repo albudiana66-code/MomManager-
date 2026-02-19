@@ -59,45 +59,45 @@ export default function SettingsScreen() {
         {/* Header */}
         <View style={styles.header}>
           <TouchableOpacity 
-            style={styles.backButton} 
+            style={[styles.backButton, { backgroundColor: C.surface }]} 
             onPress={() => router.back()}
           >
             <Ionicons name="arrow-back" size={24} color={C.text} />
           </TouchableOpacity>
-          <Text style={styles.title}>{t('settings.title')}</Text>
+          <Text style={[styles.title, { color: C.text }]}>{t('settings.title')}</Text>
           <View style={{ width: 40 }} />
         </View>
 
         {/* User Profile Section */}
-        <LinearGradient colors={['#252532', '#1E1E2A']} style={styles.profileCard}>
-          <View style={styles.profileAvatar}>
+        <LinearGradient colors={isDarkMode ? ['#252532', '#1E1E2A'] : ['#F8F9FA', '#FFFFFF']} style={[styles.profileCard, !isDarkMode && { borderWidth: 1, borderColor: C.border }]}>
+          <View style={[styles.profileAvatar, { backgroundColor: C.primaryGlow }]}>
             <Ionicons name="person" size={28} color={C.primary} />
           </View>
           <View style={styles.profileInfo}>
-            <Text style={styles.profileName}>{user?.name || 'Mom'}</Text>
-            <Text style={styles.profileEmail}>{user?.email || ''}</Text>
+            <Text style={[styles.profileName, { color: C.text }]}>{user?.name || 'Mom'}</Text>
+            <Text style={[styles.profileEmail, { color: C.textMuted }]}>{user?.email || ''}</Text>
           </View>
         </LinearGradient>
 
         {/* Language & Currency Section */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>{t('settings.preferences')}</Text>
+          <Text style={[styles.sectionTitle, { color: C.primary }]}>{t('settings.preferences')}</Text>
           
           {/* Language Selector */}
           <TouchableOpacity 
             style={styles.settingRow}
             onPress={() => setLanguageModalVisible(true)}
           >
-            <LinearGradient colors={['#252532', '#1E1E2A']} style={styles.settingGradient}>
+            <LinearGradient colors={isDarkMode ? ['#252532', '#1E1E2A'] : ['#F8F9FA', '#FFFFFF']} style={[styles.settingGradient, !isDarkMode && { borderWidth: 1, borderColor: C.border }]}>
               <View style={[styles.settingIcon, { backgroundColor: C.purpleGlow }]}>
                 <Ionicons name="globe-outline" size={20} color={C.purple} />
               </View>
               <View style={styles.settingContent}>
-                <Text style={styles.settingLabel}>{t('settings.language')}</Text>
-                <Text style={styles.settingHint}>{t('settings.languageHint')}</Text>
+                <Text style={[styles.settingLabel, { color: C.text }]}>{t('settings.language')}</Text>
+                <Text style={[styles.settingHint, { color: C.textMuted }]}>{t('settings.languageHint')}</Text>
               </View>
               <View style={styles.settingValue}>
-                <Text style={styles.settingValueText}>{language.flag} {language.name}</Text>
+                <Text style={[styles.settingValueText, { color: C.textSecondary }]}>{language.flag} {language.name}</Text>
                 <Ionicons name="chevron-forward" size={18} color={C.textMuted} />
               </View>
             </LinearGradient>
