@@ -268,12 +268,10 @@ const styles = StyleSheet.create({
   dateDay: {
     fontSize: 22,
     fontWeight: '700',
-    color: C.text,
     textTransform: 'capitalize',
   },
   dateNumber: {
     fontSize: 14,
-    color: C.textMuted,
     marginTop: 4,
     textTransform: 'capitalize',
   },
@@ -281,7 +279,6 @@ const styles = StyleSheet.create({
     width: 52,
     height: 52,
     borderRadius: 16,
-    backgroundColor: C.goldGlow,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -307,11 +304,9 @@ const styles = StyleSheet.create({
   statValue: {
     fontSize: 20,
     fontWeight: '700',
-    color: C.text,
   },
   statLabel: {
     fontSize: 10,
-    color: C.textMuted,
     marginTop: 4,
     textTransform: 'uppercase',
     letterSpacing: 0.5,
