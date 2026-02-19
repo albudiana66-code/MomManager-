@@ -1,48 +1,55 @@
-// Quiet Luxury Theme - MomManager 2026
-// Diana-Elena Albu
+// MomManager 2026 - Modern Luxury Theme
+// Sophisticated, Clean, Useful Design
 
 export const theme = {
   colors: {
-    // Backgrounds - Bej cald și elegant
-    background: '#FAF8F5',         // Bej foarte deschis, cald
-    backgroundAlt: '#F5F3EE',      // Bej ușor mai închis
-    backgroundMuted: '#EDE9E3',    // Bej neutru
+    // Background - Crem cald elegant, nu plictisitor
+    background: '#F8F6F3',
+    backgroundDark: '#2C2622',      // Pentru elemente de contrast
     
-    // Cards & Surfaces
-    card: '#FFFFFF',               // Alb curat pentru carduri
-    cardHover: '#FDFCFA',          // Alb-crem pentru hover
-    border: '#E8E4DD',             // Bordură subtilă bej
+    // Cards - Alb curat cu profunzime
+    card: '#FFFFFF',
+    cardElevated: '#FFFFFF',
     
-    // Primary - Auriu Satinat (singura culoare de accent)
-    primary: '#C5A059',            // Auriu satinat principal
-    primaryLight: '#D4B87A',       // Auriu deschis
-    primaryDark: '#A68A45',        // Auriu închis
-    primaryMuted: 'rgba(197, 160, 89, 0.12)', // Auriu cu opacitate mică
-    primarySoft: 'rgba(197, 160, 89, 0.08)',  // Auriu foarte subtil
+    // Primary - Auriu Satinat Rich
+    primary: '#B8956E',             // Auriu mai cald și bogat
+    primaryLight: '#D4B896',
+    primaryDark: '#9A7B5A',
+    primaryGlow: 'rgba(184, 149, 110, 0.15)',
     
-    // Text - Maro cafea elegant
-    text: '#3D2B1F',               // Maro cafea - text principal
-    textSecondary: '#5C4A3D',      // Maro mediu
-    textMuted: '#8B7D70',          // Maro deschis
-    textLight: '#A99E92',          // Text foarte deschis
+    // Accent - Pentru butoane și acțiuni
+    accent: '#2C2622',              // Maro închis elegant
+    accentSoft: '#4A433D',
     
-    // Status colors - versiuni subtile, elegante
-    success: '#8FA68F',            // Verde salvie
-    successBg: 'rgba(143, 166, 143, 0.12)',
-    warning: '#C5A059',            // Folosim auriul
-    warningBg: 'rgba(197, 160, 89, 0.12)',
-    error: '#B5807A',              // Roșu teracotă subtil
-    errorBg: 'rgba(181, 128, 122, 0.12)',
+    // Text
+    text: '#1A1614',                // Aproape negru, cald
+    textSecondary: '#6B635B',
+    textMuted: '#9E958C',
+    textOnDark: '#F8F6F3',
     
-    // Utility
-    white: '#FFFFFF',
-    overlay: 'rgba(61, 43, 31, 0.4)',
+    // Borders & Dividers
+    border: '#E8E4DE',
+    borderLight: '#F0EDE8',
+    
+    // Status - Subtile dar vizibile
+    success: '#6B8E6B',
+    error: '#C47D7D',
+    
+    // Overlay
+    overlay: 'rgba(28, 22, 20, 0.6)',
+  },
+  
+  // Gradients pentru butoane moderne
+  gradients: {
+    primary: ['#C9A77C', '#A08060'],
+    dark: ['#3D352F', '#2C2622'],
+    card: ['#FFFFFF', '#FAFAF8'],
   },
   
   fonts: {
-    serif: 'PlayfairDisplay_600SemiBold',
-    serifBold: 'PlayfairDisplay_700Bold',
-    serifItalic: 'PlayfairDisplay_400Regular_Italic',
+    heading: 'PlayfairDisplay_600SemiBold',
+    headingBold: 'PlayfairDisplay_700Bold',
+    body: 'System',
   },
   
   spacing: {
@@ -51,59 +58,40 @@ export const theme = {
     md: 16,
     lg: 24,
     xl: 32,
+    xxl: 48,
   },
   
-  borderRadius: {
+  radius: {
     sm: 12,
     md: 16,
     lg: 20,
-    xl: 24,
-    full: 9999,
+    xl: 28,
+    full: 100,
   },
   
   shadows: {
-    card: {
-      shadowColor: '#3D2B1F',
-      shadowOffset: { width: 0, height: 4 },
-      shadowOpacity: 0.04,
-      shadowRadius: 16,
-      elevation: 3,
+    soft: {
+      shadowColor: '#1A1614',
+      shadowOffset: { width: 0, height: 8 },
+      shadowOpacity: 0.06,
+      shadowRadius: 24,
+      elevation: 8,
+    },
+    medium: {
+      shadowColor: '#1A1614',
+      shadowOffset: { width: 0, height: 12 },
+      shadowOpacity: 0.1,
+      shadowRadius: 32,
+      elevation: 12,
     },
     button: {
-      shadowColor: '#C5A059',
-      shadowOffset: { width: 0, height: 4 },
-      shadowOpacity: 0.2,
-      shadowRadius: 12,
-      elevation: 4,
+      shadowColor: '#B8956E',
+      shadowOffset: { width: 0, height: 8 },
+      shadowOpacity: 0.35,
+      shadowRadius: 16,
+      elevation: 10,
     },
   },
-};
-
-// Stiluri comune pentru carduri
-export const cardStyle = {
-  backgroundColor: theme.colors.card,
-  borderRadius: theme.borderRadius.xl,
-  padding: theme.spacing.lg,
-  ...theme.shadows.card,
-};
-
-// Stiluri pentru butoane principale
-export const buttonStyle = {
-  backgroundColor: theme.colors.primary,
-  borderRadius: theme.borderRadius.md,
-  paddingVertical: 14,
-  paddingHorizontal: 24,
-  ...theme.shadows.button,
-};
-
-// Stiluri pentru iconițe în carduri
-export const iconContainerStyle = {
-  width: 48,
-  height: 48,
-  borderRadius: 12,
-  backgroundColor: theme.colors.primaryMuted,
-  justifyContent: 'center' as const,
-  alignItems: 'center' as const,
 };
 
 export default theme;
