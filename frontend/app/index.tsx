@@ -5,14 +5,25 @@ import { Ionicons } from '@expo/vector-icons';
 import { useAuth } from '../src/context/AuthContext';
 import { LoadingScreen } from '../src/components/LoadingScreen';
 import { useSettings } from '../src/context/SettingsContext';
-import { useTheme } from '../src/context/ThemeContext';
+import { LinearGradient } from 'expo-linear-gradient';
 
-const { width } = Dimensions.get('window');
+const { width, height } = Dimensions.get('window');
+
+// Modern 2026 Colors
+const C = {
+  bg: '#F8F6F3',
+  card: '#FFFFFF',
+  accent: '#2C2622',
+  gold: '#B8956E',
+  goldLight: '#D4B896',
+  text: '#1A1614',
+  textMuted: '#9E958C',
+  border: '#E8E4DE',
+};
 
 export default function LandingPage() {
   const { user, isLoading, isAuthenticated, login } = useAuth();
   const { t } = useSettings();
-  const { theme, fontsLoaded } = useTheme();
   const router = useRouter();
 
   useEffect(() => {
@@ -21,258 +32,248 @@ export default function LandingPage() {
     }
   }, [isLoading, isAuthenticated]);
 
-  if (isLoading || !fontsLoaded) {
+  if (isLoading) {
     return <LoadingScreen />;
   }
 
   const features = [
-    { icon: 'calendar-outline', title: t('tabs.work'), desc: t('landing.features.work') },
-    { icon: 'checkbox-outline', title: t('tabs.organize'), desc: t('landing.features.organize') },
+    { icon: 'sparkles', title: 'AI Smart Planner', desc: t('landing.features.work') },
+    { icon: 'wallet-outline', title: t('tabs.organize'), desc: t('landing.features.organize') },
     { icon: 'restaurant-outline', title: t('tabs.kitchen'), desc: t('landing.features.kitchen') },
     { icon: 'people-outline', title: t('tabs.kids'), desc: t('landing.features.kids') },
     { icon: 'heart-outline', title: t('tabs.selfcare'), desc: t('landing.features.selfcare') },
   ];
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      {/* Decorative floral pattern overlay */}
-      <View style={styles.patternOverlay} />
-      
-      <View style={styles.header}>
-        {/* Logo */}
-        <View style={styles.logoContainer}>
-          <View style={styles.logoInner}>
-            <Ionicons name="heart" size={36} color="#C5A059" />
+    <View style={styles.container}>
+      <ScrollView contentContainerStyle={styles.scrollContent} showsVerticalScrollIndicator={false}>
+        
+        {/* Hero Section */}
+        <View style={styles.heroSection}>
+          {/* Logo Badge */}
+          <View style={styles.logoBadge}>
+            <Ionicons name="heart" size={28} color={C.gold} />
           </View>
+          
+          {/* Brand */}
+          <Text style={styles.brandText}>MomManager</Text>
+          <View style={styles.yearBadge}>
+            <Text style={styles.yearText}>2026</Text>
+          </View>
+          
+          {/* Tagline */}
+          <Text style={styles.tagline}>{t('landing.description')}</Text>
         </View>
-        
-        {/* Title with serif font */}
-        <Text style={styles.title}>{t('landing.title')}</Text>
-        <Text style={styles.subtitle}>{t('landing.subtitle')}</Text>
-        
-        {/* Decorative line */}
-        <View style={styles.decorativeLine}>
-          <View style={styles.lineLeft} />
-          <Ionicons name="diamond" size={12} color="#C5A059" />
-          <View style={styles.lineRight} />
-        </View>
-        
-        <Text style={styles.tagline}>{t('landing.description')}</Text>
-      </View>
 
-      {/* Features Grid */}
-      <View style={styles.featuresContainer}>
-        {features.map((feature, index) => (
-          <View key={index} style={styles.featureCard}>
-            <View style={styles.featureIcon}>
-              <Ionicons name={feature.icon as any} size={28} color="#C5A059" />
+        {/* Features Grid - Modern Cards */}
+        <View style={styles.featuresSection}>
+          <Text style={styles.sectionLabel}>FEATURES</Text>
+          
+          {features.map((feature, index) => (
+            <View key={index} style={styles.featureCard}>
+              <View style={styles.featureIconBox}>
+                <Ionicons name={feature.icon as any} size={22} color={C.gold} />
+              </View>
+              <View style={styles.featureContent}>
+                <Text style={styles.featureTitle}>{feature.title}</Text>
+                <Text style={styles.featureDesc}>{feature.desc}</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={20} color={C.border} />
             </View>
-            <Text style={styles.featureTitle}>{feature.title}</Text>
-            <Text style={styles.featureDesc}>{feature.desc}</Text>
+          ))}
+        </View>
+
+        {/* CTA Section */}
+        <View style={styles.ctaSection}>
+          <TouchableOpacity style={styles.loginButton} onPress={login} activeOpacity={0.9}>
+            <LinearGradient
+              colors={['#3D352F', '#2C2622']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 1 }}
+              style={styles.loginGradient}
+            >
+              <Ionicons name="logo-google" size={20} color="#FFFFFF" />
+              <Text style={styles.loginText}>{t('auth.continueWithGoogle')}</Text>
+            </LinearGradient>
+          </TouchableOpacity>
+          
+          <Text style={styles.footerText}>{t('auth.tagline')}</Text>
+        </View>
+
+        {/* Legal Footer */}
+        <View style={styles.legalSection}>
+          <View style={styles.legalLinks}>
+            <TouchableOpacity onPress={() => router.push('/legal/terms')}>
+              <Text style={styles.legalLink}>Terms</Text>
+            </TouchableOpacity>
+            <View style={styles.legalDot} />
+            <TouchableOpacity onPress={() => router.push('/legal/privacy')}>
+              <Text style={styles.legalLink}>Privacy</Text>
+            </TouchableOpacity>
           </View>
-        ))}
-      </View>
-
-      {/* Login Button */}
-      <TouchableOpacity style={styles.loginButton} onPress={login}>
-        <Ionicons name="logo-google" size={22} color="#FFFFFF" style={styles.googleIcon} />
-        <Text style={styles.loginButtonText}>{t('auth.continueWithGoogle')}</Text>
-      </TouchableOpacity>
-
-      <Text style={styles.footer}>{t('auth.tagline')}</Text>
-      
-      {/* Legal Links */}
-      <View style={styles.legalLinks}>
-        <TouchableOpacity onPress={() => router.push('/legal/terms')}>
-          <Text style={styles.legalLink}>Terms</Text>
-        </TouchableOpacity>
-        <Text style={styles.legalSeparator}>•</Text>
-        <TouchableOpacity onPress={() => router.push('/legal/privacy')}>
-          <Text style={styles.legalLink}>Privacy</Text>
-        </TouchableOpacity>
-      </View>
-      
-      {/* Copyright */}
-      <Text style={styles.copyrightText}>
-        © 2026 MomManager by Diana-Elena Albu. All rights reserved.{'\n'}
-        Unauthorized reproduction or distribution is strictly prohibited.
-      </Text>
-    </ScrollView>
+          <Text style={styles.copyright}>
+            © 2026 MomManager by Diana-Elena Albu
+          </Text>
+        </View>
+      </ScrollView>
+    </View>
   );
 }
 
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F5F5DC',
+    backgroundColor: C.bg,
   },
-  content: {
-    padding: 24,
+  scrollContent: {
+    paddingHorizontal: 24,
     paddingTop: 60,
+    paddingBottom: 40,
+  },
+  heroSection: {
     alignItems: 'center',
+    marginBottom: 40,
   },
-  patternOverlay: {
-    position: 'absolute',
-    top: 0,
-    left: 0,
-    right: 0,
-    bottom: 0,
-    opacity: 0.05,
-  },
-  header: {
-    alignItems: 'center',
-    marginBottom: 32,
-  },
-  logoContainer: {
-    marginBottom: 20,
-  },
-  logoInner: {
-    width: 80,
-    height: 80,
-    borderRadius: 40,
-    backgroundColor: '#FFFFFF',
+  logoBadge: {
+    width: 64,
+    height: 64,
+    borderRadius: 20,
+    backgroundColor: C.card,
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#3D2B1F',
-    shadowOffset: { width: 0, height: 4 },
+    marginBottom: 24,
+    shadowColor: '#1A1614',
+    shadowOffset: { width: 0, height: 12 },
     shadowOpacity: 0.08,
-    shadowRadius: 20,
-    elevation: 5,
-    borderWidth: 2,
-    borderColor: 'rgba(197, 160, 89, 0.3)',
+    shadowRadius: 24,
+    elevation: 8,
   },
-  title: {
-    fontSize: 38,
+  brandText: {
+    fontSize: 36,
     fontFamily: 'PlayfairDisplay_700Bold',
-    color: '#3D2B1F',
-    letterSpacing: 1,
+    color: C.text,
+    letterSpacing: -0.5,
   },
-  subtitle: {
-    fontSize: 16,
-    fontFamily: 'PlayfairDisplay_400Regular_Italic',
-    color: '#C5A059',
-    marginTop: 4,
-    letterSpacing: 4,
+  yearBadge: {
+    backgroundColor: C.accent,
+    paddingHorizontal: 14,
+    paddingVertical: 6,
+    borderRadius: 8,
+    marginTop: 8,
   },
-  decorativeLine: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginVertical: 16,
-    gap: 12,
-  },
-  lineLeft: {
-    width: 50,
-    height: 1,
-    backgroundColor: '#C5A059',
-  },
-  lineRight: {
-    width: 50,
-    height: 1,
-    backgroundColor: '#C5A059',
+  yearText: {
+    fontSize: 13,
+    fontWeight: '700',
+    color: C.gold,
+    letterSpacing: 2,
   },
   tagline: {
     fontSize: 15,
-    color: '#6B5D52',
+    color: C.textMuted,
     textAlign: 'center',
-    fontStyle: 'italic',
+    marginTop: 16,
     lineHeight: 22,
+    maxWidth: 280,
   },
-  featuresContainer: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    justifyContent: 'center',
-    gap: 12,
+  featuresSection: {
     marginBottom: 32,
-    width: '100%',
+  },
+  sectionLabel: {
+    fontSize: 11,
+    fontWeight: '700',
+    color: C.textMuted,
+    letterSpacing: 2,
+    marginBottom: 16,
   },
   featureCard: {
-    width: (width - 72) / 2,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 24,
-    padding: 20,
+    backgroundColor: C.card,
+    borderRadius: 16,
+    padding: 16,
+    flexDirection: 'row',
     alignItems: 'center',
-    shadowColor: '#3D2B1F',
+    marginBottom: 10,
+    shadowColor: '#1A1614',
     shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.05,
-    shadowRadius: 20,
-    elevation: 4,
+    shadowOpacity: 0.04,
+    shadowRadius: 12,
+    elevation: 3,
   },
-  featureIcon: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: 'rgba(197, 160, 89, 0.12)',
+  featureIconBox: {
+    width: 44,
+    height: 44,
+    borderRadius: 12,
+    backgroundColor: 'rgba(184, 149, 110, 0.12)',
     justifyContent: 'center',
     alignItems: 'center',
-    marginBottom: 12,
+    marginRight: 14,
+  },
+  featureContent: {
+    flex: 1,
   },
   featureTitle: {
     fontSize: 15,
-    fontFamily: 'PlayfairDisplay_600SemiBold',
-    color: '#3D2B1F',
-    marginBottom: 4,
-    textAlign: 'center',
+    fontWeight: '600',
+    color: C.text,
+    marginBottom: 2,
   },
   featureDesc: {
-    fontSize: 12,
-    color: '#9C8B7E',
-    textAlign: 'center',
-    lineHeight: 16,
+    fontSize: 13,
+    color: C.textMuted,
+  },
+  ctaSection: {
+    marginBottom: 32,
   },
   loginButton: {
+    borderRadius: 16,
+    overflow: 'hidden',
+    shadowColor: '#1A1614',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.15,
+    shadowRadius: 20,
+    elevation: 10,
+  },
+  loginGradient: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#C5A059',
-    borderRadius: 16,
-    paddingVertical: 16,
-    paddingHorizontal: 32,
-    width: '100%',
-    shadowColor: '#3D2B1F',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 12,
-    elevation: 5,
-    marginBottom: 16,
+    paddingVertical: 18,
+    gap: 12,
   },
-  googleIcon: {
-    marginRight: 12,
-  },
-  loginButtonText: {
+  loginText: {
     fontSize: 16,
     fontWeight: '600',
     color: '#FFFFFF',
-    letterSpacing: 0.5,
   },
-  footer: {
-    marginTop: 16,
+  footerText: {
     fontSize: 14,
-    color: '#6B5D52',
+    color: C.textMuted,
+    textAlign: 'center',
+    marginTop: 16,
     fontStyle: 'italic',
+  },
+  legalSection: {
+    alignItems: 'center',
   },
   legalLinks: {
     flexDirection: 'row',
-    justifyContent: 'center',
     alignItems: 'center',
-    marginTop: 24,
-    gap: 10,
+    gap: 12,
+    marginBottom: 8,
   },
   legalLink: {
-    fontSize: 12,
-    color: '#C5A059',
+    fontSize: 13,
+    color: C.gold,
     fontWeight: '500',
   },
-  legalSeparator: {
-    fontSize: 12,
-    color: '#D4B87A',
+  legalDot: {
+    width: 4,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: C.border,
   },
-  copyrightText: {
-    marginTop: 12,
-    marginBottom: 30,
-    fontSize: 10,
-    color: '#9C8B7E',
+  copyright: {
+    fontSize: 11,
+    color: C.textMuted,
     textAlign: 'center',
-    lineHeight: 14,
-    paddingHorizontal: 20,
   },
 });
