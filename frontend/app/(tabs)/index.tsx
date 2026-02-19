@@ -18,19 +18,24 @@ import { ro, enUS, es, fr, de, it } from 'date-fns/locale';
 import { AIChatButton } from '../../src/components/AIChatButton';
 import { LinearGradient } from 'expo-linear-gradient';
 
-// Modern 2026 Colors
+// Modern 2026 Dark Theme
 const C = {
-  bg: '#F8F6F3',
-  card: '#FFFFFF',
-  accent: '#2C2622',
-  gold: '#B8956E',
-  goldLight: '#D4B896',
-  goldGlow: 'rgba(184, 149, 110, 0.12)',
-  text: '#1A1614',
-  textSecondary: '#6B635B',
-  textMuted: '#9E958C',
-  border: '#E8E4DE',
-  success: '#6B8E6B',
+  bg: '#0F0F14',
+  bgLight: '#1A1A24',
+  card: '#1E1E2A',
+  surface: '#252532',
+  primary: '#E91E9C',
+  primaryGlow: 'rgba(233, 30, 156, 0.15)',
+  gold: '#F5A623',
+  goldGlow: 'rgba(245, 166, 35, 0.12)',
+  purple: '#8B5CF6',
+  blue: '#3B82F6',
+  cyan: '#06B6D4',
+  green: '#10B981',
+  text: '#FFFFFF',
+  textSecondary: '#A1A1B5',
+  textMuted: '#6B6B80',
+  border: '#2A2A3A',
 };
 
 const dateLocales: { [key: string]: any } = {
@@ -86,27 +91,28 @@ export default function HomeScreen() {
         contentContainerStyle={styles.content}
         showsVerticalScrollIndicator={false}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={C.gold} />
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={C.primary} />
         }
       >
         {/* Header */}
         <View style={styles.header}>
           <View>
-            <Text style={styles.greeting}>{t('home.greeting')},</Text>
+            <Text style={styles.greeting}>{t('home.greeting')}</Text>
             <Text style={styles.userName}>{user?.name?.split(' ')[0]}</Text>
           </View>
-          <View style={styles.headerActions}>
-            <TouchableOpacity 
-              style={styles.iconButton} 
-              onPress={() => router.push('/settings')}
-            >
-              <Ionicons name="settings-outline" size={22} color={C.accent} />
-            </TouchableOpacity>
-          </View>
+          <TouchableOpacity 
+            style={styles.iconButton} 
+            onPress={() => router.push('/settings')}
+          >
+            <Ionicons name="settings-outline" size={22} color={C.textSecondary} />
+          </TouchableOpacity>
         </View>
 
         {/* Date Card */}
-        <View style={styles.dateCard}>
+        <LinearGradient
+          colors={['#252532', '#1E1E2A']}
+          style={styles.dateCard}
+        >
           <View style={styles.dateContent}>
             <Text style={styles.dateDay}>
               {format(today, 'EEEE', { locale: dateLocale })}
@@ -116,54 +122,54 @@ export default function HomeScreen() {
             </Text>
           </View>
           <View style={styles.dateBadge}>
-            <Ionicons name="sunny-outline" size={20} color={C.gold} />
+            <Ionicons name="sunny" size={24} color={C.gold} />
           </View>
-        </View>
+        </LinearGradient>
 
         {/* Quick Stats */}
         <View style={styles.statsGrid}>
-          <View style={styles.statCard}>
-            <View style={[styles.statIcon, { backgroundColor: C.goldGlow }]}>
-              <Ionicons name="videocam-outline" size={20} color={C.gold} />
+          <LinearGradient colors={['#252532', '#1E1E2A']} style={styles.statCard}>
+            <View style={[styles.statIcon, { backgroundColor: C.primaryGlow }]}>
+              <Ionicons name="videocam" size={20} color={C.primary} />
             </View>
             <Text style={styles.statValue}>{todayMeetings.length}</Text>
             <Text style={styles.statLabel}>{t('home.meetings')}</Text>
-          </View>
+          </LinearGradient>
           
-          <View style={styles.statCard}>
-            <View style={[styles.statIcon, { backgroundColor: C.goldGlow }]}>
-              <Ionicons name="checkbox-outline" size={20} color={C.gold} />
+          <LinearGradient colors={['#252532', '#1E1E2A']} style={styles.statCard}>
+            <View style={[styles.statIcon, { backgroundColor: 'rgba(59, 130, 246, 0.15)' }]}>
+              <Ionicons name="checkbox" size={20} color={C.blue} />
             </View>
             <Text style={styles.statValue}>{completedTasks}/{totalTasks}</Text>
             <Text style={styles.statLabel}>{t('home.tasks')}</Text>
-          </View>
+          </LinearGradient>
           
-          <View style={styles.statCard}>
-            <View style={[styles.statIcon, { backgroundColor: C.goldGlow }]}>
-              <Ionicons name="people-outline" size={20} color={C.gold} />
+          <LinearGradient colors={['#252532', '#1E1E2A']} style={styles.statCard}>
+            <View style={[styles.statIcon, { backgroundColor: 'rgba(139, 92, 246, 0.15)' }]}>
+              <Ionicons name="people" size={20} color={C.purple} />
             </View>
             <Text style={styles.statValue}>{kidsCount}</Text>
             <Text style={styles.statLabel}>{t('home.children')}</Text>
-          </View>
+          </LinearGradient>
         </View>
 
         {/* AI Insight Card */}
-        <TouchableOpacity style={styles.aiCard} activeOpacity={0.95}>
+        <TouchableOpacity activeOpacity={0.9}>
           <LinearGradient
-            colors={['#3D352F', '#2C2622']}
+            colors={['#E91E9C', '#B8157A']}
             start={{ x: 0, y: 0 }}
             end={{ x: 1, y: 1 }}
-            style={styles.aiGradient}
+            style={styles.aiCard}
           >
             <View style={styles.aiContent}>
               <View style={styles.aiBadge}>
-                <Ionicons name="sparkles" size={14} color={C.gold} />
+                <Ionicons name="sparkles" size={14} color="#FFFFFF" />
                 <Text style={styles.aiBadgeText}>AI ASSISTANT</Text>
               </View>
               <Text style={styles.aiTitle}>
                 {language.code === 'ro' 
                   ? 'Sunt aici pentru tine' 
-                  : 'I\'m here for you'}
+                  : "I'm here for you"}
               </Text>
               <Text style={styles.aiSubtitle}>
                 {language.code === 'ro'
@@ -172,66 +178,50 @@ export default function HomeScreen() {
               </Text>
             </View>
             <View style={styles.aiIcon}>
-              <Ionicons name="chatbubble-ellipses" size={28} color={C.gold} />
+              <Ionicons name="chatbubble-ellipses" size={32} color="rgba(255,255,255,0.9)" />
             </View>
           </LinearGradient>
         </TouchableOpacity>
-
-        {/* Today's Schedule */}
-        {todayMeetings.length > 0 && (
-          <View style={styles.section}>
-            <Text style={styles.sectionTitle}>
-              {language.code === 'ro' ? 'Programul de azi' : 'Today\'s Schedule'}
-            </Text>
-            {todayMeetings.slice(0, 3).map((meeting, index) => (
-              <View key={meeting.id || index} style={styles.scheduleCard}>
-                <View style={styles.scheduleTime}>
-                  <Text style={styles.timeText}>{meeting.start_time}</Text>
-                </View>
-                <View style={styles.scheduleLine} />
-                <View style={styles.scheduleContent}>
-                  <Text style={styles.scheduleTitle}>{meeting.title}</Text>
-                  {meeting.description && (
-                    <Text style={styles.scheduleDesc}>{meeting.description}</Text>
-                  )}
-                </View>
-              </View>
-            ))}
-          </View>
-        )}
 
         {/* Quick Actions */}
         <View style={styles.section}>
           <Text style={styles.sectionTitle}>{t('home.quickActions')}</Text>
           <View style={styles.actionsGrid}>
             {[
-              { icon: 'add-circle-outline', label: t('home.meeting'), route: '/(tabs)/work' },
-              { icon: 'list-outline', label: t('home.checklist'), route: '/(tabs)/organize' },
-              { icon: 'restaurant-outline', label: t('home.mealPlan'), route: '/(tabs)/kitchen' },
-              { icon: 'heart-outline', label: t('home.workout'), route: '/(tabs)/selfcare' },
+              { icon: 'book-outline', label: language.code === 'ro' ? 'Povești AI' : 'AI Stories', route: '/(tabs)/kids', color: C.purple },
+              { icon: 'fitness-outline', label: language.code === 'ro' ? 'Exerciții' : 'Workouts', route: '/(tabs)/selfcare', color: C.green },
+              { icon: 'restaurant-outline', label: t('home.mealPlan'), route: '/(tabs)/kitchen', color: C.gold },
+              { icon: 'checkbox-outline', label: t('home.checklist'), route: '/(tabs)/organize', color: C.blue },
             ].map((action, index) => (
               <TouchableOpacity
                 key={index}
                 style={styles.actionCard}
                 onPress={() => router.push(action.route as any)}
               >
-                <View style={styles.actionIcon}>
-                  <Ionicons name={action.icon as any} size={22} color={C.gold} />
-                </View>
-                <Text style={styles.actionLabel}>{action.label}</Text>
+                <LinearGradient
+                  colors={['#252532', '#1E1E2A']}
+                  style={styles.actionGradient}
+                >
+                  <View style={[styles.actionIcon, { backgroundColor: `${action.color}20` }]}>
+                    <Ionicons name={action.icon as any} size={22} color={action.color} />
+                  </View>
+                  <Text style={styles.actionLabel}>{action.label}</Text>
+                </LinearGradient>
               </TouchableOpacity>
             ))}
           </View>
         </View>
 
         {/* Motivational Quote */}
-        <View style={styles.quoteCard}>
-          <Ionicons name="sparkles" size={20} color={C.gold} />
+        <LinearGradient
+          colors={['#252532', '#1E1E2A']}
+          style={styles.quoteCard}
+        >
+          <Ionicons name="sparkles" size={20} color={C.primary} />
           <Text style={styles.quoteText}>"{t('home.motivationalQuote')}"</Text>
-        </View>
+        </LinearGradient>
       </ScrollView>
 
-      {/* AI Chat Button */}
       <AIChatButton />
     </SafeAreaView>
   );
@@ -253,52 +243,38 @@ const styles = StyleSheet.create({
     marginBottom: 24,
   },
   greeting: {
-    fontSize: 16,
+    fontSize: 14,
     color: C.textMuted,
+    letterSpacing: 0.5,
   },
   userName: {
     fontSize: 28,
-    fontFamily: 'PlayfairDisplay_700Bold',
+    fontWeight: '700',
     color: C.text,
-    marginTop: 2,
-  },
-  headerActions: {
-    flexDirection: 'row',
-    gap: 10,
+    marginTop: 4,
   },
   iconButton: {
     width: 44,
     height: 44,
     borderRadius: 14,
-    backgroundColor: C.card,
+    backgroundColor: C.surface,
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#1A1614',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.06,
-    shadowRadius: 12,
-    elevation: 4,
   },
   dateCard: {
-    backgroundColor: C.card,
     borderRadius: 20,
     padding: 20,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
     marginBottom: 20,
-    shadowColor: '#1A1614',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.06,
-    shadowRadius: 20,
-    elevation: 6,
   },
   dateContent: {
     flex: 1,
   },
   dateDay: {
     fontSize: 22,
-    fontFamily: 'PlayfairDisplay_600SemiBold',
+    fontWeight: '700',
     color: C.text,
     textTransform: 'capitalize',
   },
@@ -309,9 +285,9 @@ const styles = StyleSheet.create({
     textTransform: 'capitalize',
   },
   dateBadge: {
-    width: 48,
-    height: 48,
-    borderRadius: 14,
+    width: 52,
+    height: 52,
+    borderRadius: 16,
     backgroundColor: C.goldGlow,
     justifyContent: 'center',
     alignItems: 'center',
@@ -323,19 +299,13 @@ const styles = StyleSheet.create({
   },
   statCard: {
     flex: 1,
-    backgroundColor: C.card,
     borderRadius: 16,
     padding: 16,
     alignItems: 'center',
-    shadowColor: '#1A1614',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.04,
-    shadowRadius: 12,
-    elevation: 3,
   },
   statIcon: {
-    width: 40,
-    height: 40,
+    width: 44,
+    height: 44,
     borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
@@ -347,7 +317,7 @@ const styles = StyleSheet.create({
     color: C.text,
   },
   statLabel: {
-    fontSize: 11,
+    fontSize: 10,
     color: C.textMuted,
     marginTop: 4,
     textTransform: 'uppercase',
@@ -355,18 +325,10 @@ const styles = StyleSheet.create({
   },
   aiCard: {
     borderRadius: 20,
-    overflow: 'hidden',
-    marginBottom: 24,
-    shadowColor: '#1A1614',
-    shadowOffset: { width: 0, height: 12 },
-    shadowOpacity: 0.15,
-    shadowRadius: 24,
-    elevation: 10,
-  },
-  aiGradient: {
     padding: 20,
     flexDirection: 'row',
     alignItems: 'center',
+    marginBottom: 24,
   },
   aiContent: {
     flex: 1,
@@ -380,11 +342,11 @@ const styles = StyleSheet.create({
   aiBadgeText: {
     fontSize: 10,
     fontWeight: '700',
-    color: C.gold,
+    color: 'rgba(255,255,255,0.9)',
     letterSpacing: 1.5,
   },
   aiTitle: {
-    fontSize: 18,
+    fontSize: 20,
     fontWeight: '700',
     color: '#FFFFFF',
     marginBottom: 4,
@@ -394,10 +356,10 @@ const styles = StyleSheet.create({
     color: 'rgba(255,255,255,0.7)',
   },
   aiIcon: {
-    width: 56,
-    height: 56,
-    borderRadius: 16,
-    backgroundColor: 'rgba(184, 149, 110, 0.2)',
+    width: 60,
+    height: 60,
+    borderRadius: 18,
+    backgroundColor: 'rgba(255,255,255,0.2)',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -411,49 +373,6 @@ const styles = StyleSheet.create({
     marginBottom: 14,
     letterSpacing: 0.3,
   },
-  scheduleCard: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    marginBottom: 12,
-  },
-  scheduleTime: {
-    width: 50,
-    paddingTop: 4,
-  },
-  timeText: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: C.textMuted,
-  },
-  scheduleLine: {
-    width: 2,
-    height: '100%',
-    minHeight: 50,
-    backgroundColor: C.gold,
-    borderRadius: 1,
-    marginHorizontal: 12,
-  },
-  scheduleContent: {
-    flex: 1,
-    backgroundColor: C.card,
-    borderRadius: 14,
-    padding: 14,
-    shadowColor: '#1A1614',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.03,
-    shadowRadius: 8,
-    elevation: 2,
-  },
-  scheduleTitle: {
-    fontSize: 15,
-    fontWeight: '600',
-    color: C.text,
-  },
-  scheduleDesc: {
-    fontSize: 13,
-    color: C.textMuted,
-    marginTop: 4,
-  },
   actionsGrid: {
     flexDirection: 'row',
     flexWrap: 'wrap',
@@ -461,22 +380,18 @@ const styles = StyleSheet.create({
   },
   actionCard: {
     width: '47%',
-    backgroundColor: C.card,
     borderRadius: 16,
+    overflow: 'hidden',
+  },
+  actionGradient: {
     padding: 16,
     flexDirection: 'row',
     alignItems: 'center',
-    shadowColor: '#1A1614',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.04,
-    shadowRadius: 12,
-    elevation: 3,
   },
   actionIcon: {
     width: 44,
     height: 44,
     borderRadius: 12,
-    backgroundColor: C.goldGlow,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
@@ -488,20 +403,17 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   quoteCard: {
-    backgroundColor: C.goldGlow,
     borderRadius: 16,
     padding: 18,
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
-    borderWidth: 1,
-    borderColor: 'rgba(184, 149, 110, 0.2)',
   },
   quoteText: {
     flex: 1,
     fontSize: 14,
     fontStyle: 'italic',
-    color: C.text,
+    color: C.textSecondary,
     lineHeight: 20,
   },
 });

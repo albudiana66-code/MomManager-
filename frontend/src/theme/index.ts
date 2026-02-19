@@ -1,54 +1,61 @@
-// MomManager 2026 - Modern Luxury Theme
-// Sophisticated, Clean, Useful Design
+// MomManager 2026 - Ultra Modern Theme
+// Dark Elegance with Vibrant Accents
 
 export const theme = {
   colors: {
-    // Background - Crem cald elegant, nu plictisitor
-    background: '#F8F6F3',
-    backgroundDark: '#2C2622',      // Pentru elemente de contrast
+    // Backgrounds
+    background: '#0F0F14',           // Deep dark
+    backgroundLight: '#1A1A24',      // Slightly lighter dark
+    backgroundCard: '#1E1E2A',       // Card backgrounds
     
-    // Cards - Alb curat cu profunzime
-    card: '#FFFFFF',
-    cardElevated: '#FFFFFF',
+    // Primary - Magenta/Pink Accent
+    primary: '#E91E9C',              // Vibrant magenta
+    primaryLight: '#FF4DB8',
+    primaryDark: '#B8157A',
+    primaryGlow: 'rgba(233, 30, 156, 0.15)',
     
-    // Primary - Auriu Satinat Rich
-    primary: '#B8956E',             // Auriu mai cald și bogat
-    primaryLight: '#D4B896',
-    primaryDark: '#9A7B5A',
-    primaryGlow: 'rgba(184, 149, 110, 0.15)',
+    // Secondary - Gold/Amber
+    gold: '#F5A623',
+    goldLight: '#FFD700',
+    goldGlow: 'rgba(245, 166, 35, 0.15)',
     
-    // Accent - Pentru butoane și acțiuni
-    accent: '#2C2622',              // Maro închis elegant
-    accentSoft: '#4A433D',
+    // Accent Colors
+    purple: '#8B5CF6',
+    blue: '#3B82F6',
+    cyan: '#06B6D4',
+    green: '#10B981',
+    orange: '#F97316',
     
     // Text
-    text: '#1A1614',                // Aproape negru, cald
-    textSecondary: '#6B635B',
-    textMuted: '#9E958C',
-    textOnDark: '#F8F6F3',
+    text: '#FFFFFF',
+    textSecondary: '#A1A1B5',
+    textMuted: '#6B6B80',
     
-    // Borders & Dividers
-    border: '#E8E4DE',
-    borderLight: '#F0EDE8',
+    // Borders & Surfaces
+    border: '#2A2A3A',
+    borderLight: '#3A3A4A',
+    surface: '#252532',
     
-    // Status - Subtile dar vizibile
-    success: '#6B8E6B',
-    error: '#C47D7D',
+    // Status
+    success: '#10B981',
+    error: '#EF4444',
+    warning: '#F59E0B',
     
     // Overlay
-    overlay: 'rgba(28, 22, 20, 0.6)',
+    overlay: 'rgba(0, 0, 0, 0.7)',
   },
   
-  // Gradients pentru butoane moderne
   gradients: {
-    primary: ['#C9A77C', '#A08060'],
-    dark: ['#3D352F', '#2C2622'],
-    card: ['#FFFFFF', '#FAFAF8'],
+    primary: ['#E91E9C', '#B8157A'],
+    purple: ['#8B5CF6', '#6D28D9'],
+    dark: ['#1E1E2A', '#0F0F14'],
+    card: ['#252532', '#1E1E2A'],
+    gold: ['#F5A623', '#D4920B'],
   },
   
   fonts: {
-    heading: 'PlayfairDisplay_600SemiBold',
-    headingBold: 'PlayfairDisplay_700Bold',
+    heading: 'System',
+    headingBold: 'System',
     body: 'System',
   },
   
@@ -71,23 +78,16 @@ export const theme = {
   
   shadows: {
     soft: {
-      shadowColor: '#1A1614',
+      shadowColor: '#000',
       shadowOffset: { width: 0, height: 8 },
-      shadowOpacity: 0.06,
+      shadowOpacity: 0.3,
       shadowRadius: 24,
       elevation: 8,
     },
-    medium: {
-      shadowColor: '#1A1614',
-      shadowOffset: { width: 0, height: 12 },
-      shadowOpacity: 0.1,
-      shadowRadius: 32,
-      elevation: 12,
-    },
-    button: {
-      shadowColor: '#B8956E',
-      shadowOffset: { width: 0, height: 8 },
-      shadowOpacity: 0.35,
+    glow: {
+      shadowColor: '#E91E9C',
+      shadowOffset: { width: 0, height: 4 },
+      shadowOpacity: 0.3,
       shadowRadius: 16,
       elevation: 10,
     },

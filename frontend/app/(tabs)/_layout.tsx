@@ -6,13 +6,16 @@ import { useSettings } from '../../src/context/SettingsContext';
 import { LoadingScreen } from '../../src/components/LoadingScreen';
 import { useRouter } from 'expo-router';
 import { useEffect } from 'react';
+import { View } from 'react-native';
+import { LinearGradient } from 'expo-linear-gradient';
 
 // Modern 2026 Colors
 const C = {
-  bg: '#FFFFFF',
-  accent: '#2C2622',
-  gold: '#B8956E',
-  textMuted: '#9E958C',
+  bg: '#0F0F14',
+  bgLight: '#1A1A24',
+  primary: '#E91E9C',
+  textMuted: '#6B6B80',
+  text: '#FFFFFF',
 };
 
 export default function TabsLayout() {
@@ -38,25 +41,25 @@ export default function TabsLayout() {
     <Tabs
       screenOptions={{
         headerShown: false,
-        tabBarActiveTintColor: C.accent,
+        tabBarActiveTintColor: C.primary,
         tabBarInactiveTintColor: C.textMuted,
         tabBarStyle: {
           backgroundColor: C.bg,
           borderTopWidth: 0,
-          elevation: 20,
-          shadowColor: '#1A1614',
-          shadowOffset: { width: 0, height: -8 },
-          shadowOpacity: 0.08,
-          shadowRadius: 24,
-          height: 72,
-          paddingBottom: 12,
-          paddingTop: 8,
+          elevation: 0,
+          height: 80,
+          paddingBottom: 16,
+          paddingTop: 12,
+          borderTopColor: 'transparent',
         },
         tabBarLabelStyle: {
           fontSize: 10,
           fontWeight: '600',
           letterSpacing: 0.3,
         },
+        tabBarBackground: () => (
+          <View style={{ flex: 1, backgroundColor: C.bg }} />
+        ),
       }}
     >
       <Tabs.Screen
@@ -100,7 +103,7 @@ export default function TabsLayout() {
         options={{
           title: t('tabs.kids'),
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="people" size={size} color={color} />
+            <Ionicons name="book" size={size} color={color} />
           ),
         }}
       />
@@ -109,7 +112,7 @@ export default function TabsLayout() {
         options={{
           title: t('tabs.selfcare'),
           tabBarIcon: ({ color, size }) => (
-            <Ionicons name="heart" size={size} color={color} />
+            <Ionicons name="fitness" size={size} color={color} />
           ),
         }}
       />

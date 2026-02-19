@@ -5,7 +5,6 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
-  TextInput,
   Modal,
   RefreshControl,
   Alert,
@@ -13,93 +12,113 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import { api } from '../../src/utils/api';
+import { useSettings } from '../../src/context/SettingsContext';
 
-type TabType = 'nutrition' | 'workout';
+// Modern 2026 Dark Theme
+const C = {
+  bg: '#0F0F14',
+  bgLight: '#1A1A24',
+  card: '#1E1E2A',
+  surface: '#252532',
+  primary: '#E91E9C',
+  primaryGlow: 'rgba(233, 30, 156, 0.15)',
+  purple: '#8B5CF6',
+  purpleGlow: 'rgba(139, 92, 246, 0.15)',
+  blue: '#3B82F6',
+  cyan: '#06B6D4',
+  gold: '#F5A623',
+  green: '#10B981',
+  greenGlow: 'rgba(16, 185, 129, 0.15)',
+  orange: '#F97316',
+  text: '#FFFFFF',
+  textSecondary: '#A1A1B5',
+  textMuted: '#6B6B80',
+  border: '#2A2A3A',
+};
+
+// Workout location configurations
+const LOCATIONS = [
+  { 
+    id: 'home', 
+    label: 'Acasă', 
+    labelEn: 'At Home',
+    icon: 'home-outline',
+    color: C.primary,
+    description: 'Fără echipament',
+    descriptionEn: 'No equipment needed',
+  },
+  { 
+    id: 'gym', 
+    label: 'Sala', 
+    labelEn: 'Gym',
+    icon: 'barbell-outline',
+    color: C.green,
+    description: 'Cu echipament',
+    descriptionEn: 'With equipment',
+  },
+];
+
+// Workout types
+const WORKOUT_TYPES = [
+  { id: 'full_body', label: 'Full Body', icon: 'body-outline', color: C.purple },
+  { id: 'cardio', label: 'Cardio', icon: 'heart-outline', color: C.primary },
+  { id: 'strength', label: 'Forță', labelEn: 'Strength', icon: 'fitness-outline', color: C.green },
+  { id: 'yoga', label: 'Yoga', icon: 'leaf-outline', color: C.cyan },
+  { id: 'stretching', label: 'Stretching', icon: 'expand-outline', color: C.gold },
+];
 
 export default function SelfCareScreen() {
-  const [activeTab, setActiveTab] = useState<TabType>('nutrition');
-  const [selfCare, setSelfCare] = useState<any>(null);
+  const { language, t } = useSettings();
+  const isRo = language.code === 'ro';
+  
   const [refreshing, setRefreshing] = useState(false);
-  const [generatingNutrition, setGeneratingNutrition] = useState(false);
   const [generatingWorkout, setGeneratingWorkout] = useState(false);
+  const [selectedLocation, setSelectedLocation] = useState(LOCATIONS[0]);
+  const [selectedType, setSelectedType] = useState(WORKOUT_TYPES[0]);
+  const [savedWorkouts, setSavedWorkouts] = useState<any[]>([]);
+  const [currentWorkout, setCurrentWorkout] = useState<any>(null);
+  const [viewWorkoutModal, setViewWorkoutModal] = useState(false);
 
-  // Nutrition Modal
-  const [nutritionModal, setNutritionModal] = useState(false);
-  const [nutritionGoal, setNutritionGoal] = useState('energie și sănătate');
-  const [age, setAge] = useState('30');
-  const [activityLevel, setActivityLevel] = useState('moderat');
-  const [dietRestrictions, setDietRestrictions] = useState('');
-  const [cookingTime, setCookingTime] = useState('30 minute');
-
-  // Workout Modal
-  const [workoutModal, setWorkoutModal] = useState(false);
-  const [workoutFocus, setWorkoutFocus] = useState('full body');
-  const [fitnessLevel, setFitnessLevel] = useState('începător');
-  const [workoutDuration, setWorkoutDuration] = useState('15-20 minute');
-  const [workoutGoals, setWorkoutGoals] = useState('energie, forță, flexibilitate');
-
-  // Workout Detail Modal
-  const [selectedWorkout, setSelectedWorkout] = useState<any>(null);
-
-  const loadSelfCare = async () => {
+  const loadWorkouts = async () => {
     try {
       const data = await api.getSelfCare();
-      setSelfCare(data);
+      setSavedWorkouts(data?.workout_routines || []);
     } catch (error) {
-      console.error('Error loading self-care data:', error);
+      console.error('Error loading workouts:', error);
     }
   };
 
   useEffect(() => {
-    loadSelfCare();
+    loadWorkouts();
   }, []);
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
-    await loadSelfCare();
+    await loadWorkouts();
     setRefreshing(false);
   }, []);
 
-  const generateNutritionPlan = async () => {
-    setNutritionModal(false);
-    setGeneratingNutrition(true);
-
-    try {
-      const nutritionPlan = await api.generateNutritionPlan({
-        goal: nutritionGoal,
-        age: age,
-        activity_level: activityLevel,
-        restrictions: dietRestrictions,
-        cooking_time: cookingTime,
-      });
-      setSelfCare({ ...selfCare, nutrition_plan: nutritionPlan });
-      Alert.alert('Succes', 'Plan de nutriție generat cu succes!');
-    } catch (error) {
-      console.error('Error generating nutrition plan:', error);
-      Alert.alert('Eroare', 'Nu s-a putut genera planul de nutriție');
-    } finally {
-      setGeneratingNutrition(false);
-    }
-  };
-
   const generateWorkout = async () => {
-    setWorkoutModal(false);
     setGeneratingWorkout(true);
-
+    
     try {
-      const workout = await api.generateWorkout({
-        focus: workoutFocus,
-        fitness_level: fitnessLevel,
-        duration: workoutDuration,
-        goals: workoutGoals,
+      const workout = await api.generateWorkoutAI({
+        location: selectedLocation.id,
+        workout_type: selectedType.id,
+        language: language.code,
       });
-      const updatedRoutines = [...(selfCare?.workout_routines || []), workout];
-      setSelfCare({ ...selfCare, workout_routines: updatedRoutines });
-      Alert.alert('Succes', 'Antrenament generat cu succes!');
+      
+      setCurrentWorkout(workout);
+      setViewWorkoutModal(true);
+      loadWorkouts();
     } catch (error) {
       console.error('Error generating workout:', error);
-      Alert.alert('Eroare', 'Nu s-a putut genera antrenamentul');
+      Alert.alert(
+        isRo ? 'Eroare' : 'Error', 
+        isRo ? 'Nu s-a putut genera antrenamentul' : 'Could not generate workout'
+      );
     } finally {
       setGeneratingWorkout(false);
     }
@@ -107,21 +126,18 @@ export default function SelfCareScreen() {
 
   const deleteWorkout = async (id: string) => {
     Alert.alert(
-      'Șterge antrenamentul',
-      'Ești sigură că vrei să ștergi acest antrenament?',
+      isRo ? 'Șterge antrenamentul' : 'Delete workout',
+      isRo ? 'Ești sigură?' : 'Are you sure?',
       [
-        { text: 'Anulează', style: 'cancel' },
+        { text: isRo ? 'Anulează' : 'Cancel', style: 'cancel' },
         {
-          text: 'Șterge',
+          text: isRo ? 'Șterge' : 'Delete',
           style: 'destructive',
           onPress: async () => {
             try {
               await api.deleteWorkout(id);
-              const updatedRoutines = selfCare.workout_routines.filter(
-                (w: any) => w.id !== id
-              );
-              setSelfCare({ ...selfCare, workout_routines: updatedRoutines });
-              setSelectedWorkout(null);
+              setSavedWorkouts(savedWorkouts.filter((w) => w.id !== id));
+              setViewWorkoutModal(false);
             } catch (error) {
               console.error('Error deleting workout:', error);
             }
@@ -131,423 +147,322 @@ export default function SelfCareScreen() {
     );
   };
 
-  const ACTIVITY_LEVELS = ['sedentar', 'moderat', 'activ', 'foarte activ'];
-  const FITNESS_LEVELS = ['începător', 'intermediar', 'avansat'];
-  const FOCUS_AREAS = ['full body', 'partea superioară', 'partea inferioară', 'cardio', 'core', 'stretching'];
-
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#ec4899" />
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={C.primary} />
         }
       >
         {/* Header */}
         <View style={styles.header}>
-          <Text style={styles.title}>Self-Care</Text>
+          <View>
+            <Text style={styles.title}>{isRo ? 'Exerciții AI' : 'AI Workouts'}</Text>
+            <Text style={styles.subtitle}>
+              {isRo ? 'Antrenamente personalizate' : 'Personalized training'}
+            </Text>
+          </View>
           <View style={styles.headerIcons}>
-            <Ionicons name="heart" size={24} color="#ec4899" />
-            <Ionicons name="fitness" size={24} color="#8b5cf6" />
+            <Ionicons name="fitness" size={28} color={C.green} />
           </View>
         </View>
 
         {/* Motivational Card */}
-        <View style={styles.motivationalCard}>
+        <LinearGradient
+          colors={['#E91E9C', '#B8157A']}
+          start={{ x: 0, y: 0 }}
+          end={{ x: 1, y: 1 }}
+          style={styles.motivationalCard}
+        >
           <View style={styles.motivationalIcon}>
-            <Ionicons name="sparkles" size={28} color="#ec4899" />
+            <Ionicons name="sparkles" size={28} color="#fff" />
           </View>
           <View style={styles.motivationalContent}>
-            <Text style={styles.motivationalTitle}>Timpul tău contează!</Text>
+            <Text style={styles.motivationalTitle}>
+              {isRo ? 'Timpul tău contează!' : 'Your time matters!'}
+            </Text>
             <Text style={styles.motivationalText}>
-              Chiar și 15 minute pe zi fac diferența pentru sănătatea ta.
+              {isRo 
+                ? 'Chiar și 15 minute pe zi fac diferența pentru sănătatea ta.'
+                : 'Even 15 minutes a day make a difference for your health.'}
             </Text>
           </View>
-        </View>
+        </LinearGradient>
 
-        {/* Tabs */}
-        <View style={styles.tabContainer}>
-          <TouchableOpacity
-            style={[styles.tab, activeTab === 'nutrition' && styles.tabActive]}
-            onPress={() => setActiveTab('nutrition')}
-          >
-            <Ionicons
-              name="nutrition"
-              size={20}
-              color={activeTab === 'nutrition' ? '#fff' : '#ec4899'}
-            />
-            <Text style={[styles.tabText, activeTab === 'nutrition' && styles.tabTextActive]}>
-              Nutriție
-            </Text>
-          </TouchableOpacity>
-          <TouchableOpacity
-            style={[styles.tab, activeTab === 'workout' && styles.tabActive]}
-            onPress={() => setActiveTab('workout')}
-          >
-            <Ionicons
-              name="fitness"
-              size={20}
-              color={activeTab === 'workout' ? '#fff' : '#ec4899'}
-            />
-            <Text style={[styles.tabText, activeTab === 'workout' && styles.tabTextActive]}>
-              Sport
-            </Text>
-          </TouchableOpacity>
-        </View>
-
-        {/* Nutrition Tab */}
-        {activeTab === 'nutrition' && (
-          <View style={styles.section}>
-            {generatingNutrition ? (
-              <View style={styles.loadingContainer}>
-                <ActivityIndicator size="large" color="#ec4899" />
-                <Text style={styles.loadingText}>AI generează planul tău de nutriție...</Text>
-              </View>
-            ) : selfCare?.nutrition_plan ? (
-              <View style={styles.nutritionCard}>
-                <View style={styles.nutritionHeader}>
-                  <View style={styles.nutritionIcon}>
-                    <Ionicons name="restaurant" size={24} color="#10b981" />
-                  </View>
-                  <View style={styles.nutritionHeaderContent}>
-                    <Text style={styles.nutritionGoal}>
-                      Obiectiv: {selfCare.nutrition_plan.goal}
-                    </Text>
-                    <Text style={styles.nutritionCalories}>
-                      {selfCare.nutrition_plan.daily_calories} kcal/zi
-                    </Text>
-                  </View>
-                  <TouchableOpacity onPress={() => setNutritionModal(true)}>
-                    <Ionicons name="refresh" size={22} color="#6b7280" />
-                  </TouchableOpacity>
-                </View>
-
-                <View style={styles.mealsContainer}>
-                  <Text style={styles.mealsTitle}>Plan alimentar zilnic</Text>
-                  {selfCare.nutrition_plan.meals?.map((meal: string, index: number) => (
-                    <View key={index} style={styles.mealItem}>
-                      <View style={[styles.mealDot, { backgroundColor: getMealColor(index) }]} />
-                      <Text style={styles.mealText}>{meal}</Text>
-                    </View>
-                  ))}
-                </View>
-              </View>
-            ) : (
-              <View style={styles.emptyState}>
-                <Ionicons name="nutrition-outline" size={64} color="#d1d5db" />
-                <Text style={styles.emptyTitle}>Niciun plan de nutriție</Text>
-                <Text style={styles.emptySubtitle}>
-                  Generează un plan personalizat cu AI
-                </Text>
-                <TouchableOpacity
-                  style={styles.generateButton}
-                  onPress={() => setNutritionModal(true)}
-                >
-                  <Ionicons name="sparkles" size={20} color="#fff" />
-                  <Text style={styles.generateButtonText}>Generează plan</Text>
-                </TouchableOpacity>
-              </View>
-            )}
-          </View>
-        )}
-
-        {/* Workout Tab */}
-        {activeTab === 'workout' && (
-          <View style={styles.section}>
-            <TouchableOpacity
-              style={styles.addWorkoutButton}
-              onPress={() => setWorkoutModal(true)}
-              disabled={generatingWorkout}
-            >
-              {generatingWorkout ? (
-                <ActivityIndicator size="small" color="#fff" />
-              ) : (
-                <>
-                  <Ionicons name="sparkles" size={20} color="#fff" />
-                  <Text style={styles.addWorkoutText}>Generează antrenament nou</Text>
-                </>
-              )}
-            </TouchableOpacity>
-
-            {generatingWorkout && (
-              <View style={styles.loadingContainer}>
-                <Text style={styles.loadingText}>AI creează antrenamentul tău...</Text>
-              </View>
-            )}
-
-            {selfCare?.workout_routines?.length === 0 && !generatingWorkout && (
-              <View style={styles.emptyWorkouts}>
-                <Ionicons name="fitness-outline" size={48} color="#d1d5db" />
-                <Text style={styles.emptyWorkoutsText}>
-                  Niciun antrenament salvat
-                </Text>
-              </View>
-            )}
-
-            {selfCare?.workout_routines?.map((workout: any) => (
+        {/* Location Selection */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>
+            {isRo ? 'Unde faci sport?' : 'Where do you workout?'}
+          </Text>
+          
+          <View style={styles.locationsContainer}>
+            {LOCATIONS.map((loc) => (
               <TouchableOpacity
-                key={workout.id}
-                style={styles.workoutCard}
-                onPress={() => setSelectedWorkout(workout)}
+                key={loc.id}
+                style={[
+                  styles.locationCard,
+                  selectedLocation.id === loc.id && styles.locationCardActive,
+                ]}
+                onPress={() => setSelectedLocation(loc)}
               >
-                <View style={styles.workoutIcon}>
-                  <Ionicons name="fitness" size={24} color="#8b5cf6" />
-                </View>
-                <View style={styles.workoutContent}>
-                  <Text style={styles.workoutName}>{workout.name}</Text>
-                  <View style={styles.workoutMeta}>
-                    <Ionicons name="time-outline" size={14} color="#6b7280" />
-                    <Text style={styles.workoutDuration}>{workout.duration}</Text>
-                    <Text style={styles.workoutExercises}>
-                      • {workout.exercises?.length || 0} exerciții
-                    </Text>
+                <LinearGradient
+                  colors={selectedLocation.id === loc.id 
+                    ? [loc.color, `${loc.color}CC`] 
+                    : ['#252532', '#1E1E2A']}
+                  style={styles.locationGradient}
+                >
+                  <View style={[styles.locationIcon, { backgroundColor: `${loc.color}20` }]}>
+                    <Ionicons name={loc.icon as any} size={32} color={loc.color} />
                   </View>
-                </View>
-                <Ionicons name="chevron-forward" size={20} color="#9ca3af" />
+                  <Text style={[
+                    styles.locationLabel,
+                    selectedLocation.id === loc.id && styles.locationLabelActive
+                  ]}>
+                    {isRo ? loc.label : loc.labelEn}
+                  </Text>
+                  <Text style={styles.locationDesc}>
+                    {isRo ? loc.description : loc.descriptionEn}
+                  </Text>
+                </LinearGradient>
               </TouchableOpacity>
             ))}
           </View>
-        )}
-      </ScrollView>
-
-      {/* Nutrition Modal */}
-      <Modal visible={nutritionModal} animationType="slide" transparent>
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Plan de nutriție</Text>
-              <TouchableOpacity onPress={() => setNutritionModal(false)}>
-                <Ionicons name="close" size={24} color="#6b7280" />
-              </TouchableOpacity>
-            </View>
-            <ScrollView style={styles.modalBody}>
-              <Text style={styles.inputLabel}>Obiectiv</Text>
-              <TextInput
-                style={styles.input}
-                value={nutritionGoal}
-                onChangeText={setNutritionGoal}
-                placeholder="Ex: energie și sănătate"
-                placeholderTextColor="#9ca3af"
-              />
-
-              <Text style={styles.inputLabel}>Vârsta</Text>
-              <TextInput
-                style={styles.input}
-                value={age}
-                onChangeText={setAge}
-                keyboardType="numeric"
-                placeholder="30"
-              />
-
-              <Text style={styles.inputLabel}>Nivel de activitate</Text>
-              <View style={styles.optionsRow}>
-                {ACTIVITY_LEVELS.map((level) => (
-                  <TouchableOpacity
-                    key={level}
-                    style={[
-                      styles.optionChip,
-                      activityLevel === level && styles.optionChipActive,
-                    ]}
-                    onPress={() => setActivityLevel(level)}
-                  >
-                    <Text
-                      style={[
-                        styles.optionChipText,
-                        activityLevel === level && styles.optionChipTextActive,
-                      ]}
-                    >
-                      {level}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-
-              <Text style={styles.inputLabel}>Restricții alimentare (opțional)</Text>
-              <TextInput
-                style={styles.input}
-                value={dietRestrictions}
-                onChangeText={setDietRestrictions}
-                placeholder="Ex: fără lactate, vegetarian"
-                placeholderTextColor="#9ca3af"
-              />
-
-              <Text style={styles.inputLabel}>Timp pentru gătit</Text>
-              <TextInput
-                style={styles.input}
-                value={cookingTime}
-                onChangeText={setCookingTime}
-                placeholder="Ex: 30 minute"
-                placeholderTextColor="#9ca3af"
-              />
-            </ScrollView>
-            <TouchableOpacity style={styles.saveButton} onPress={generateNutritionPlan}>
-              <Ionicons name="sparkles" size={20} color="#fff" />
-              <Text style={styles.saveButtonText}>Generează cu AI</Text>
-            </TouchableOpacity>
-          </View>
         </View>
-      </Modal>
 
-      {/* Workout Modal */}
-      <Modal visible={workoutModal} animationType="slide" transparent>
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>Antrenament nou</Text>
-              <TouchableOpacity onPress={() => setWorkoutModal(false)}>
-                <Ionicons name="close" size={24} color="#6b7280" />
-              </TouchableOpacity>
-            </View>
-            <ScrollView style={styles.modalBody}>
-              <Text style={styles.inputLabel}>Zonă de focus</Text>
-              <View style={styles.optionsRow}>
-                {FOCUS_AREAS.map((focus) => (
-                  <TouchableOpacity
-                    key={focus}
-                    style={[
-                      styles.optionChip,
-                      workoutFocus === focus && styles.optionChipActive,
-                    ]}
-                    onPress={() => setWorkoutFocus(focus)}
-                  >
-                    <Text
-                      style={[
-                        styles.optionChipText,
-                        workoutFocus === focus && styles.optionChipTextActive,
-                      ]}
-                    >
-                      {focus}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-
-              <Text style={styles.inputLabel}>Nivel de fitness</Text>
-              <View style={styles.optionsRow}>
-                {FITNESS_LEVELS.map((level) => (
-                  <TouchableOpacity
-                    key={level}
-                    style={[
-                      styles.optionChip,
-                      fitnessLevel === level && styles.optionChipActive,
-                    ]}
-                    onPress={() => setFitnessLevel(level)}
-                  >
-                    <Text
-                      style={[
-                        styles.optionChipText,
-                        fitnessLevel === level && styles.optionChipTextActive,
-                      ]}
-                    >
-                      {level}
-                    </Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-
-              <Text style={styles.inputLabel}>Durată</Text>
-              <TextInput
-                style={styles.input}
-                value={workoutDuration}
-                onChangeText={setWorkoutDuration}
-                placeholder="15-20 minute"
-                placeholderTextColor="#9ca3af"
-              />
-
-              <Text style={styles.inputLabel}>Obiective</Text>
-              <TextInput
-                style={styles.input}
-                value={workoutGoals}
-                onChangeText={setWorkoutGoals}
-                placeholder="energie, forță, flexibilitate"
-                placeholderTextColor="#9ca3af"
-              />
-            </ScrollView>
-            <TouchableOpacity style={styles.saveButton} onPress={generateWorkout}>
-              <Ionicons name="sparkles" size={20} color="#fff" />
-              <Text style={styles.saveButtonText}>Generează cu AI</Text>
-            </TouchableOpacity>
-          </View>
-        </View>
-      </Modal>
-
-      {/* Workout Detail Modal */}
-      <Modal visible={!!selectedWorkout} animationType="slide" transparent>
-        <View style={styles.modalOverlay}>
-          <View style={[styles.modalContent, { maxHeight: '85%' }]}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>{selectedWorkout?.name}</Text>
-              <TouchableOpacity onPress={() => setSelectedWorkout(null)}>
-                <Ionicons name="close" size={24} color="#6b7280" />
-              </TouchableOpacity>
-            </View>
-            <ScrollView style={styles.modalBody}>
-              <View style={styles.workoutDetailHeader}>
-                <View style={styles.workoutDetailMeta}>
-                  <Ionicons name="time" size={18} color="#8b5cf6" />
-                  <Text style={styles.workoutDetailDuration}>
-                    {selectedWorkout?.duration}
-                  </Text>
-                </View>
-                <Text style={styles.workoutDetailCount}>
-                  {selectedWorkout?.exercises?.length || 0} exerciții
+        {/* Workout Type Selection */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>
+            {isRo ? 'Tip de antrenament' : 'Workout type'}
+          </Text>
+          
+          <ScrollView
+            horizontal
+            showsHorizontalScrollIndicator={false}
+            contentContainerStyle={styles.typesContainer}
+          >
+            {WORKOUT_TYPES.map((type) => (
+              <TouchableOpacity
+                key={type.id}
+                style={[
+                  styles.typeChip,
+                  selectedType.id === type.id && { backgroundColor: type.color },
+                ]}
+                onPress={() => setSelectedType(type)}
+              >
+                <Ionicons 
+                  name={type.icon as any} 
+                  size={18} 
+                  color={selectedType.id === type.id ? '#fff' : type.color} 
+                />
+                <Text style={[
+                  styles.typeLabel,
+                  selectedType.id === type.id && styles.typeLabelActive
+                ]}>
+                  {isRo ? (type.label || type.id) : (type.labelEn || type.label || type.id)}
                 </Text>
-              </View>
+              </TouchableOpacity>
+            ))}
+          </ScrollView>
+        </View>
 
-              {selectedWorkout?.exercises?.map((exercise: any, index: number) => (
-                <View key={index} style={styles.exerciseCard}>
-                  <View style={styles.exerciseNumber}>
-                    <Text style={styles.exerciseNumberText}>{index + 1}</Text>
+        {/* Generate Button */}
+        <View style={styles.section}>
+          <TouchableOpacity
+            style={styles.generateButton}
+            onPress={generateWorkout}
+            disabled={generatingWorkout}
+          >
+            <LinearGradient
+              colors={['#10B981', '#059669']}
+              start={{ x: 0, y: 0 }}
+              end={{ x: 1, y: 0 }}
+              style={styles.generateGradient}
+            >
+              {generatingWorkout ? (
+                <ActivityIndicator color="#fff" size="small" />
+              ) : (
+                <>
+                  <Ionicons name="sparkles" size={22} color="#fff" />
+                  <Text style={styles.generateText}>
+                    {isRo ? 'Generează Antrenament' : 'Generate Workout'}
+                  </Text>
+                </>
+              )}
+            </LinearGradient>
+          </TouchableOpacity>
+        </View>
+
+        {/* Saved Workouts */}
+        <View style={styles.section}>
+          <Text style={styles.sectionTitle}>
+            {isRo ? 'Antrenamente Salvate' : 'Saved Workouts'}
+          </Text>
+          
+          {savedWorkouts.length === 0 ? (
+            <View style={styles.emptyState}>
+              <Ionicons name="fitness-outline" size={48} color={C.textMuted} />
+              <Text style={styles.emptyText}>
+                {isRo ? 'Niciun antrenament salvat' : 'No saved workouts'}
+              </Text>
+            </View>
+          ) : (
+            savedWorkouts.map((workout: any, index: number) => (
+              <TouchableOpacity
+                key={workout.id || index}
+                style={styles.workoutCard}
+                onPress={() => {
+                  setCurrentWorkout(workout);
+                  setViewWorkoutModal(true);
+                }}
+              >
+                <LinearGradient
+                  colors={['#252532', '#1E1E2A']}
+                  style={styles.workoutGradient}
+                >
+                  <View style={styles.workoutIcon}>
+                    <Ionicons name="fitness" size={24} color={C.green} />
                   </View>
-                  <View style={styles.exerciseContent}>
-                    <Text style={styles.exerciseName}>{exercise.name}</Text>
-                    <View style={styles.exerciseMeta}>
-                      <Text style={styles.exerciseDetail}>
-                        {exercise.duration}
+                  <View style={styles.workoutContent}>
+                    <Text style={styles.workoutName}>{workout.name}</Text>
+                    <View style={styles.workoutMeta}>
+                      <Ionicons name="time-outline" size={14} color={C.textMuted} />
+                      <Text style={styles.workoutDuration}>{workout.duration}</Text>
+                      <Text style={styles.workoutExercises}>
+                        • {workout.exercises?.length || 0} {isRo ? 'exerciții' : 'exercises'}
                       </Text>
-                      {exercise.reps && (
-                        <Text style={styles.exerciseDetail}>• {exercise.reps} rep</Text>
-                      )}
                     </View>
                   </View>
-                </View>
-              ))}
-            </ScrollView>
-            <View style={styles.workoutActions}>
-              <TouchableOpacity
-                style={styles.deleteWorkoutButton}
-                onPress={() => deleteWorkout(selectedWorkout?.id)}
-              >
-                <Ionicons name="trash-outline" size={20} color="#ef4444" />
-                <Text style={styles.deleteWorkoutText}>Șterge</Text>
+                  <Ionicons name="chevron-forward" size={20} color={C.textMuted} />
+                </LinearGradient>
               </TouchableOpacity>
-            </View>
+            ))
+          )}
+        </View>
+      </ScrollView>
+
+      {/* View Workout Modal */}
+      <Modal visible={viewWorkoutModal} animationType="slide" transparent>
+        <View style={styles.modalOverlay}>
+          <View style={styles.modalContentFull}>
+            <LinearGradient
+              colors={['#1E1E2A', '#0F0F14']}
+              style={styles.workoutModalContent}
+            >
+              <View style={styles.modalHeader}>
+                <Text style={styles.modalTitle}>{currentWorkout?.name}</Text>
+                <TouchableOpacity onPress={() => setViewWorkoutModal(false)}>
+                  <Ionicons name="close-circle" size={32} color={C.textMuted} />
+                </TouchableOpacity>
+              </View>
+              
+              <View style={styles.workoutMetaBadges}>
+                <View style={[styles.workoutBadge, { backgroundColor: C.greenGlow }]}>
+                  <Ionicons name="time" size={16} color={C.green} />
+                  <Text style={[styles.workoutBadgeText, { color: C.green }]}>
+                    {currentWorkout?.duration}
+                  </Text>
+                </View>
+                <View style={[styles.workoutBadge, { backgroundColor: C.primaryGlow }]}>
+                  <Ionicons name="location" size={16} color={C.primary} />
+                  <Text style={[styles.workoutBadgeText, { color: C.primary }]}>
+                    {currentWorkout?.location === 'home' 
+                      ? (isRo ? 'Acasă' : 'At Home') 
+                      : (isRo ? 'Sala' : 'Gym')}
+                  </Text>
+                </View>
+              </View>
+              
+              <ScrollView style={styles.exercisesList}>
+                {currentWorkout?.exercises?.map((exercise: any, index: number) => (
+                  <View key={index} style={styles.exerciseCard}>
+                    <LinearGradient
+                      colors={['#252532', '#1E1E2A']}
+                      style={styles.exerciseGradient}
+                    >
+                      <View style={styles.exerciseNumber}>
+                        <Text style={styles.exerciseNumberText}>{index + 1}</Text>
+                      </View>
+                      <View style={styles.exerciseContent}>
+                        <Text style={styles.exerciseName}>{exercise.name}</Text>
+                        <View style={styles.exerciseMeta}>
+                          <Text style={styles.exerciseDetail}>{exercise.duration}</Text>
+                          {exercise.reps && (
+                            <Text style={styles.exerciseDetail}>• {exercise.reps}</Text>
+                          )}
+                        </View>
+                        {exercise.description && (
+                          <Text style={styles.exerciseDesc}>{exercise.description}</Text>
+                        )}
+                      </View>
+                    </LinearGradient>
+                  </View>
+                ))}
+                
+                {currentWorkout?.tips && (
+                  <View style={styles.tipsCard}>
+                    <Ionicons name="bulb" size={20} color={C.gold} />
+                    <Text style={styles.tipsText}>{currentWorkout.tips}</Text>
+                  </View>
+                )}
+              </ScrollView>
+              
+              <View style={styles.modalActions}>
+                <TouchableOpacity
+                  style={styles.deleteButton}
+                  onPress={() => currentWorkout && deleteWorkout(currentWorkout.id)}
+                >
+                  <Ionicons name="trash-outline" size={20} color="#ef4444" />
+                  <Text style={styles.deleteText}>{isRo ? 'Șterge' : 'Delete'}</Text>
+                </TouchableOpacity>
+              </View>
+            </LinearGradient>
           </View>
         </View>
       </Modal>
+
+      {/* Loading Overlay */}
+      {generatingWorkout && (
+        <View style={styles.loadingOverlay}>
+          <LinearGradient
+            colors={['rgba(15,15,20,0.95)', 'rgba(15,15,20,0.98)']}
+            style={styles.loadingContent}
+          >
+            <ActivityIndicator size="large" color={C.green} />
+            <Text style={styles.loadingText}>
+              {isRo ? 'Se generează antrenamentul...' : 'Generating workout...'}
+            </Text>
+            <Text style={styles.loadingSubtext}>
+              {isRo 
+                ? `AI creează un plan pentru ${selectedLocation.id === 'home' ? 'acasă' : 'sală'}` 
+                : `AI is creating a plan for ${selectedLocation.id === 'home' ? 'home' : 'gym'}`}
+            </Text>
+          </LinearGradient>
+        </View>
+      )}
     </SafeAreaView>
   );
 }
 
-const getMealColor = (index: number) => {
-  const colors = ['#f59e0b', '#3b82f6', '#10b981', '#8b5cf6', '#ec4899'];
-  return colors[index % colors.length];
-};
-
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fdf2f8',
+    backgroundColor: C.bg,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     padding: 20,
   },
   title: {
-    fontSize: 28,
+    fontSize: 26,
     fontWeight: '700',
-    color: '#9d174d',
+    color: C.text,
+  },
+  subtitle: {
+    fontSize: 14,
+    color: C.textMuted,
+    marginTop: 4,
   },
   headerIcons: {
     flexDirection: 'row',
@@ -555,19 +470,18 @@ const styles = StyleSheet.create({
   },
   motivationalCard: {
     flexDirection: 'row',
-    backgroundColor: '#fce7f3',
     marginHorizontal: 20,
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 16,
-    gap: 12,
+    borderRadius: 20,
+    padding: 20,
+    marginBottom: 24,
+    gap: 14,
     alignItems: 'center',
   },
   motivationalIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 24,
-    backgroundColor: '#fff',
+    width: 52,
+    height: 52,
+    borderRadius: 16,
+    backgroundColor: 'rgba(255,255,255,0.2)',
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -575,196 +489,114 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   motivationalTitle: {
-    fontSize: 15,
+    fontSize: 17,
     fontWeight: '700',
-    color: '#9d174d',
+    color: '#fff',
   },
   motivationalText: {
     fontSize: 13,
-    color: '#be185d',
-    marginTop: 2,
-  },
-  tabContainer: {
-    flexDirection: 'row',
-    marginHorizontal: 20,
-    marginBottom: 16,
-    backgroundColor: '#fce7f3',
-    borderRadius: 12,
-    padding: 4,
-  },
-  tab: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 12,
-    borderRadius: 10,
-    gap: 6,
-  },
-  tabActive: {
-    backgroundColor: '#ec4899',
-  },
-  tabText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#ec4899',
-  },
-  tabTextActive: {
-    color: '#fff',
+    color: 'rgba(255,255,255,0.8)',
+    marginTop: 4,
   },
   section: {
     paddingHorizontal: 20,
+    marginBottom: 24,
   },
-  loadingContainer: {
-    alignItems: 'center',
-    paddingVertical: 40,
-  },
-  loadingText: {
-    marginTop: 12,
-    fontSize: 15,
-    color: '#6b7280',
-  },
-  nutritionCard: {
-    backgroundColor: '#fff',
-    borderRadius: 20,
-    padding: 20,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 8,
-    elevation: 3,
-  },
-  nutritionHeader: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    gap: 12,
-    paddingBottom: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f3f4f6',
-  },
-  nutritionIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 12,
-    backgroundColor: '#d1fae5',
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  nutritionHeaderContent: {
-    flex: 1,
-  },
-  nutritionGoal: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#1f2937',
-  },
-  nutritionCalories: {
-    fontSize: 14,
-    color: '#10b981',
-    fontWeight: '700',
-    marginTop: 2,
-  },
-  mealsContainer: {
-    marginTop: 16,
-  },
-  mealsTitle: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#6b7280',
-    marginBottom: 12,
-    textTransform: 'uppercase',
-  },
-  mealItem: {
-    flexDirection: 'row',
-    alignItems: 'flex-start',
-    marginBottom: 12,
-    gap: 12,
-  },
-  mealDot: {
-    width: 10,
-    height: 10,
-    borderRadius: 5,
-    marginTop: 5,
-  },
-  mealText: {
-    flex: 1,
-    fontSize: 14,
-    color: '#374151',
-    lineHeight: 20,
-  },
-  emptyState: {
-    alignItems: 'center',
-    paddingVertical: 40,
-  },
-  emptyTitle: {
+  sectionTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#9d174d',
-    marginTop: 16,
+    color: C.text,
+    marginBottom: 16,
   },
-  emptySubtitle: {
-    fontSize: 14,
-    color: '#6b7280',
-    marginTop: 8,
+  locationsContainer: {
+    flexDirection: 'row',
+    gap: 12,
   },
-  generateButton: {
+  locationCard: {
+    flex: 1,
+    borderRadius: 20,
+    overflow: 'hidden',
+  },
+  locationCardActive: {
+    transform: [{ scale: 1.02 }],
+  },
+  locationGradient: {
+    padding: 20,
+    alignItems: 'center',
+  },
+  locationIcon: {
+    width: 60,
+    height: 60,
+    borderRadius: 16,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 12,
+  },
+  locationLabel: {
+    fontSize: 16,
+    fontWeight: '700',
+    color: C.text,
+    marginBottom: 4,
+  },
+  locationLabelActive: {
+    color: '#fff',
+  },
+  locationDesc: {
+    fontSize: 12,
+    color: C.textMuted,
+  },
+  typesContainer: {
+    gap: 10,
+  },
+  typeChip: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#ec4899',
-    paddingVertical: 14,
-    paddingHorizontal: 24,
+    backgroundColor: C.surface,
+    paddingVertical: 10,
+    paddingHorizontal: 16,
     borderRadius: 25,
-    marginTop: 20,
     gap: 8,
   },
-  generateButtonText: {
-    color: '#fff',
-    fontSize: 15,
+  typeLabel: {
+    fontSize: 14,
     fontWeight: '600',
+    color: C.textSecondary,
   },
-  addWorkoutButton: {
+  typeLabelActive: {
+    color: '#fff',
+  },
+  generateButton: {
+    borderRadius: 16,
+    overflow: 'hidden',
+  },
+  generateGradient: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#8b5cf6',
-    paddingVertical: 14,
-    borderRadius: 12,
-    marginBottom: 16,
-    gap: 8,
+    padding: 18,
+    gap: 10,
   },
-  addWorkoutText: {
+  generateText: {
+    fontSize: 17,
+    fontWeight: '700',
     color: '#fff',
-    fontSize: 15,
-    fontWeight: '600',
-  },
-  emptyWorkouts: {
-    alignItems: 'center',
-    paddingVertical: 32,
-  },
-  emptyWorkoutsText: {
-    fontSize: 15,
-    color: '#9ca3af',
-    marginTop: 12,
   },
   workoutCard: {
+    borderRadius: 14,
+    overflow: 'hidden',
+    marginBottom: 10,
+  },
+  workoutGradient: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#fff',
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 10,
+    padding: 14,
     gap: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
   },
   workoutIcon: {
     width: 48,
     height: 48,
-    borderRadius: 12,
-    backgroundColor: '#ede9fe',
+    borderRadius: 14,
+    backgroundColor: C.greenGlow,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -772,9 +604,9 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   workoutName: {
-    fontSize: 16,
+    fontSize: 15,
     fontWeight: '600',
-    color: '#1f2937',
+    color: C.text,
   },
   workoutMeta: {
     flexDirection: 'row',
@@ -784,130 +616,87 @@ const styles = StyleSheet.create({
   },
   workoutDuration: {
     fontSize: 13,
-    color: '#6b7280',
+    color: C.textMuted,
+    marginLeft: 4,
   },
   workoutExercises: {
     fontSize: 13,
-    color: '#6b7280',
+    color: C.textMuted,
+  },
+  emptyState: {
+    alignItems: 'center',
+    paddingVertical: 32,
+  },
+  emptyText: {
+    fontSize: 14,
+    color: C.textMuted,
+    marginTop: 12,
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
+    backgroundColor: 'rgba(0,0,0,0.8)',
     justifyContent: 'flex-end',
   },
-  modalContent: {
-    backgroundColor: '#fff',
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
+  modalContentFull: {
+    flex: 1,
+    marginTop: 60,
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
+    overflow: 'hidden',
+  },
+  workoutModalContent: {
+    flex: 1,
+    padding: 20,
   },
   modalHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f3f4f6',
+    marginBottom: 16,
   },
   modalTitle: {
-    fontSize: 18,
+    fontSize: 22,
     fontWeight: '700',
-    color: '#1f2937',
+    color: C.text,
+    flex: 1,
+    marginRight: 12,
   },
-  modalBody: {
-    padding: 20,
-    maxHeight: 400,
-  },
-  inputLabel: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: '#374151',
-    marginBottom: 8,
-  },
-  input: {
-    borderWidth: 1,
-    borderColor: '#e5e7eb',
-    borderRadius: 12,
-    padding: 14,
-    fontSize: 16,
-    color: '#1f2937',
-    marginBottom: 16,
-    backgroundColor: '#f9fafb',
-  },
-  optionsRow: {
+  workoutMetaBadges: {
     flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 8,
-    marginBottom: 16,
-  },
-  optionChip: {
-    paddingVertical: 8,
-    paddingHorizontal: 14,
-    borderRadius: 20,
-    backgroundColor: '#f3f4f6',
-  },
-  optionChipActive: {
-    backgroundColor: '#ec4899',
-  },
-  optionChipText: {
-    fontSize: 13,
-    color: '#6b7280',
-    fontWeight: '500',
-  },
-  optionChipTextActive: {
-    color: '#fff',
-  },
-  saveButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: '#ec4899',
-    margin: 20,
-    paddingVertical: 16,
-    borderRadius: 12,
-    gap: 8,
-  },
-  saveButtonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  workoutDetailHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
+    gap: 10,
     marginBottom: 20,
-    paddingBottom: 16,
-    borderBottomWidth: 1,
-    borderBottomColor: '#f3f4f6',
   },
-  workoutDetailMeta: {
+  workoutBadge: {
     flexDirection: 'row',
     alignItems: 'center',
+    paddingHorizontal: 14,
+    paddingVertical: 8,
+    borderRadius: 20,
     gap: 6,
   },
-  workoutDetailDuration: {
-    fontSize: 16,
+  workoutBadgeText: {
+    fontSize: 13,
     fontWeight: '600',
-    color: '#8b5cf6',
   },
-  workoutDetailCount: {
-    fontSize: 14,
-    color: '#6b7280',
+  exercisesList: {
+    flex: 1,
   },
   exerciseCard: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#f9fafb',
-    borderRadius: 12,
-    padding: 14,
+    borderRadius: 14,
+    overflow: 'hidden',
     marginBottom: 10,
+  },
+  exerciseGradient: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    padding: 14,
     gap: 12,
   },
   exerciseNumber: {
     width: 32,
     height: 32,
-    borderRadius: 16,
-    backgroundColor: '#8b5cf6',
+    borderRadius: 10,
+    backgroundColor: C.green,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -922,7 +711,7 @@ const styles = StyleSheet.create({
   exerciseName: {
     fontSize: 15,
     fontWeight: '600',
-    color: '#1f2937',
+    color: C.text,
   },
   exerciseMeta: {
     flexDirection: 'row',
@@ -932,23 +721,66 @@ const styles = StyleSheet.create({
   },
   exerciseDetail: {
     fontSize: 13,
-    color: '#6b7280',
+    color: C.textMuted,
   },
-  workoutActions: {
-    padding: 20,
+  exerciseDesc: {
+    fontSize: 13,
+    color: C.textSecondary,
+    marginTop: 6,
+    lineHeight: 18,
+  },
+  tipsCard: {
+    flexDirection: 'row',
+    alignItems: 'flex-start',
+    backgroundColor: 'rgba(245, 166, 35, 0.15)',
+    borderRadius: 14,
+    padding: 16,
+    marginTop: 10,
+    gap: 12,
+  },
+  tipsText: {
+    flex: 1,
+    fontSize: 13,
+    color: C.gold,
+    lineHeight: 20,
+  },
+  modalActions: {
+    paddingTop: 16,
     borderTopWidth: 1,
-    borderTopColor: '#f3f4f6',
+    borderTopColor: C.border,
   },
-  deleteWorkoutButton: {
+  deleteButton: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
     paddingVertical: 12,
     gap: 8,
   },
-  deleteWorkoutText: {
+  deleteText: {
     fontSize: 15,
     color: '#ef4444',
     fontWeight: '500',
+  },
+  loadingOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingContent: {
+    flex: 1,
+    width: '100%',
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  loadingText: {
+    fontSize: 18,
+    fontWeight: '600',
+    color: C.text,
+    marginTop: 20,
+  },
+  loadingSubtext: {
+    fontSize: 14,
+    color: C.textMuted,
+    marginTop: 8,
   },
 });
