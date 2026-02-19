@@ -903,6 +903,222 @@ async def delete_workout(workout_id: str, current_user: User = Depends(require_a
         raise HTTPException(status_code=404, detail="Workout not found")
     return {"message": "Workout deleted"}
 
+# ============== AI Stories Endpoints ==============
+
+@app.get("/api/stories")
+async def get_stories(current_user: User = Depends(require_auth)):
+    """Get all stories for user"""
+    stories = await db.stories.find(
+        {"user_id": current_user.user_id},
+        {"_id": 0}
+    ).sort("created_at", -1).to_list(100)
+    return stories
+
+@app.post("/api/stories/generate")
+async def generate_story(request: Request, current_user: User = Depends(require_auth)):
+    """Generate AI story for kids based on age group"""
+    body = await request.json()
+    age_group = body.get("age_group", "1-4")
+    themes = body.get("themes", [])
+    language = body.get("language", "ro")
+    kid_name = body.get("kid_name", "")
+    
+    if not EMERGENT_LLM_KEY:
+        raise HTTPException(status_code=500, detail="AI service not configured")
+    
+    from emergentintegrations.llm.chat import LlmChat, UserMessage
+    
+    # Age-specific instructions
+    age_instructions = {
+        "1-4": {
+            "ro": "Creează o poveste FOARTE simplă pentru copii de 1-4 ani. Folosește propoziții scurte și simple. Temele trebuie să fie despre bucurie, culori, animale drăguțe, familie. Povestea trebuie să fie pozitivă și fericită, fără elemente înfricoșătoare. Maximum 300 cuvinte.",
+            "en": "Create a VERY simple story for children aged 1-4. Use short, simple sentences. Themes should be about joy, colors, cute animals, family. The story must be positive and happy, with no scary elements. Maximum 300 words."
+        },
+        "4-7": {
+            "ro": "Creează o poveste pentru copii de 4-7 ani despre prietenie, empatie, înțelegere și încredere de sine. Povestea trebuie să aibă un mesaj moral pozitiv. Personajele pot fi copii sau animale prietenoase. Include situații care învață despre emoții și relații. Maximum 500 cuvinte.",
+            "en": "Create a story for children aged 4-7 about friendship, empathy, understanding, and self-confidence. The story must have a positive moral message. Characters can be children or friendly animals. Include situations that teach about emotions and relationships. Maximum 500 words."
+        },
+        "7+": {
+            "ro": "Creează o poveste pentru copii de 7+ ani cu elemente de mister și curiozitate, dar prietenoasă și empatică. Personajele pot rezolva mistere sau descoperi lucruri noi. Povestea trebuie să promoveze curiozitatea, curajul și bunătatea. Include aventuri interesante. Maximum 700 cuvinte.",
+            "en": "Create a story for children aged 7+ with mystery and curiosity elements, but friendly and empathetic. Characters can solve mysteries or discover new things. The story should promote curiosity, courage, and kindness. Include interesting adventures. Maximum 700 words."
+        }
+    }
+    
+    lang_code = language.split("-")[0] if "-" in language else language
+    instruction = age_instructions.get(age_group, age_instructions["4-7"]).get(lang_code, age_instructions["4-7"]["en"])
+    
+    system_msg = f"""Ești un povestitor magic pentru copii. Creezi povești frumoase, educative și potrivite vârstei.
+
+{instruction}
+
+Returnează DOAR JSON valid în acest format:
+{{
+    "title": "Titlul poveștii",
+    "content": "Povestea completă aici...",
+    "moral": "Mesajul moral al poveștii"
+}}
+
+Răspunde în limba {'română' if lang_code == 'ro' else 'engleză'}."""
+
+    chat = LlmChat(
+        api_key=EMERGENT_LLM_KEY,
+        session_id=f"story_{uuid.uuid4().hex[:8]}",
+        system_message=system_msg
+    ).with_model("openai", "gpt-5.2")
+    
+    themes_str = ", ".join(themes) if themes else ""
+    kid_mention = f" pentru {kid_name}" if kid_name else ""
+    prompt = f"Creează o poveste{kid_mention}. Grupa de vârstă: {age_group}. Teme sugerate: {themes_str}."
+    
+    user_message = UserMessage(text=prompt)
+    
+    try:
+        response = await chat.send_message(user_message)
+        import json
+        
+        try:
+            if "```json" in response:
+                json_str = response.split("```json")[1].split("```")[0]
+            elif "```" in response:
+                json_str = response.split("```")[1].split("```")[0]
+            else:
+                json_str = response
+            
+            story_data = json.loads(json_str.strip())
+        except:
+            # Fallback: use response as content
+            story_data = {
+                "title": "Poveste Magică" if lang_code == "ro" else "Magical Story",
+                "content": response,
+                "moral": ""
+            }
+        
+        story_doc = {
+            "id": f"story_{uuid.uuid4().hex[:12]}",
+            "user_id": current_user.user_id,
+            "title": story_data.get("title", ""),
+            "content": story_data.get("content", ""),
+            "moral": story_data.get("moral", ""),
+            "age_group": age_group,
+            "themes": themes,
+            "language": language,
+            "kid_name": kid_name,
+            "created_at": datetime.now(timezone.utc)
+        }
+        await db.stories.insert_one(story_doc)
+        return {k: v for k, v in story_doc.items() if k != "_id"}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"AI story generation error: {str(e)}")
+
+@app.delete("/api/stories/{story_id}")
+async def delete_story(story_id: str, current_user: User = Depends(require_auth)):
+    """Delete a story"""
+    result = await db.stories.delete_one({"id": story_id, "user_id": current_user.user_id})
+    if result.deleted_count == 0:
+        raise HTTPException(status_code=404, detail="Story not found")
+    return {"message": "Story deleted"}
+
+# ============== AI Workout (Location-based) Endpoints ==============
+
+@app.post("/api/selfcare/workout-ai/generate")
+async def generate_workout_ai(request: Request, current_user: User = Depends(require_auth)):
+    """Generate AI workout based on location (home/gym)"""
+    body = await request.json()
+    location = body.get("location", "home")  # "home" or "gym"
+    workout_type = body.get("workout_type", "full_body")
+    language = body.get("language", "ro")
+    
+    if not EMERGENT_LLM_KEY:
+        raise HTTPException(status_code=500, detail="AI service not configured")
+    
+    from emergentintegrations.llm.chat import LlmChat, UserMessage
+    
+    lang_code = language.split("-")[0] if "-" in language else language
+    
+    location_instructions = {
+        "home": {
+            "ro": "Creează un antrenament pentru ACASĂ, FĂRĂ echipament. Folosește doar greutatea corporală. Include exerciții ca: genuflexiuni, flotări, plank, jumping jacks, lunges, etc.",
+            "en": "Create a workout for HOME, WITHOUT equipment. Use bodyweight only. Include exercises like: squats, push-ups, plank, jumping jacks, lunges, etc."
+        },
+        "gym": {
+            "ro": "Creează un antrenament pentru SALĂ, CU echipament. Include exerciții cu gantere, benzi elastice, aparate. Specifică greutățile recomandate.",
+            "en": "Create a workout for GYM, WITH equipment. Include exercises with dumbbells, resistance bands, machines. Specify recommended weights."
+        }
+    }
+    
+    workout_type_names = {
+        "full_body": "Full Body",
+        "cardio": "Cardio",
+        "strength": "Forță/Strength",
+        "yoga": "Yoga",
+        "stretching": "Stretching"
+    }
+    
+    loc_instruction = location_instructions.get(location, location_instructions["home"]).get(lang_code, location_instructions["home"]["en"])
+    type_name = workout_type_names.get(workout_type, "Full Body")
+    
+    system_msg = f"""Ești un antrenor personal pentru mame ocupate. Creezi antrenamente eficiente de 15-25 minute.
+
+{loc_instruction}
+
+Tip antrenament: {type_name}
+
+Returnează DOAR JSON valid în acest format:
+{{
+    "name": "Numele antrenamentului",
+    "duration": "20 min",
+    "location": "{location}",
+    "exercises": [
+        {{"name": "Numele exercițiului", "duration": "30 sec", "reps": "10 repetări", "description": "Descriere scurtă"}},
+        ...8-12 exerciții
+    ],
+    "tips": "Sfaturi pentru execuție corectă"
+}}
+
+Răspunde în limba {'română' if lang_code == 'ro' else 'engleză'}. Include încălzire și relaxare."""
+
+    chat = LlmChat(
+        api_key=EMERGENT_LLM_KEY,
+        session_id=f"workout_ai_{uuid.uuid4().hex[:8]}",
+        system_message=system_msg
+    ).with_model("openai", "gpt-5.2")
+    
+    loc_name = "acasă" if location == "home" else "sală" if lang_code == "ro" else "home" if location == "home" else "gym"
+    prompt = f"Creează un antrenament {type_name} pentru {loc_name}."
+    
+    user_message = UserMessage(text=prompt)
+    
+    try:
+        response = await chat.send_message(user_message)
+        import json
+        
+        try:
+            if "```json" in response:
+                json_str = response.split("```json")[1].split("```")[0]
+            elif "```" in response:
+                json_str = response.split("```")[1].split("```")[0]
+            else:
+                json_str = response
+            
+            workout_data = json.loads(json_str.strip())
+        except:
+            raise HTTPException(status_code=500, detail="Failed to parse AI response")
+        
+        workout_data["id"] = f"workout_{uuid.uuid4().hex[:8]}"
+        workout_data["location"] = location
+        
+        await db.selfcare.update_one(
+            {"user_id": current_user.user_id},
+            {"$push": {"workout_routines": workout_data}},
+            upsert=True
+        )
+        
+        return workout_data
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"AI workout generation error: {str(e)}")
+
 # ============== AI Chat Endpoint ==============
 
 class ChatMessage(BaseModel):
