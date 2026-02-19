@@ -181,6 +181,44 @@ class ApiClient {
   async deleteWorkout(id: string) {
     return this.request(`/selfcare/workout/${id}`, { method: 'DELETE' });
   }
+
+  // Stories
+  async getStories() {
+    return this.request<any[]>('/stories');
+  }
+
+  async generateStory(data: any) {
+    return this.request('/stories/generate', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  async deleteStory(id: string) {
+    return this.request(`/stories/${id}`, { method: 'DELETE' });
+  }
+
+  // AI Workout (location-based)
+  async generateWorkoutAI(data: any) {
+    return this.request('/selfcare/workout-ai/generate', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  // AI Chat
+  async sendChatMessage(message: string, language: string, history: any[] = []) {
+    return this.request('/ai/chat', {
+      method: 'POST',
+      body: JSON.stringify({ message, language, history }),
+    });
+  }
+
+  // Checklist helper
+  async getChecklist(date: string) {
+    const checklists = await this.getChecklists(date);
+    return checklists.length > 0 ? checklists[0] : null;
+  }
 }
 
 export const api = new ApiClient();
