@@ -16,31 +16,6 @@ import { useRouter } from 'expo-router';
 import { useSettings, LANGUAGES, CURRENCIES } from '../src/context/SettingsContext';
 import { useAuth } from '../src/context/AuthContext';
 
-// Modern 2026 Dark Theme
-const C = {
-  bg: '#0F0F14',
-  bgLight: '#1A1A24',
-  card: '#1E1E2A',
-  surface: '#252532',
-  primary: '#E91E9C',
-  primaryGlow: 'rgba(233, 30, 156, 0.15)',
-  purple: '#8B5CF6',
-  purpleGlow: 'rgba(139, 92, 246, 0.15)',
-  blue: '#3B82F6',
-  blueGlow: 'rgba(59, 130, 246, 0.15)',
-  cyan: '#06B6D4',
-  gold: '#F5A623',
-  goldGlow: 'rgba(245, 166, 35, 0.15)',
-  green: '#10B981',
-  greenGlow: 'rgba(16, 185, 129, 0.15)',
-  orange: '#F97316',
-  red: '#EF4444',
-  text: '#FFFFFF',
-  textSecondary: '#A1A1B5',
-  textMuted: '#6B6B80',
-  border: '#2A2A3A',
-};
-
 export default function SettingsScreen() {
   const router = useRouter();
   const { user } = useAuth();
@@ -53,6 +28,9 @@ export default function SettingsScreen() {
     t,
     notifications,
     setNotificationPreference,
+    colors: C,
+    isDarkMode,
+    toggleTheme,
   } = useSettings();
   
   const isRo = language.code === 'ro';
@@ -76,7 +54,7 @@ export default function SettingsScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: C.bg }]}>
       <ScrollView contentContainerStyle={styles.content}>
         {/* Header */}
         <View style={styles.header}>
