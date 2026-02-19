@@ -192,11 +192,31 @@ class NutritionPlan(BaseModel):
     daily_calories: int
     meals: List[str]
 
+class PhysicalProfile(BaseModel):
+    current_weight: Optional[float] = None
+    target_weight: Optional[float] = None
+    height: Optional[float] = None
+    health_conditions: List[str] = ["none"]
+    other_condition: Optional[str] = None
+
+class StrengthMeal(BaseModel):
+    name: str
+    foods: str
+    calories: Optional[int] = None
+
+class StrengthMeals(BaseModel):
+    daily_calories: int
+    protein_grams: int
+    meals: List[StrengthMeal]
+    tips: Optional[str] = None
+
 class SelfCare(BaseModel):
     id: str
     user_id: str
     nutrition_plan: Optional[NutritionPlan] = None
     workout_routines: List[WorkoutRoutine] = []
+    physical_profile: Optional[PhysicalProfile] = None
+    strength_meals: Optional[StrengthMeals] = None
     created_at: datetime
 
 # ============== Helper Functions ==============
