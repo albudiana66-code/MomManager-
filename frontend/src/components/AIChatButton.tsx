@@ -14,18 +14,23 @@ import {
 } from 'react-native';
 import { Ionicons } from '@expo/vector-icons';
 import { useSettings } from '../context/SettingsContext';
+import { LinearGradient } from 'expo-linear-gradient';
 
 const BACKEND_URL = process.env.EXPO_PUBLIC_BACKEND_URL || '';
 
-// Theme colors
-const GOLD = '#C5A059';
-const GOLD_LIGHT = '#D4B87A';
-const GOLD_MUTED = 'rgba(197, 160, 89, 0.15)';
-const TEXT_DARK = '#3D2B1F';
-const TEXT_SECONDARY = '#6B5D52';
-const TEXT_MUTED = '#9C8B7E';
-const BG_CREAM = '#F5F5DC';
-const BG_LIGHT = '#FAF8F0';
+// Modern 2026 Colors
+const C = {
+  bg: '#F8F6F3',
+  card: '#FFFFFF',
+  accent: '#2C2622',
+  gold: '#B8956E',
+  goldLight: '#D4B896',
+  goldGlow: 'rgba(184, 149, 110, 0.12)',
+  text: '#1A1614',
+  textSecondary: '#6B635B',
+  textMuted: '#9E958C',
+  border: '#E8E4DE',
+};
 
 interface Message {
   id: string;
@@ -44,17 +49,16 @@ export function AIChatButton() {
   const { language, t } = useSettings();
 
   useEffect(() => {
-    // Subtle pulse animation - elegant, not distracting
     const pulse = Animated.loop(
       Animated.sequence([
         Animated.timing(pulseAnim, {
-          toValue: 1.05,
-          duration: 1500,
+          toValue: 1.08,
+          duration: 2000,
           useNativeDriver: true,
         }),
         Animated.timing(pulseAnim, {
           toValue: 1,
-          duration: 1500,
+          duration: 2000,
           useNativeDriver: true,
         }),
       ])
@@ -65,22 +69,19 @@ export function AIChatButton() {
 
   useEffect(() => {
     if (visible && messages.length === 0) {
-      // Welcome message
       const welcomeMessages: { [key: string]: string } = {
-        ro: 'Bună, dragă mamă! 💛 Sunt asistentul tău personal. Cum te pot ajuta astăzi? Sunt aici să te ascult și să te sprijin în organizarea zilei tale.',
-        en: 'Hello, dear mom! 💛 I\'m your personal assistant. How can I help you today? I\'m here to listen and support you in organizing your day.',
-        es: '¡Hola, querida mamá! 💛 Soy tu asistente personal. ¿Cómo puedo ayudarte hoy?',
-        fr: 'Bonjour, chère maman! 💛 Je suis votre assistante personnelle. Comment puis-je vous aider aujourd\'hui?',
-        de: 'Hallo, liebe Mama! 💛 Ich bin deine persönliche Assistentin. Wie kann ich dir heute helfen?',
-        it: 'Ciao, cara mamma! 💛 Sono la tua assistente personale. Come posso aiutarti oggi?',
+        ro: 'Bună! 💛 Sunt asistentul tău AI. Pot să îți planific ziua, să îți sugerez rețete, sau doar să ascult. Cu ce te pot ajuta?',
+        en: 'Hello! 💛 I\'m your AI assistant. I can help plan your day, suggest recipes, or just listen. How can I help you?',
+        es: '¡Hola! 💛 Soy tu asistente AI. ¿Cómo puedo ayudarte hoy?',
+        fr: 'Bonjour! 💛 Je suis votre assistant AI. Comment puis-je vous aider?',
+        de: 'Hallo! 💛 Ich bin dein AI Assistent. Wie kann ich dir helfen?',
+        it: 'Ciao! 💛 Sono il tuo assistente AI. Come posso aiutarti?',
       };
       
       const langCode = language.code.split('-')[0];
-      const welcomeText = welcomeMessages[langCode] || welcomeMessages['en'];
-      
       setMessages([{
         id: '1',
-        text: welcomeText,
+        text: welcomeMessages[langCode] || welcomeMessages['en'],
         isUser: false,
         timestamp: new Date(),
       }]);
@@ -104,9 +105,7 @@ export function AIChatButton() {
     try {
       const response = await fetch(`${BACKEND_URL}/api/ai/chat`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
+        headers: { 'Content-Type': 'application/json' },
         credentials: 'include',
         body: JSON.stringify({
           message: userMessage.text,
@@ -120,23 +119,19 @@ export function AIChatButton() {
 
       const data = await response.json();
       
-      const aiMessage: Message = {
+      setMessages(prev => [...prev, {
         id: (Date.now() + 1).toString(),
-        text: data.response || 'I\'m sorry, I encountered an issue. Please try again.',
+        text: data.response || 'I couldn\'t process that. Please try again.',
         isUser: false,
         timestamp: new Date(),
-      };
-
-      setMessages(prev => [...prev, aiMessage]);
+      }]);
     } catch (error) {
-      console.error('AI chat error:', error);
-      const errorMessage: Message = {
+      setMessages(prev => [...prev, {
         id: (Date.now() + 1).toString(),
-        text: 'I\'m sorry, I couldn\'t process your message. Please try again. 💛',
+        text: 'Connection error. Please try again. 💛',
         isUser: false,
         timestamp: new Date(),
-      };
-      setMessages(prev => [...prev, errorMessage]);
+      }]);
     } finally {
       setIsLoading(false);
     }
@@ -144,25 +139,25 @@ export function AIChatButton() {
 
   useEffect(() => {
     if (scrollViewRef.current) {
-      setTimeout(() => {
-        scrollViewRef.current?.scrollToEnd({ animated: true });
-      }, 100);
+      setTimeout(() => scrollViewRef.current?.scrollToEnd({ animated: true }), 100);
     }
   }, [messages]);
 
   return (
     <>
-      {/* Floating Chat Button - Luxury Gold */}
+      {/* Floating Button */}
       <Animated.View style={[styles.floatingButton, { transform: [{ scale: pulseAnim }] }]}>
         <TouchableOpacity
           style={styles.chatButton}
           onPress={() => setVisible(true)}
-          activeOpacity={0.8}
+          activeOpacity={0.9}
         >
-          <Ionicons name="chatbubble-ellipses" size={26} color="#FFFFFF" />
-          <View style={styles.aiLabel}>
-            <Text style={styles.aiLabelText}>AI</Text>
-          </View>
+          <LinearGradient
+            colors={['#3D352F', '#2C2622']}
+            style={styles.buttonGradient}
+          >
+            <Ionicons name="chatbubble-ellipses" size={24} color="#FFFFFF" />
+          </LinearGradient>
         </TouchableOpacity>
       </Animated.View>
 
@@ -177,16 +172,16 @@ export function AIChatButton() {
               {/* Header */}
               <View style={styles.chatHeader}>
                 <View style={styles.headerLeft}>
-                  <View style={styles.avatarContainer}>
-                    <Ionicons name="heart" size={22} color={GOLD} />
+                  <View style={styles.avatarBox}>
+                    <Ionicons name="sparkles" size={18} color={C.gold} />
                   </View>
                   <View>
                     <Text style={styles.headerTitle}>{t('ai.assistant')}</Text>
-                    <Text style={styles.headerSubtitle}>{t('ai.alwaysHere')} 💛</Text>
+                    <Text style={styles.headerSubtitle}>Always here for you</Text>
                   </View>
                 </View>
-                <TouchableOpacity onPress={() => setVisible(false)} style={styles.closeButton}>
-                  <Ionicons name="close" size={24} color={TEXT_SECONDARY} />
+                <TouchableOpacity onPress={() => setVisible(false)} style={styles.closeBtn}>
+                  <Ionicons name="close" size={22} color={C.textMuted} />
                 </TouchableOpacity>
               </View>
 
@@ -199,14 +194,11 @@ export function AIChatButton() {
                 {messages.map((message) => (
                   <View
                     key={message.id}
-                    style={[
-                      styles.messageBubble,
-                      message.isUser ? styles.userBubble : styles.aiBubble,
-                    ]}
+                    style={[styles.messageBubble, message.isUser ? styles.userBubble : styles.aiBubble]}
                   >
                     {!message.isUser && (
                       <View style={styles.aiAvatar}>
-                        <Ionicons name="heart" size={14} color={GOLD} />
+                        <Ionicons name="sparkles" size={12} color={C.gold} />
                       </View>
                     )}
                     <View style={[styles.messageContent, message.isUser && styles.userMessageContent]}>
@@ -219,10 +211,10 @@ export function AIChatButton() {
                 {isLoading && (
                   <View style={styles.loadingBubble}>
                     <View style={styles.aiAvatar}>
-                      <Ionicons name="heart" size={14} color={GOLD} />
+                      <Ionicons name="sparkles" size={12} color={C.gold} />
                     </View>
-                    <View style={styles.typingIndicator}>
-                      <ActivityIndicator size="small" color={GOLD} />
+                    <View style={styles.typingBox}>
+                      <ActivityIndicator size="small" color={C.gold} />
                       <Text style={styles.typingText}>{t('ai.typing')}</Text>
                     </View>
                   </View>
@@ -236,17 +228,16 @@ export function AIChatButton() {
                   value={inputText}
                   onChangeText={setInputText}
                   placeholder={t('ai.placeholder')}
-                  placeholderTextColor={TEXT_MUTED}
+                  placeholderTextColor={C.textMuted}
                   multiline
                   maxLength={1000}
-                  onSubmitEditing={sendMessage}
                 />
                 <TouchableOpacity
-                  style={[styles.sendButton, (!inputText.trim() || isLoading) && styles.sendButtonDisabled]}
+                  style={[styles.sendButton, (!inputText.trim() || isLoading) && styles.sendDisabled]}
                   onPress={sendMessage}
                   disabled={!inputText.trim() || isLoading}
                 >
-                  <Ionicons name="send" size={18} color="#FFFFFF" />
+                  <Ionicons name="arrow-up" size={20} color="#FFFFFF" />
                 </TouchableOpacity>
               </View>
             </View>
@@ -265,89 +256,72 @@ const styles = StyleSheet.create({
     zIndex: 1000,
   },
   chatButton: {
-    width: 58,
-    height: 58,
-    borderRadius: 29,
-    backgroundColor: GOLD,
+    width: 56,
+    height: 56,
+    borderRadius: 18,
+    overflow: 'hidden',
+    shadowColor: '#1A1614',
+    shadowOffset: { width: 0, height: 8 },
+    shadowOpacity: 0.25,
+    shadowRadius: 16,
+    elevation: 10,
+  },
+  buttonGradient: {
+    width: '100%',
+    height: '100%',
     justifyContent: 'center',
     alignItems: 'center',
-    // Elegant shadow - no glow
-    shadowColor: '#3D2B1F',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.15,
-    shadowRadius: 12,
-    elevation: 6,
-  },
-  aiLabel: {
-    position: 'absolute',
-    top: -2,
-    right: -2,
-    backgroundColor: TEXT_DARK,
-    paddingHorizontal: 6,
-    paddingVertical: 2,
-    borderRadius: 8,
-  },
-  aiLabelText: {
-    color: '#FFFFFF',
-    fontSize: 9,
-    fontWeight: '700',
-    letterSpacing: 0.5,
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(61, 43, 31, 0.4)',
+    backgroundColor: 'rgba(26, 22, 20, 0.5)',
   },
   keyboardView: {
     flex: 1,
     justifyContent: 'flex-end',
   },
   chatContainer: {
-    backgroundColor: '#FFFFFF',
+    backgroundColor: C.card,
     borderTopLeftRadius: 28,
     borderTopRightRadius: 28,
     height: '85%',
-    overflow: 'hidden',
   },
   chatHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 16,
+    padding: 18,
     borderBottomWidth: 1,
-    borderBottomColor: '#E8E4D9',
-    backgroundColor: BG_LIGHT,
+    borderBottomColor: C.border,
   },
   headerLeft: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
   },
-  avatarContainer: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: GOLD_MUTED,
+  avatarBox: {
+    width: 42,
+    height: 42,
+    borderRadius: 12,
+    backgroundColor: C.goldGlow,
     justifyContent: 'center',
     alignItems: 'center',
-    borderWidth: 1,
-    borderColor: 'rgba(197, 160, 89, 0.3)',
   },
   headerTitle: {
-    fontSize: 17,
+    fontSize: 16,
     fontWeight: '700',
-    color: TEXT_DARK,
-    fontFamily: 'PlayfairDisplay_600SemiBold',
+    color: C.text,
   },
   headerSubtitle: {
-    fontSize: 13,
-    color: GOLD,
+    fontSize: 12,
+    color: C.textMuted,
   },
-  closeButton: {
+  closeBtn: {
     padding: 8,
   },
   messagesContainer: {
     flex: 1,
-    backgroundColor: BG_CREAM,
+    backgroundColor: C.bg,
   },
   messagesContent: {
     padding: 16,
@@ -366,32 +340,32 @@ const styles = StyleSheet.create({
     alignSelf: 'flex-start',
   },
   aiAvatar: {
-    width: 28,
-    height: 28,
-    borderRadius: 14,
-    backgroundColor: GOLD_MUTED,
+    width: 26,
+    height: 26,
+    borderRadius: 8,
+    backgroundColor: C.goldGlow,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 8,
   },
   messageContent: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 20,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
-    shadowColor: '#3D2B1F',
+    backgroundColor: C.card,
+    borderRadius: 18,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
+    shadowColor: '#1A1614',
     shadowOffset: { width: 0, height: 2 },
     shadowOpacity: 0.04,
     shadowRadius: 8,
     elevation: 2,
   },
   userMessageContent: {
-    backgroundColor: GOLD,
+    backgroundColor: C.accent,
   },
   messageText: {
     fontSize: 15,
-    color: TEXT_DARK,
-    lineHeight: 22,
+    color: C.text,
+    lineHeight: 21,
   },
   userMessageText: {
     color: '#FFFFFF',
@@ -401,56 +375,51 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 12,
   },
-  typingIndicator: {
+  typingBox: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    borderRadius: 20,
-    paddingHorizontal: 16,
-    paddingVertical: 12,
+    backgroundColor: C.card,
+    borderRadius: 18,
+    paddingHorizontal: 14,
+    paddingVertical: 10,
     gap: 8,
   },
   typingText: {
     fontSize: 14,
-    color: TEXT_MUTED,
+    color: C.textMuted,
     fontStyle: 'italic',
   },
   inputContainer: {
     flexDirection: 'row',
     alignItems: 'flex-end',
-    padding: 12,
-    paddingBottom: Platform.OS === 'ios' ? 28 : 12,
-    backgroundColor: '#FFFFFF',
+    padding: 14,
+    paddingBottom: Platform.OS === 'ios' ? 30 : 14,
+    backgroundColor: C.card,
     borderTopWidth: 1,
-    borderTopColor: '#E8E4D9',
+    borderTopColor: C.border,
     gap: 10,
   },
   input: {
     flex: 1,
-    backgroundColor: BG_LIGHT,
-    borderRadius: 20,
+    backgroundColor: C.bg,
+    borderRadius: 16,
     paddingHorizontal: 16,
     paddingVertical: 12,
     fontSize: 15,
-    color: TEXT_DARK,
+    color: C.text,
     maxHeight: 100,
     borderWidth: 1,
-    borderColor: '#E8E4D9',
+    borderColor: C.border,
   },
   sendButton: {
     width: 44,
     height: 44,
-    borderRadius: 22,
-    backgroundColor: GOLD,
+    borderRadius: 14,
+    backgroundColor: C.accent,
     justifyContent: 'center',
     alignItems: 'center',
-    shadowColor: '#3D2B1F',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.1,
-    shadowRadius: 6,
-    elevation: 3,
   },
-  sendButtonDisabled: {
-    backgroundColor: GOLD_MUTED,
+  sendDisabled: {
+    backgroundColor: C.border,
   },
 });
