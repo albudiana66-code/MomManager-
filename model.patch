@@ -1,0 +1,56 @@
+diff --git a/frontend/app/(tabs)/_layout.tsx b/frontend/app/(tabs)/_layout.tsx
+index 69f06a6..438776d 100644
+--- a/frontend/app/(tabs)/_layout.tsx
++++ b/frontend/app/(tabs)/_layout.tsx
+@@ -7,6 +7,14 @@ import { LoadingScreen } from '../../src/components/LoadingScreen';
+ import { useRouter } from 'expo-router';
+ import { useEffect } from 'react';
+ 
++// Modern 2026 Colors
++const C = {
++  bg: '#FFFFFF',
++  accent: '#2C2622',
++  gold: '#B8956E',
++  textMuted: '#9E958C',
++};
++
+ export default function TabsLayout() {
+   const { isLoading, isAuthenticated } = useAuth();
+   const { t } = useSettings();
+@@ -30,23 +38,24 @@ export default function TabsLayout() {
+     <Tabs
+       screenOptions={{
+         headerShown: false,
+-        tabBarActiveTintColor: '#C5A059',
+-        tabBarInactiveTintColor: '#9C8B7E',
++        tabBarActiveTintColor: C.accent,
++        tabBarInactiveTintColor: C.textMuted,
+         tabBarStyle: {
+-          backgroundColor: '#FFFFFF',
++          backgroundColor: C.bg,
+           borderTopWidth: 0,
+-          elevation: 12,
+-          shadowColor: '#3D2B1F',
+-          shadowOffset: { width: 0, height: -4 },
+-          shadowOpacity: 0.06,
+-          shadowRadius: 16,
+-          height: 70,
+-          paddingBottom: 10,
+-          paddingTop: 10,
++          elevation: 20,
++          shadowColor: '#1A1614',
++          shadowOffset: { width: 0, height: -8 },
++          shadowOpacity: 0.08,
++          shadowRadius: 24,
++          height: 72,
++          paddingBottom: 12,
++          paddingTop: 8,
+         },
+         tabBarLabelStyle: {
+-          fontSize: 11,
++          fontSize: 10,
+           fontWeight: '600',
++          letterSpacing: 0.3,
+         },
+       }}
+     >
