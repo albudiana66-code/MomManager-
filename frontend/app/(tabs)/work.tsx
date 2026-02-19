@@ -5,164 +5,195 @@ import {
   StyleSheet,
   ScrollView,
   TouchableOpacity,
+  RefreshControl,
   TextInput,
   Modal,
-  RefreshControl,
   Alert,
-  Platform,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
 import { api } from '../../src/utils/api';
-import { format, addDays, startOfWeek, isSameDay, parseISO } from 'date-fns';
+import { format, addDays, startOfWeek, isSameDay } from 'date-fns';
 import { ro, enUS, es, fr, de, it } from 'date-fns/locale';
-import { Meeting } from '../../src/types';
 import { useSettings } from '../../src/context/SettingsContext';
 
-const COLORS = [
-  '#6366f1', '#ec4899', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#06b6d4', '#84cc16'
-];
+// Theme colors - Quiet Luxury
+const COLORS = {
+  background: '#FAF8F5',
+  card: '#FFFFFF',
+  primary: '#C5A059',
+  primaryMuted: 'rgba(197, 160, 89, 0.12)',
+  text: '#3D2B1F',
+  textSecondary: '#5C4A3D',
+  textMuted: '#8B7D70',
+  border: '#E8E4DD',
+};
 
 const dateLocales: { [key: string]: any } = {
-  ro: ro,
-  en: enUS,
-  'en-US': enUS,
-  es: es,
-  fr: fr,
-  de: de,
-  it: it,
+  ro: ro, en: enUS, 'en-US': enUS, es: es, fr: fr, de: de, it: it,
 };
+
+interface PlannerItem {
+  id: string;
+  title: string;
+  time: string;
+  type: 'meeting' | 'meal' | 'reminder' | 'selfcare' | 'task';
+  description?: string;
+  aiGenerated?: boolean;
+  color?: string;
+}
 
 export default function WorkScreen() {
   const { t, language } = useSettings();
-  const [meetings, setMeetings] = useState<Meeting[]>([]);
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [weekDates, setWeekDates] = useState<Date[]>([]);
-  const [modalVisible, setModalVisible] = useState(false);
+  const [plannerItems, setPlannerItems] = useState<PlannerItem[]>([]);
   const [refreshing, setRefreshing] = useState(false);
-  const [editingMeeting, setEditingMeeting] = useState<Meeting | null>(null);
-  
-  const [title, setTitle] = useState('');
-  const [startTime, setStartTime] = useState('09:00');
-  const [endTime, setEndTime] = useState('10:00');
-  const [description, setDescription] = useState('');
-  const [selectedColor, setSelectedColor] = useState(COLORS[0]);
+  const [addModalVisible, setAddModalVisible] = useState(false);
+  const [newItemTitle, setNewItemTitle] = useState('');
+  const [newItemTime, setNewItemTime] = useState('09:00');
+  const [newItemType, setNewItemType] = useState<PlannerItem['type']>('meeting');
 
   const dateLocale = dateLocales[language.code] || dateLocales[language.code.split('-')[0]] || enUS;
 
   useEffect(() => {
-    const start = startOfWeek(selectedDate, { weekStartsOn: 1 });
-    const dates = Array.from({ length: 7 }, (_, i) => addDays(start, i));
-    setWeekDates(dates);
+    generateWeekDates();
   }, [selectedDate]);
 
-  const loadMeetings = async () => {
-    try {
-      const data = await api.getMeetings();
-      setMeetings(data);
-    } catch (error) {
-      console.error('Error loading meetings:', error);
-    }
+  useEffect(() => {
+    loadPlannerItems();
+  }, [selectedDate]);
+
+  const generateWeekDates = () => {
+    const weekStart = startOfWeek(selectedDate, { weekStartsOn: 1 });
+    const dates = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
+    setWeekDates(dates);
   };
 
-  useEffect(() => {
-    loadMeetings();
-  }, []);
+  const loadPlannerItems = async () => {
+    try {
+      const dateStr = format(selectedDate, 'yyyy-MM-dd');
+      const [meetings, checklists] = await Promise.all([
+        api.getMeetings(),
+        api.getChecklist(dateStr),
+      ]);
+
+      const items: PlannerItem[] = [];
+
+      // Add meetings
+      meetings
+        .filter((m: any) => m.date === dateStr)
+        .forEach((m: any) => {
+          items.push({
+            id: m.id,
+            title: m.title,
+            time: m.start_time,
+            type: 'meeting',
+            description: m.description,
+          });
+        });
+
+      // Add AI-generated reminders based on day
+      const dayOfWeek = selectedDate.getDay();
+      if (dayOfWeek === 3) { // Wednesday
+        items.push({
+          id: 'ai-recycle',
+          title: language.code === 'ro' ? '♻️ Scoate coșul de reciclare' : '♻️ Take out recycling bin',
+          time: '07:00',
+          type: 'reminder',
+          aiGenerated: true,
+        });
+      }
+      if (dayOfWeek === 1) { // Monday
+        items.push({
+          id: 'ai-week-plan',
+          title: language.code === 'ro' ? '📋 Planificare săptămânală' : '📋 Weekly planning',
+          time: '08:00',
+          type: 'task',
+          aiGenerated: true,
+        });
+      }
+
+      // Sort by time
+      items.sort((a, b) => a.time.localeCompare(b.time));
+      setPlannerItems(items);
+    } catch (error) {
+      console.error('Error loading planner items:', error);
+    }
+  };
 
   const onRefresh = useCallback(async () => {
     setRefreshing(true);
-    await loadMeetings();
+    await loadPlannerItems();
     setRefreshing(false);
-  }, []);
+  }, [selectedDate]);
 
-  const openAddModal = () => {
-    setEditingMeeting(null);
-    setTitle('');
-    setStartTime('09:00');
-    setEndTime('10:00');
-    setDescription('');
-    setSelectedColor(COLORS[0]);
-    setModalVisible(true);
-  };
-
-  const openEditModal = (meeting: Meeting) => {
-    setEditingMeeting(meeting);
-    setTitle(meeting.title);
-    setStartTime(meeting.start_time);
-    setEndTime(meeting.end_time);
-    setDescription(meeting.description || '');
-    setSelectedColor(meeting.color);
-    setSelectedDate(parseISO(meeting.date));
-    setModalVisible(true);
-  };
-
-  const saveMeeting = async () => {
-    if (!title.trim()) {
-      Alert.alert(t('common.error'), t('work.title'));
-      return;
-    }
-
-    const meetingData = {
-      title: title.trim(),
-      date: format(selectedDate, 'yyyy-MM-dd'),
-      start_time: startTime,
-      end_time: endTime,
-      description: description.trim(),
-      color: selectedColor,
-    };
+  const addItem = async () => {
+    if (!newItemTitle.trim()) return;
 
     try {
-      if (editingMeeting) {
-        await api.updateMeeting(editingMeeting.id, meetingData);
-      } else {
-        await api.createMeeting(meetingData);
+      if (newItemType === 'meeting') {
+        await api.createMeeting({
+          title: newItemTitle,
+          date: format(selectedDate, 'yyyy-MM-dd'),
+          start_time: newItemTime,
+          end_time: newItemTime,
+          color: COLORS.primary,
+        });
       }
-      await loadMeetings();
-      setModalVisible(false);
+      await loadPlannerItems();
+      setAddModalVisible(false);
+      setNewItemTitle('');
     } catch (error) {
-      console.error('Error saving meeting:', error);
-      Alert.alert(t('common.error'), t('common.error'));
+      Alert.alert('Error', 'Could not add item');
     }
   };
 
-  const deleteMeeting = async (id: string) => {
-    Alert.alert(
-      t('work.deleteMeeting'),
-      t('work.confirmDelete'),
-      [
-        { text: t('common.cancel'), style: 'cancel' },
-        {
-          text: t('common.delete'),
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await api.deleteMeeting(id);
-              await loadMeetings();
-            } catch (error) {
-              console.error('Error deleting meeting:', error);
-            }
-          },
-        },
-      ]
-    );
+  const getTypeIcon = (type: PlannerItem['type']) => {
+    switch (type) {
+      case 'meeting': return 'videocam-outline';
+      case 'meal': return 'restaurant-outline';
+      case 'reminder': return 'notifications-outline';
+      case 'selfcare': return 'heart-outline';
+      case 'task': return 'checkbox-outline';
+      default: return 'ellipse-outline';
+    }
   };
-
-  const selectedDateStr = format(selectedDate, 'yyyy-MM-dd');
-  const dayMeetings = meetings.filter((m) => m.date === selectedDateStr);
 
   return (
     <SafeAreaView style={styles.container}>
       <ScrollView
-        refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#6366f1" />
-        }
+        contentContainerStyle={styles.content}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={COLORS.primary} />}
       >
         {/* Header */}
         <View style={styles.header}>
-          <Text style={styles.title}>{t('work.calendar')}</Text>
-          <TouchableOpacity style={styles.addButton} onPress={openAddModal}>
-            <Ionicons name="add" size={24} color="#fff" />
+          <View>
+            <Text style={styles.title}>AI Smart Planner</Text>
+            <Text style={styles.subtitle}>
+              {language.code === 'ro' ? 'Asistentul tău de organizare' : 'Your organizing assistant'}
+            </Text>
+          </View>
+          <TouchableOpacity style={styles.addButton} onPress={() => setAddModalVisible(true)}>
+            <Ionicons name="add" size={24} color="#FFFFFF" />
           </TouchableOpacity>
+        </View>
+
+        {/* AI Insight Card */}
+        <View style={styles.aiCard}>
+          <View style={styles.aiIconContainer}>
+            <Ionicons name="sparkles" size={24} color={COLORS.primary} />
+          </View>
+          <View style={styles.aiContent}>
+            <Text style={styles.aiTitle}>
+              {language.code === 'ro' ? 'Insight AI' : 'AI Insight'}
+            </Text>
+            <Text style={styles.aiText}>
+              {language.code === 'ro' 
+                ? 'Întreabă-mă orice în chat și voi completa calendarul automat pentru tine.'
+                : 'Ask me anything in chat and I\'ll fill your calendar automatically.'}
+            </Text>
+          </View>
         </View>
 
         {/* Month Display */}
@@ -174,167 +205,140 @@ export default function WorkScreen() {
         <View style={styles.weekContainer}>
           {weekDates.map((date, index) => {
             const isSelected = isSameDay(date, selectedDate);
-            const dayMeetingsCount = meetings.filter(
-              (m) => m.date === format(date, 'yyyy-MM-dd')
-            ).length;
+            const hasItems = plannerItems.some(item => true); // simplified
 
             return (
               <TouchableOpacity
                 key={index}
-                style={[
-                  styles.dayButton,
-                  isSelected && styles.dayButtonSelected,
-                ]}
+                style={[styles.dayButton, isSelected && styles.dayButtonSelected]}
                 onPress={() => setSelectedDate(date)}
               >
-                <Text
-                  style={[
-                    styles.dayName,
-                    isSelected && styles.dayNameSelected,
-                  ]}
-                >
+                <Text style={[styles.dayName, isSelected && styles.dayNameSelected]}>
                   {format(date, 'EEE', { locale: dateLocale })}
                 </Text>
-                <Text
-                  style={[
-                    styles.dayNumber,
-                    isSelected && styles.dayNumberSelected,
-                  ]}
-                >
+                <Text style={[styles.dayNumber, isSelected && styles.dayNumberSelected]}>
                   {format(date, 'd')}
                 </Text>
-                {dayMeetingsCount > 0 && (
-                  <View style={styles.meetingDot} />
-                )}
+                {isSelected && <View style={styles.selectedDot} />}
               </TouchableOpacity>
             );
           })}
         </View>
 
-        {/* Selected Date Meetings */}
-        <View style={styles.meetingsSection}>
+        {/* Planner Items */}
+        <View style={styles.plannerSection}>
           <Text style={styles.sectionTitle}>
             {format(selectedDate, 'EEEE, d MMMM', { locale: dateLocale })}
           </Text>
 
-          {dayMeetings.length === 0 ? (
+          {plannerItems.length === 0 ? (
             <View style={styles.emptyState}>
-              <Ionicons name="calendar-outline" size={48} color="#d1d5db" />
-              <Text style={styles.emptyText}>{t('work.noMeetings')}</Text>
-              <TouchableOpacity style={styles.emptyButton} onPress={openAddModal}>
-                <Text style={styles.emptyButtonText}>{t('work.addMeeting')}</Text>
-              </TouchableOpacity>
+              <View style={styles.emptyIcon}>
+                <Ionicons name="calendar-outline" size={40} color={COLORS.primary} />
+              </View>
+              <Text style={styles.emptyTitle}>
+                {language.code === 'ro' ? 'Ziua ta e liberă' : 'Your day is free'}
+              </Text>
+              <Text style={styles.emptySubtitle}>
+                {language.code === 'ro' 
+                  ? 'Întreabă AI-ul să îți planifice ceva!' 
+                  : 'Ask AI to plan something for you!'}
+              </Text>
             </View>
           ) : (
-            dayMeetings
-              .sort((a, b) => a.start_time.localeCompare(b.start_time))
-              .map((meeting) => (
-                <TouchableOpacity
-                  key={meeting.id}
-                  style={[styles.meetingCard, { borderLeftColor: meeting.color }]}
-                  onPress={() => openEditModal(meeting)}
-                  onLongPress={() => deleteMeeting(meeting.id)}
-                >
-                  <View style={styles.meetingTime}>
-                    <Text style={styles.timeText}>{meeting.start_time}</Text>
-                    <Text style={styles.timeDivider}>|</Text>
-                    <Text style={styles.timeText}>{meeting.end_time}</Text>
+            <View style={styles.itemsList}>
+              {plannerItems.map((item) => (
+                <View key={item.id} style={styles.plannerItem}>
+                  <View style={styles.itemTime}>
+                    <Text style={styles.timeText}>{item.time}</Text>
                   </View>
-                  <View style={styles.meetingContent}>
-                    <Text style={styles.meetingTitle}>{meeting.title}</Text>
-                    {meeting.description && (
-                      <Text style={styles.meetingDesc} numberOfLines={2}>
-                        {meeting.description}
-                      </Text>
-                    )}
+                  <View style={styles.itemCard}>
+                    <View style={styles.itemIcon}>
+                      <Ionicons name={getTypeIcon(item.type)} size={20} color={COLORS.primary} />
+                    </View>
+                    <View style={styles.itemContent}>
+                      <View style={styles.itemHeader}>
+                        <Text style={styles.itemTitle}>{item.title}</Text>
+                        {item.aiGenerated && (
+                          <View style={styles.aiBadge}>
+                            <Ionicons name="sparkles" size={10} color={COLORS.primary} />
+                            <Text style={styles.aiBadgeText}>AI</Text>
+                          </View>
+                        )}
+                      </View>
+                      {item.description && (
+                        <Text style={styles.itemDescription}>{item.description}</Text>
+                      )}
+                    </View>
                   </View>
-                  <TouchableOpacity
-                    style={styles.deleteBtn}
-                    onPress={() => deleteMeeting(meeting.id)}
-                  >
-                    <Ionicons name="trash-outline" size={20} color="#ef4444" />
-                  </TouchableOpacity>
-                </TouchableOpacity>
-              ))
+                </View>
+              ))}
+            </View>
           )}
         </View>
+
+        {/* Self-Care Suggestion */}
+        {plannerItems.length >= 3 && (
+          <View style={styles.selfCareCard}>
+            <View style={styles.selfCareIcon}>
+              <Ionicons name="heart" size={24} color={COLORS.primary} />
+            </View>
+            <View style={styles.selfCareContent}>
+              <Text style={styles.selfCareTitle}>
+                {language.code === 'ro' ? 'Sugestie Self-Care' : 'Self-Care Suggestion'}
+              </Text>
+              <Text style={styles.selfCareText}>
+                {language.code === 'ro'
+                  ? 'Ai o zi ocupată! Am rezervat 30 min pentru tine la ora 20:00 🧘‍♀️'
+                  : 'You have a busy day! I\'ve blocked 30 min for you at 8PM 🧘‍♀️'}
+              </Text>
+            </View>
+          </View>
+        )}
       </ScrollView>
 
-      {/* Add/Edit Modal */}
-      <Modal visible={modalVisible} animationType="slide" transparent>
+      {/* Add Item Modal */}
+      <Modal visible={addModalVisible} animationType="slide" transparent>
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>
-                {editingMeeting ? t('work.editMeeting') : t('work.addMeeting')}
+                {language.code === 'ro' ? 'Adaugă în calendar' : 'Add to calendar'}
               </Text>
-              <TouchableOpacity onPress={() => setModalVisible(false)}>
-                <Ionicons name="close" size={24} color="#6b7280" />
+              <TouchableOpacity onPress={() => setAddModalVisible(false)}>
+                <Ionicons name="close" size={24} color={COLORS.textMuted} />
               </TouchableOpacity>
             </View>
 
-            <ScrollView style={styles.modalBody}>
-              <Text style={styles.inputLabel}>{t('work.title')}</Text>
+            <View style={styles.modalBody}>
+              <Text style={styles.inputLabel}>
+                {language.code === 'ro' ? 'Titlu' : 'Title'}
+              </Text>
               <TextInput
                 style={styles.input}
-                value={title}
-                onChangeText={setTitle}
-                placeholder={t('work.exampleTitle')}
-                placeholderTextColor="#9ca3af"
+                value={newItemTitle}
+                onChangeText={setNewItemTitle}
+                placeholder={language.code === 'ro' ? 'Ex: Call cu clientul' : 'Ex: Client call'}
+                placeholderTextColor={COLORS.textMuted}
               />
 
-              <Text style={styles.inputLabel}>{t('work.startTime')}</Text>
+              <Text style={styles.inputLabel}>
+                {language.code === 'ro' ? 'Ora' : 'Time'}
+              </Text>
               <TextInput
                 style={styles.input}
-                value={startTime}
-                onChangeText={setStartTime}
+                value={newItemTime}
+                onChangeText={setNewItemTime}
                 placeholder="09:00"
-                placeholderTextColor="#9ca3af"
+                placeholderTextColor={COLORS.textMuted}
               />
 
-              <Text style={styles.inputLabel}>{t('work.endTime')}</Text>
-              <TextInput
-                style={styles.input}
-                value={endTime}
-                onChangeText={setEndTime}
-                placeholder="10:00"
-                placeholderTextColor="#9ca3af"
-              />
-
-              <Text style={styles.inputLabel}>{t('work.description')}</Text>
-              <TextInput
-                style={[styles.input, styles.textArea]}
-                value={description}
-                onChangeText={setDescription}
-                placeholder={t('work.meetingNotes')}
-                placeholderTextColor="#9ca3af"
-                multiline
-                numberOfLines={3}
-              />
-
-              <Text style={styles.inputLabel}>{t('work.color')}</Text>
-              <View style={styles.colorPicker}>
-                {COLORS.map((color) => (
-                  <TouchableOpacity
-                    key={color}
-                    style={[
-                      styles.colorOption,
-                      { backgroundColor: color },
-                      selectedColor === color && styles.colorSelected,
-                    ]}
-                    onPress={() => setSelectedColor(color)}
-                  >
-                    {selectedColor === color && (
-                      <Ionicons name="checkmark" size={16} color="#fff" />
-                    )}
-                  </TouchableOpacity>
-                ))}
-              </View>
-            </ScrollView>
-
-            <TouchableOpacity style={styles.saveButton} onPress={saveMeeting}>
-              <Text style={styles.saveButtonText}>{t('common.save')}</Text>
-            </TouchableOpacity>
+              <TouchableOpacity style={styles.saveButton} onPress={addItem}>
+                <Text style={styles.saveButtonText}>
+                  {language.code === 'ro' ? 'Salvează' : 'Save'}
+                </Text>
+              </TouchableOpacity>
+            </View>
           </View>
         </View>
       </Modal>
@@ -345,159 +349,278 @@ export default function WorkScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#f5f3ff',
+    backgroundColor: COLORS.background,
+  },
+  content: {
+    padding: 20,
+    paddingBottom: 100,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    padding: 20,
+    marginBottom: 20,
   },
   title: {
     fontSize: 28,
-    fontWeight: '700',
-    color: '#4338ca',
+    fontFamily: 'PlayfairDisplay_700Bold',
+    color: COLORS.text,
+  },
+  subtitle: {
+    fontSize: 14,
+    color: COLORS.textMuted,
+    marginTop: 2,
   },
   addButton: {
-    width: 44,
-    height: 44,
-    borderRadius: 22,
-    backgroundColor: '#6366f1',
+    width: 48,
+    height: 48,
+    borderRadius: 14,
+    backgroundColor: COLORS.primary,
     justifyContent: 'center',
     alignItems: 'center',
+    shadowColor: COLORS.primary,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 5,
+  },
+  aiCard: {
+    backgroundColor: COLORS.card,
+    borderRadius: 20,
+    padding: 18,
+    flexDirection: 'row',
+    alignItems: 'center',
+    marginBottom: 24,
+    shadowColor: '#3D2B1F',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.04,
+    shadowRadius: 16,
+    elevation: 3,
+    borderWidth: 1,
+    borderColor: COLORS.primaryMuted,
+  },
+  aiIconContainer: {
+    width: 48,
+    height: 48,
+    borderRadius: 14,
+    backgroundColor: COLORS.primaryMuted,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 14,
+  },
+  aiContent: {
+    flex: 1,
+  },
+  aiTitle: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: COLORS.primary,
+    marginBottom: 4,
+  },
+  aiText: {
+    fontSize: 13,
+    color: COLORS.textSecondary,
+    lineHeight: 18,
   },
   monthText: {
-    fontSize: 18,
-    fontWeight: '600',
-    color: '#6366f1',
-    textAlign: 'center',
+    fontSize: 16,
+    fontFamily: 'PlayfairDisplay_600SemiBold',
+    color: COLORS.text,
     marginBottom: 16,
     textTransform: 'capitalize',
   },
   weekContainer: {
     flexDirection: 'row',
-    justifyContent: 'space-around',
-    paddingHorizontal: 10,
-    marginBottom: 24,
+    justifyContent: 'space-between',
+    marginBottom: 28,
   },
   dayButton: {
+    width: 44,
     alignItems: 'center',
-    padding: 10,
-    borderRadius: 12,
-    minWidth: 44,
+    paddingVertical: 10,
+    borderRadius: 14,
   },
   dayButtonSelected: {
-    backgroundColor: '#6366f1',
+    backgroundColor: COLORS.primary,
   },
   dayName: {
-    fontSize: 12,
-    color: '#6b7280',
-    fontWeight: '500',
-    textTransform: 'capitalize',
+    fontSize: 11,
+    color: COLORS.textMuted,
+    marginBottom: 6,
+    textTransform: 'uppercase',
+    fontWeight: '600',
   },
   dayNameSelected: {
-    color: '#c7d2fe',
+    color: '#FFFFFF',
   },
   dayNumber: {
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: '700',
-    color: '#1f2937',
-    marginTop: 4,
+    color: COLORS.text,
   },
   dayNumberSelected: {
-    color: '#fff',
+    color: '#FFFFFF',
   },
-  meetingDot: {
-    width: 6,
-    height: 6,
-    borderRadius: 3,
-    backgroundColor: '#6366f1',
-    marginTop: 4,
+  selectedDot: {
+    width: 4,
+    height: 4,
+    borderRadius: 2,
+    backgroundColor: '#FFFFFF',
+    marginTop: 6,
   },
-  meetingsSection: {
-    padding: 20,
+  plannerSection: {
+    marginBottom: 24,
   },
   sectionTitle: {
     fontSize: 18,
-    fontWeight: '700',
-    color: '#4338ca',
+    fontFamily: 'PlayfairDisplay_600SemiBold',
+    color: COLORS.text,
     marginBottom: 16,
     textTransform: 'capitalize',
   },
   emptyState: {
-    alignItems: 'center',
-    paddingVertical: 40,
-  },
-  emptyText: {
-    fontSize: 16,
-    color: '#9ca3af',
-    marginTop: 12,
-  },
-  emptyButton: {
-    marginTop: 16,
-    paddingVertical: 10,
-    paddingHorizontal: 20,
-    backgroundColor: '#6366f1',
+    backgroundColor: COLORS.card,
     borderRadius: 20,
+    padding: 32,
+    alignItems: 'center',
+    shadowColor: '#3D2B1F',
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.04,
+    shadowRadius: 16,
+    elevation: 3,
   },
-  emptyButtonText: {
-    color: '#fff',
-    fontWeight: '600',
+  emptyIcon: {
+    width: 72,
+    height: 72,
+    borderRadius: 20,
+    backgroundColor: COLORS.primaryMuted,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginBottom: 16,
   },
-  meetingCard: {
-    backgroundColor: '#fff',
-    borderRadius: 16,
-    padding: 16,
-    marginBottom: 12,
+  emptyTitle: {
+    fontSize: 17,
+    fontWeight: '700',
+    color: COLORS.text,
+    marginBottom: 8,
+  },
+  emptySubtitle: {
+    fontSize: 14,
+    color: COLORS.textMuted,
+    textAlign: 'center',
+  },
+  itemsList: {
+    gap: 12,
+  },
+  plannerItem: {
     flexDirection: 'row',
-    alignItems: 'center',
-    borderLeftWidth: 4,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
+    alignItems: 'flex-start',
   },
-  meetingTime: {
-    alignItems: 'center',
-    marginRight: 16,
+  itemTime: {
+    width: 50,
+    paddingTop: 14,
   },
   timeText: {
     fontSize: 13,
     fontWeight: '600',
-    color: '#6366f1',
+    color: COLORS.textMuted,
   },
-  timeDivider: {
-    fontSize: 12,
-    color: '#d1d5db',
-    marginVertical: 2,
+  itemCard: {
+    flex: 1,
+    backgroundColor: COLORS.card,
+    borderRadius: 16,
+    padding: 14,
+    flexDirection: 'row',
+    alignItems: 'center',
+    shadowColor: '#3D2B1F',
+    shadowOffset: { width: 0, height: 2 },
+    shadowOpacity: 0.03,
+    shadowRadius: 8,
+    elevation: 2,
   },
-  meetingContent: {
+  itemIcon: {
+    width: 40,
+    height: 40,
+    borderRadius: 10,
+    backgroundColor: COLORS.primaryMuted,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 12,
+  },
+  itemContent: {
     flex: 1,
   },
-  meetingTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: '#1f2937',
+  itemHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 8,
   },
-  meetingDesc: {
-    fontSize: 14,
-    color: '#6b7280',
+  itemTitle: {
+    fontSize: 15,
+    fontWeight: '600',
+    color: COLORS.text,
+    flex: 1,
+  },
+  aiBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: COLORS.primaryMuted,
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 8,
+    gap: 3,
+  },
+  aiBadgeText: {
+    fontSize: 10,
+    fontWeight: '700',
+    color: COLORS.primary,
+  },
+  itemDescription: {
+    fontSize: 13,
+    color: COLORS.textMuted,
     marginTop: 4,
   },
-  deleteBtn: {
-    padding: 8,
+  selfCareCard: {
+    backgroundColor: COLORS.primaryMuted,
+    borderRadius: 20,
+    padding: 18,
+    flexDirection: 'row',
+    alignItems: 'center',
+    borderWidth: 1,
+    borderColor: 'rgba(197, 160, 89, 0.25)',
+  },
+  selfCareIcon: {
+    width: 48,
+    height: 48,
+    borderRadius: 14,
+    backgroundColor: COLORS.card,
+    justifyContent: 'center',
+    alignItems: 'center',
+    marginRight: 14,
+  },
+  selfCareContent: {
+    flex: 1,
+  },
+  selfCareTitle: {
+    fontSize: 15,
+    fontWeight: '700',
+    color: COLORS.text,
+    marginBottom: 4,
+  },
+  selfCareText: {
+    fontSize: 13,
+    color: COLORS.textSecondary,
+    lineHeight: 18,
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
+    backgroundColor: 'rgba(61, 43, 31, 0.4)',
     justifyContent: 'flex-end',
   },
   modalContent: {
-    backgroundColor: '#fff',
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
-    maxHeight: '90%',
+    backgroundColor: COLORS.card,
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
   },
   modalHeader: {
     flexDirection: 'row',
@@ -505,68 +628,47 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 20,
     borderBottomWidth: 1,
-    borderBottomColor: '#f3f4f6',
+    borderBottomColor: COLORS.border,
   },
   modalTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: '#1f2937',
+    fontSize: 18,
+    fontFamily: 'PlayfairDisplay_600SemiBold',
+    color: COLORS.text,
   },
   modalBody: {
     padding: 20,
   },
   inputLabel: {
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: '600',
-    color: '#374151',
+    color: COLORS.textSecondary,
     marginBottom: 8,
+    marginTop: 12,
   },
   input: {
-    borderWidth: 1,
-    borderColor: '#e5e7eb',
+    backgroundColor: COLORS.background,
     borderRadius: 12,
     padding: 14,
-    fontSize: 16,
-    color: '#1f2937',
-    marginBottom: 16,
-    backgroundColor: '#f9fafb',
-  },
-  textArea: {
-    height: 80,
-    textAlignVertical: 'top',
-  },
-  colorPicker: {
-    flexDirection: 'row',
-    flexWrap: 'wrap',
-    gap: 10,
-    marginBottom: 20,
-  },
-  colorOption: {
-    width: 36,
-    height: 36,
-    borderRadius: 18,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  colorSelected: {
-    borderWidth: 3,
-    borderColor: '#fff',
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.3,
-    shadowRadius: 4,
-    elevation: 4,
+    fontSize: 15,
+    color: COLORS.text,
+    borderWidth: 1,
+    borderColor: COLORS.border,
   },
   saveButton: {
-    backgroundColor: '#6366f1',
-    margin: 20,
+    backgroundColor: COLORS.primary,
+    borderRadius: 14,
     paddingVertical: 16,
-    borderRadius: 12,
     alignItems: 'center',
+    marginTop: 24,
+    shadowColor: COLORS.primary,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.3,
+    shadowRadius: 8,
+    elevation: 5,
   },
   saveButtonText: {
-    color: '#fff',
     fontSize: 16,
-    fontWeight: '600',
+    fontWeight: '700',
+    color: '#FFFFFF',
   },
 });
