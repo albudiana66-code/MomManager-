@@ -18,33 +18,13 @@ import { ro, enUS, es, fr, de, it } from 'date-fns/locale';
 import { AIChatButton } from '../../src/components/AIChatButton';
 import { LinearGradient } from 'expo-linear-gradient';
 
-// Modern 2026 Dark Theme
-const C = {
-  bg: '#0F0F14',
-  bgLight: '#1A1A24',
-  card: '#1E1E2A',
-  surface: '#252532',
-  primary: '#E91E9C',
-  primaryGlow: 'rgba(233, 30, 156, 0.15)',
-  gold: '#F5A623',
-  goldGlow: 'rgba(245, 166, 35, 0.12)',
-  purple: '#8B5CF6',
-  blue: '#3B82F6',
-  cyan: '#06B6D4',
-  green: '#10B981',
-  text: '#FFFFFF',
-  textSecondary: '#A1A1B5',
-  textMuted: '#6B6B80',
-  border: '#2A2A3A',
-};
-
 const dateLocales: { [key: string]: any } = {
   ro: ro, en: enUS, 'en-US': enUS, es: es, fr: fr, de: de, it: it,
 };
 
 export default function HomeScreen() {
   const { user, logout } = useAuth();
-  const { language, currencySymbol, t } = useSettings();
+  const { language, currencySymbol, t, colors: C, isDarkMode, toggleTheme } = useSettings();
   const router = useRouter();
   const [refreshing, setRefreshing] = useState(false);
   const [todayMeetings, setTodayMeetings] = useState<any[]>([]);
