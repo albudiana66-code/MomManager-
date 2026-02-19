@@ -558,17 +558,14 @@ const styles = StyleSheet.create({
   },
   pricePeriod: {
     fontSize: 11,
-    color: C.textMuted,
   },
   trialText: {
     fontSize: 13,
-    color: C.textMuted,
     marginTop: 8,
   },
   copyright: {
     textAlign: 'center',
     fontSize: 12,
-    color: C.textMuted,
     marginTop: 16,
     fontWeight: '600',
   },
@@ -581,17 +578,14 @@ const styles = StyleSheet.create({
   },
   legalLink: {
     fontSize: 12,
-    color: C.primary,
     fontWeight: '500',
   },
   legalSeparator: {
     fontSize: 12,
-    color: C.textMuted,
   },
   copyrightFull: {
     textAlign: 'center',
     fontSize: 10,
-    color: C.textMuted,
     marginTop: 8,
     marginBottom: 30,
     paddingHorizontal: 20,
@@ -616,12 +610,10 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 20,
     borderBottomWidth: 1,
-    borderBottomColor: C.border,
   },
   modalTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: C.text,
   },
   modalBody: {
     padding: 16,
@@ -635,7 +627,6 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   optionRowActive: {
-    backgroundColor: C.primaryGlow,
   },
   optionFlag: {
     fontSize: 24,
@@ -644,17 +635,14 @@ const styles = StyleSheet.create({
   optionText: {
     flex: 1,
     fontSize: 16,
-    color: C.text,
   },
   optionTextActive: {
     fontWeight: '600',
-    color: C.primary,
   },
   currencySymbolBox: {
     width: 40,
     height: 40,
     borderRadius: 10,
-    backgroundColor: C.primaryGlow,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
@@ -662,14 +650,12 @@ const styles = StyleSheet.create({
   currencySymbolText: {
     fontSize: 18,
     fontWeight: '700',
-    color: C.primary,
   },
   currencyInfo: {
     flex: 1,
   },
   currencyCode: {
     fontSize: 12,
-    color: C.textMuted,
     marginTop: 2,
   },
 });
