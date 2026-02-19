@@ -9,22 +9,30 @@ import { LinearGradient } from 'expo-linear-gradient';
 
 const { width, height } = Dimensions.get('window');
 
-// Modern 2026 Colors
+// Modern 2026 Dark Theme
 const C = {
-  bg: '#F8F6F3',
-  card: '#FFFFFF',
-  accent: '#2C2622',
-  gold: '#B8956E',
-  goldLight: '#D4B896',
-  text: '#1A1614',
-  textMuted: '#9E958C',
-  border: '#E8E4DE',
+  bg: '#0F0F14',
+  bgLight: '#1A1A24',
+  card: '#1E1E2A',
+  surface: '#252532',
+  primary: '#E91E9C',
+  primaryGlow: 'rgba(233, 30, 156, 0.15)',
+  gold: '#F5A623',
+  purple: '#8B5CF6',
+  blue: '#3B82F6',
+  cyan: '#06B6D4',
+  green: '#10B981',
+  text: '#FFFFFF',
+  textSecondary: '#A1A1B5',
+  textMuted: '#6B6B80',
+  border: '#2A2A3A',
 };
 
 export default function LandingPage() {
   const { user, isLoading, isAuthenticated, login } = useAuth();
-  const { t } = useSettings();
+  const { t, language } = useSettings();
   const router = useRouter();
+  const isRo = language.code === 'ro';
 
   useEffect(() => {
     if (!isLoading && isAuthenticated) {
@@ -37,11 +45,11 @@ export default function LandingPage() {
   }
 
   const features = [
-    { icon: 'sparkles', title: 'AI Smart Planner', desc: t('landing.features.work') },
-    { icon: 'wallet-outline', title: t('tabs.organize'), desc: t('landing.features.organize') },
-    { icon: 'restaurant-outline', title: t('tabs.kitchen'), desc: t('landing.features.kitchen') },
-    { icon: 'people-outline', title: t('tabs.kids'), desc: t('landing.features.kids') },
-    { icon: 'heart-outline', title: t('tabs.selfcare'), desc: t('landing.features.selfcare') },
+    { icon: 'sparkles', title: 'AI Smart Planner', desc: isRo ? 'Calendar inteligent' : 'Smart calendar', color: C.primary },
+    { icon: 'checkbox-outline', title: isRo ? 'Organizare' : 'Organize', desc: isRo ? 'Checklist & buget' : 'Checklists & budget', color: C.blue },
+    { icon: 'restaurant-outline', title: isRo ? 'Bucătărie' : 'Kitchen', desc: isRo ? 'Plan mese AI' : 'AI meal planning', color: C.gold },
+    { icon: 'book-outline', title: isRo ? 'Povești Copii' : 'Kids Stories', desc: isRo ? 'Povești AI pe vârstă' : 'AI age-based stories', color: C.purple },
+    { icon: 'fitness-outline', title: isRo ? 'Exerciții AI' : 'AI Workouts', desc: isRo ? 'Acasă sau sală' : 'Home or gym', color: C.green },
   ];
 
   return (
@@ -50,54 +58,88 @@ export default function LandingPage() {
         
         {/* Hero Section */}
         <View style={styles.heroSection}>
-          {/* Logo Badge */}
-          <View style={styles.logoBadge}>
-            <Ionicons name="heart" size={28} color={C.gold} />
-          </View>
+          {/* Logo with Glow */}
+          <LinearGradient
+            colors={['#E91E9C', '#B8157A']}
+            start={{ x: 0, y: 0 }}
+            end={{ x: 1, y: 1 }}
+            style={styles.logoBadge}
+          >
+            <Ionicons name="heart" size={32} color="#FFFFFF" />
+          </LinearGradient>
           
           {/* Brand */}
           <Text style={styles.brandText}>MomManager</Text>
+          
+          {/* Year Badge */}
           <View style={styles.yearBadge}>
-            <Text style={styles.yearText}>2026</Text>
+            <Text style={styles.yearText}>2 0 2 6</Text>
           </View>
           
           {/* Tagline */}
-          <Text style={styles.tagline}>{t('landing.description')}</Text>
+          <Text style={styles.tagline}>
+            {isRo 
+              ? 'Ecosistemul complet pentru mamele care lucrează'
+              : 'The all-in-one ecosystem for working moms'}
+          </Text>
         </View>
 
-        {/* Features Grid - Modern Cards */}
+        {/* Features Grid - Modern Dark Cards */}
         <View style={styles.featuresSection}>
-          <Text style={styles.sectionLabel}>FEATURES</Text>
+          <Text style={styles.sectionLabel}>
+            {isRo ? 'FUNCȚIONALITĂȚI' : 'FEATURES'}
+          </Text>
           
           {features.map((feature, index) => (
             <View key={index} style={styles.featureCard}>
-              <View style={styles.featureIconBox}>
-                <Ionicons name={feature.icon as any} size={22} color={C.gold} />
-              </View>
-              <View style={styles.featureContent}>
-                <Text style={styles.featureTitle}>{feature.title}</Text>
-                <Text style={styles.featureDesc}>{feature.desc}</Text>
-              </View>
-              <Ionicons name="chevron-forward" size={20} color={C.border} />
+              <LinearGradient
+                colors={['#252532', '#1E1E2A']}
+                style={styles.featureGradient}
+              >
+                <View style={[styles.featureIconBox, { backgroundColor: `${feature.color}20` }]}>
+                  <Ionicons name={feature.icon as any} size={22} color={feature.color} />
+                </View>
+                <View style={styles.featureContent}>
+                  <Text style={styles.featureTitle}>{feature.title}</Text>
+                  <Text style={styles.featureDesc}>{feature.desc}</Text>
+                </View>
+                <Ionicons name="chevron-forward" size={20} color={C.textMuted} />
+              </LinearGradient>
             </View>
           ))}
+        </View>
+
+        {/* AI Badge */}
+        <View style={styles.aiBadgeContainer}>
+          <View style={styles.aiBadge}>
+            <Ionicons name="sparkles" size={16} color={C.primary} />
+            <Text style={styles.aiBadgeText}>
+              {isRo ? 'Powered by AI' : 'Powered by AI'}
+            </Text>
+          </View>
         </View>
 
         {/* CTA Section */}
         <View style={styles.ctaSection}>
           <TouchableOpacity style={styles.loginButton} onPress={login} activeOpacity={0.9}>
             <LinearGradient
-              colors={['#3D352F', '#2C2622']}
+              colors={['#E91E9C', '#B8157A']}
               start={{ x: 0, y: 0 }}
               end={{ x: 1, y: 1 }}
               style={styles.loginGradient}
             >
-              <Ionicons name="logo-google" size={20} color="#FFFFFF" />
-              <Text style={styles.loginText}>{t('auth.continueWithGoogle')}</Text>
+              <Ionicons name="logo-google" size={22} color="#FFFFFF" />
+              <Text style={styles.loginText}>
+                {isRo ? 'Continuă cu Google' : 'Continue with Google'}
+              </Text>
             </LinearGradient>
           </TouchableOpacity>
           
-          <Text style={styles.footerText}>{t('auth.tagline')}</Text>
+          <Text style={styles.footerText}>
+            {isRo 
+              ? '✨ Timpul tău este prețios. Noi te ajutăm să-l gestionezi.'
+              : '✨ Your time is precious. We help you manage it.'}
+          </Text>
         </View>
 
         {/* Legal Footer */}
@@ -113,6 +155,9 @@ export default function LandingPage() {
           </View>
           <Text style={styles.copyright}>
             © 2026 MomManager by Diana-Elena Albu
+          </Text>
+          <Text style={styles.copyrightSub}>
+            All rights reserved
           </Text>
         </View>
       </ScrollView>
@@ -135,74 +180,72 @@ const styles = StyleSheet.create({
     marginBottom: 40,
   },
   logoBadge: {
-    width: 64,
-    height: 64,
-    borderRadius: 20,
-    backgroundColor: C.card,
+    width: 72,
+    height: 72,
+    borderRadius: 22,
     justifyContent: 'center',
     alignItems: 'center',
     marginBottom: 24,
-    shadowColor: '#1A1614',
+    shadowColor: '#E91E9C',
     shadowOffset: { width: 0, height: 12 },
-    shadowOpacity: 0.08,
+    shadowOpacity: 0.4,
     shadowRadius: 24,
-    elevation: 8,
+    elevation: 12,
   },
   brandText: {
     fontSize: 36,
-    fontFamily: 'PlayfairDisplay_700Bold',
+    fontWeight: '800',
     color: C.text,
     letterSpacing: -0.5,
   },
   yearBadge: {
-    backgroundColor: C.accent,
-    paddingHorizontal: 14,
-    paddingVertical: 6,
-    borderRadius: 8,
-    marginTop: 8,
+    backgroundColor: C.surface,
+    paddingHorizontal: 18,
+    paddingVertical: 8,
+    borderRadius: 12,
+    marginTop: 12,
+    borderWidth: 1,
+    borderColor: C.primary,
   },
   yearText: {
-    fontSize: 13,
+    fontSize: 14,
     fontWeight: '700',
-    color: C.gold,
-    letterSpacing: 2,
+    color: C.primary,
+    letterSpacing: 3,
   },
   tagline: {
     fontSize: 15,
-    color: C.textMuted,
+    color: C.textSecondary,
     textAlign: 'center',
-    marginTop: 16,
-    lineHeight: 22,
-    maxWidth: 280,
+    marginTop: 20,
+    lineHeight: 24,
+    maxWidth: 300,
   },
   featuresSection: {
-    marginBottom: 32,
+    marginBottom: 24,
   },
   sectionLabel: {
     fontSize: 11,
     fontWeight: '700',
-    color: C.textMuted,
+    color: C.primary,
     letterSpacing: 2,
     marginBottom: 16,
+    paddingLeft: 4,
   },
   featureCard: {
-    backgroundColor: C.card,
     borderRadius: 16,
+    overflow: 'hidden',
+    marginBottom: 10,
+  },
+  featureGradient: {
     padding: 16,
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 10,
-    shadowColor: '#1A1614',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.04,
-    shadowRadius: 12,
-    elevation: 3,
   },
   featureIconBox: {
-    width: 44,
-    height: 44,
-    borderRadius: 12,
-    backgroundColor: 'rgba(184, 149, 110, 0.12)',
+    width: 48,
+    height: 48,
+    borderRadius: 14,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 14,
@@ -211,26 +254,44 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   featureTitle: {
-    fontSize: 15,
+    fontSize: 16,
     fontWeight: '600',
     color: C.text,
-    marginBottom: 2,
+    marginBottom: 3,
   },
   featureDesc: {
     fontSize: 13,
     color: C.textMuted,
   },
+  aiBadgeContainer: {
+    alignItems: 'center',
+    marginBottom: 24,
+  },
+  aiBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    backgroundColor: C.primaryGlow,
+    paddingHorizontal: 16,
+    paddingVertical: 8,
+    borderRadius: 20,
+    gap: 8,
+  },
+  aiBadgeText: {
+    fontSize: 13,
+    fontWeight: '600',
+    color: C.primary,
+  },
   ctaSection: {
     marginBottom: 32,
   },
   loginButton: {
-    borderRadius: 16,
+    borderRadius: 18,
     overflow: 'hidden',
-    shadowColor: '#1A1614',
-    shadowOffset: { width: 0, height: 8 },
-    shadowOpacity: 0.15,
-    shadowRadius: 20,
-    elevation: 10,
+    shadowColor: '#E91E9C',
+    shadowOffset: { width: 0, height: 10 },
+    shadowOpacity: 0.4,
+    shadowRadius: 24,
+    elevation: 12,
   },
   loginGradient: {
     flexDirection: 'row',
@@ -240,15 +301,15 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   loginText: {
-    fontSize: 16,
-    fontWeight: '600',
+    fontSize: 17,
+    fontWeight: '700',
     color: '#FFFFFF',
   },
   footerText: {
     fontSize: 14,
     color: C.textMuted,
     textAlign: 'center',
-    marginTop: 16,
+    marginTop: 18,
     fontStyle: 'italic',
   },
   legalSection: {
@@ -258,22 +319,28 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: 12,
-    marginBottom: 8,
+    marginBottom: 10,
   },
   legalLink: {
     fontSize: 13,
-    color: C.gold,
+    color: C.primary,
     fontWeight: '500',
   },
   legalDot: {
     width: 4,
     height: 4,
     borderRadius: 2,
-    backgroundColor: C.border,
+    backgroundColor: C.textMuted,
   },
   copyright: {
-    fontSize: 11,
-    color: C.textMuted,
+    fontSize: 12,
+    color: C.textSecondary,
     textAlign: 'center',
+    fontWeight: '500',
+  },
+  copyrightSub: {
+    fontSize: 10,
+    color: C.textMuted,
+    marginTop: 4,
   },
 });
