@@ -11,9 +11,35 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import { useSettings, LANGUAGES, CURRENCIES } from '../src/context/SettingsContext';
 import { useAuth } from '../src/context/AuthContext';
+
+// Modern 2026 Dark Theme
+const C = {
+  bg: '#0F0F14',
+  bgLight: '#1A1A24',
+  card: '#1E1E2A',
+  surface: '#252532',
+  primary: '#E91E9C',
+  primaryGlow: 'rgba(233, 30, 156, 0.15)',
+  purple: '#8B5CF6',
+  purpleGlow: 'rgba(139, 92, 246, 0.15)',
+  blue: '#3B82F6',
+  blueGlow: 'rgba(59, 130, 246, 0.15)',
+  cyan: '#06B6D4',
+  gold: '#F5A623',
+  goldGlow: 'rgba(245, 166, 35, 0.15)',
+  green: '#10B981',
+  greenGlow: 'rgba(16, 185, 129, 0.15)',
+  orange: '#F97316',
+  red: '#EF4444',
+  text: '#FFFFFF',
+  textSecondary: '#A1A1B5',
+  textMuted: '#6B6B80',
+  border: '#2A2A3A',
+};
 
 export default function SettingsScreen() {
   const router = useRouter();
@@ -29,6 +55,7 @@ export default function SettingsScreen() {
     setNotificationPreference,
   } = useSettings();
   
+  const isRo = language.code === 'ro';
   const [languageModalVisible, setLanguageModalVisible] = useState(false);
   const [currencyModalVisible, setCurrencyModalVisible] = useState(false);
 
@@ -41,8 +68,7 @@ export default function SettingsScreen() {
         { 
           text: t('common.confirm'), 
           onPress: () => {
-            // TODO: Implement data export
-            Alert.alert(t('common.success'), 'Data export initiated');
+            Alert.alert(t('common.success'), isRo ? 'Export inițiat' : 'Export initiated');
           }
         },
       ]
@@ -58,22 +84,22 @@ export default function SettingsScreen() {
             style={styles.backButton} 
             onPress={() => router.back()}
           >
-            <Ionicons name="arrow-back" size={24} color="#C5A059" />
+            <Ionicons name="arrow-back" size={24} color={C.text} />
           </TouchableOpacity>
           <Text style={styles.title}>{t('settings.title')}</Text>
           <View style={{ width: 40 }} />
         </View>
 
         {/* User Profile Section */}
-        <View style={styles.profileCard}>
+        <LinearGradient colors={['#252532', '#1E1E2A']} style={styles.profileCard}>
           <View style={styles.profileAvatar}>
-            <Ionicons name="person" size={32} color="#ec4899" />
+            <Ionicons name="person" size={28} color={C.primary} />
           </View>
           <View style={styles.profileInfo}>
             <Text style={styles.profileName}>{user?.name || 'Mom'}</Text>
             <Text style={styles.profileEmail}>{user?.email || ''}</Text>
           </View>
-        </View>
+        </LinearGradient>
 
         {/* Language & Currency Section */}
         <View style={styles.section}>
@@ -84,17 +110,19 @@ export default function SettingsScreen() {
             style={styles.settingRow}
             onPress={() => setLanguageModalVisible(true)}
           >
-            <View style={styles.settingIcon}>
-              <Ionicons name="globe-outline" size={22} color="#6366f1" />
-            </View>
-            <View style={styles.settingContent}>
-              <Text style={styles.settingLabel}>{t('settings.language')}</Text>
-              <Text style={styles.settingHint}>{t('settings.languageHint')}</Text>
-            </View>
-            <View style={styles.settingValue}>
-              <Text style={styles.settingValueText}>{language.flag} {language.name}</Text>
-              <Ionicons name="chevron-forward" size={20} color="#9ca3af" />
-            </View>
+            <LinearGradient colors={['#252532', '#1E1E2A']} style={styles.settingGradient}>
+              <View style={[styles.settingIcon, { backgroundColor: C.purpleGlow }]}>
+                <Ionicons name="globe-outline" size={20} color={C.purple} />
+              </View>
+              <View style={styles.settingContent}>
+                <Text style={styles.settingLabel}>{t('settings.language')}</Text>
+                <Text style={styles.settingHint}>{t('settings.languageHint')}</Text>
+              </View>
+              <View style={styles.settingValue}>
+                <Text style={styles.settingValueText}>{language.flag} {language.name}</Text>
+                <Ionicons name="chevron-forward" size={18} color={C.textMuted} />
+              </View>
+            </LinearGradient>
           </TouchableOpacity>
 
           {/* Currency Selector */}
@@ -102,17 +130,19 @@ export default function SettingsScreen() {
             style={styles.settingRow}
             onPress={() => setCurrencyModalVisible(true)}
           >
-            <View style={styles.settingIcon}>
-              <Ionicons name="wallet-outline" size={22} color="#10b981" />
-            </View>
-            <View style={styles.settingContent}>
-              <Text style={styles.settingLabel}>{t('settings.currency')}</Text>
-              <Text style={styles.settingHint}>{t('settings.currencyHint')}</Text>
-            </View>
-            <View style={styles.settingValue}>
-              <Text style={styles.settingValueText}>{currencySymbol} {currency.code}</Text>
-              <Ionicons name="chevron-forward" size={20} color="#9ca3af" />
-            </View>
+            <LinearGradient colors={['#252532', '#1E1E2A']} style={styles.settingGradient}>
+              <View style={[styles.settingIcon, { backgroundColor: C.greenGlow }]}>
+                <Ionicons name="wallet-outline" size={20} color={C.green} />
+              </View>
+              <View style={styles.settingContent}>
+                <Text style={styles.settingLabel}>{t('settings.currency')}</Text>
+                <Text style={styles.settingHint}>{t('settings.currencyHint')}</Text>
+              </View>
+              <View style={styles.settingValue}>
+                <Text style={styles.settingValueText}>{currencySymbol} {currency.code}</Text>
+                <Ionicons name="chevron-forward" size={18} color={C.textMuted} />
+              </View>
+            </LinearGradient>
           </TouchableOpacity>
         </View>
 
@@ -122,53 +152,59 @@ export default function SettingsScreen() {
           
           {/* Hydration Reminders */}
           <View style={styles.settingRow}>
-            <View style={[styles.settingIcon, { backgroundColor: '#dbeafe' }]}>
-              <Ionicons name="water-outline" size={22} color="#3b82f6" />
-            </View>
-            <View style={styles.settingContent}>
-              <Text style={styles.settingLabel}>{t('settings.hydrationReminders')}</Text>
-              <Text style={styles.settingHint}>{t('settings.hydrationHint')}</Text>
-            </View>
-            <Switch
-              value={notifications.hydrationReminders}
-              onValueChange={(val) => setNotificationPreference('hydrationReminders', val)}
-              trackColor={{ false: '#e5e7eb', true: '#fce7f3' }}
-              thumbColor={notifications.hydrationReminders ? '#ec4899' : '#9ca3af'}
-            />
+            <LinearGradient colors={['#252532', '#1E1E2A']} style={styles.settingGradient}>
+              <View style={[styles.settingIcon, { backgroundColor: C.blueGlow }]}>
+                <Ionicons name="water-outline" size={20} color={C.blue} />
+              </View>
+              <View style={styles.settingContent}>
+                <Text style={styles.settingLabel}>{t('settings.hydrationReminders')}</Text>
+                <Text style={styles.settingHint}>{t('settings.hydrationHint')}</Text>
+              </View>
+              <Switch
+                value={notifications.hydrationReminders}
+                onValueChange={(val) => setNotificationPreference('hydrationReminders', val)}
+                trackColor={{ false: C.border, true: C.primaryGlow }}
+                thumbColor={notifications.hydrationReminders ? C.primary : C.textMuted}
+              />
+            </LinearGradient>
           </View>
 
           {/* Work Calendar Alerts */}
           <View style={styles.settingRow}>
-            <View style={[styles.settingIcon, { backgroundColor: '#ede9fe' }]}>
-              <Ionicons name="calendar-outline" size={22} color="#8b5cf6" />
-            </View>
-            <View style={styles.settingContent}>
-              <Text style={styles.settingLabel}>{t('settings.workCalendarAlerts')}</Text>
-              <Text style={styles.settingHint}>{t('settings.workCalendarHint')}</Text>
-            </View>
-            <Switch
-              value={notifications.workCalendarAlerts}
-              onValueChange={(val) => setNotificationPreference('workCalendarAlerts', val)}
-              trackColor={{ false: '#e5e7eb', true: '#fce7f3' }}
-              thumbColor={notifications.workCalendarAlerts ? '#ec4899' : '#9ca3af'}
-            />
+            <LinearGradient colors={['#252532', '#1E1E2A']} style={styles.settingGradient}>
+              <View style={[styles.settingIcon, { backgroundColor: C.purpleGlow }]}>
+                <Ionicons name="calendar-outline" size={20} color={C.purple} />
+              </View>
+              <View style={styles.settingContent}>
+                <Text style={styles.settingLabel}>{t('settings.workCalendarAlerts')}</Text>
+                <Text style={styles.settingHint}>{t('settings.workCalendarHint')}</Text>
+              </View>
+              <Switch
+                value={notifications.workCalendarAlerts}
+                onValueChange={(val) => setNotificationPreference('workCalendarAlerts', val)}
+                trackColor={{ false: C.border, true: C.primaryGlow }}
+                thumbColor={notifications.workCalendarAlerts ? C.primary : C.textMuted}
+              />
+            </LinearGradient>
           </View>
 
           {/* Food Expiration Alerts */}
           <View style={styles.settingRow}>
-            <View style={[styles.settingIcon, { backgroundColor: '#fef3c7' }]}>
-              <Ionicons name="fast-food-outline" size={22} color="#f59e0b" />
-            </View>
-            <View style={styles.settingContent}>
-              <Text style={styles.settingLabel}>{t('settings.foodExpirationAlerts')}</Text>
-              <Text style={styles.settingHint}>{t('settings.foodExpirationHint')}</Text>
-            </View>
-            <Switch
-              value={notifications.foodExpirationAlerts}
-              onValueChange={(val) => setNotificationPreference('foodExpirationAlerts', val)}
-              trackColor={{ false: '#e5e7eb', true: '#fce7f3' }}
-              thumbColor={notifications.foodExpirationAlerts ? '#ec4899' : '#9ca3af'}
-            />
+            <LinearGradient colors={['#252532', '#1E1E2A']} style={styles.settingGradient}>
+              <View style={[styles.settingIcon, { backgroundColor: C.goldGlow }]}>
+                <Ionicons name="fast-food-outline" size={20} color={C.gold} />
+              </View>
+              <View style={styles.settingContent}>
+                <Text style={styles.settingLabel}>{t('settings.foodExpirationAlerts')}</Text>
+                <Text style={styles.settingHint}>{t('settings.foodExpirationHint')}</Text>
+              </View>
+              <Switch
+                value={notifications.foodExpirationAlerts}
+                onValueChange={(val) => setNotificationPreference('foodExpirationAlerts', val)}
+                trackColor={{ false: C.border, true: C.primaryGlow }}
+                thumbColor={notifications.foodExpirationAlerts ? C.primary : C.textMuted}
+              />
+            </LinearGradient>
           </View>
         </View>
 
@@ -177,34 +213,40 @@ export default function SettingsScreen() {
           <Text style={styles.sectionTitle}>{t('settings.myAccount')}</Text>
           
           <TouchableOpacity style={styles.settingRow}>
-            <View style={[styles.settingIcon, { backgroundColor: '#fce7f3' }]}>
-              <Ionicons name="mail-outline" size={22} color="#ec4899" />
-            </View>
-            <View style={styles.settingContent}>
-              <Text style={styles.settingLabel}>{t('settings.changeEmail')}</Text>
-            </View>
-            <Ionicons name="chevron-forward" size={20} color="#9ca3af" />
+            <LinearGradient colors={['#252532', '#1E1E2A']} style={styles.settingGradient}>
+              <View style={[styles.settingIcon, { backgroundColor: C.primaryGlow }]}>
+                <Ionicons name="mail-outline" size={20} color={C.primary} />
+              </View>
+              <View style={styles.settingContent}>
+                <Text style={styles.settingLabel}>{t('settings.changeEmail')}</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={18} color={C.textMuted} />
+            </LinearGradient>
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.settingRow}>
-            <View style={[styles.settingIcon, { backgroundColor: '#fee2e2' }]}>
-              <Ionicons name="lock-closed-outline" size={22} color="#ef4444" />
-            </View>
-            <View style={styles.settingContent}>
-              <Text style={styles.settingLabel}>{t('settings.changePassword')}</Text>
-            </View>
-            <Ionicons name="chevron-forward" size={20} color="#9ca3af" />
+            <LinearGradient colors={['#252532', '#1E1E2A']} style={styles.settingGradient}>
+              <View style={[styles.settingIcon, { backgroundColor: 'rgba(239, 68, 68, 0.15)' }]}>
+                <Ionicons name="lock-closed-outline" size={20} color={C.red} />
+              </View>
+              <View style={styles.settingContent}>
+                <Text style={styles.settingLabel}>{t('settings.changePassword')}</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={18} color={C.textMuted} />
+            </LinearGradient>
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.settingRow} onPress={handleExportData}>
-            <View style={[styles.settingIcon, { backgroundColor: '#d1fae5' }]}>
-              <Ionicons name="download-outline" size={22} color="#10b981" />
-            </View>
-            <View style={styles.settingContent}>
-              <Text style={styles.settingLabel}>{t('settings.exportData')}</Text>
-              <Text style={styles.settingHint}>{t('settings.exportHint')}</Text>
-            </View>
-            <Ionicons name="chevron-forward" size={20} color="#9ca3af" />
+            <LinearGradient colors={['#252532', '#1E1E2A']} style={styles.settingGradient}>
+              <View style={[styles.settingIcon, { backgroundColor: C.greenGlow }]}>
+                <Ionicons name="download-outline" size={20} color={C.green} />
+              </View>
+              <View style={styles.settingContent}>
+                <Text style={styles.settingLabel}>{t('settings.exportData')}</Text>
+                <Text style={styles.settingHint}>{t('settings.exportHint')}</Text>
+              </View>
+              <Ionicons name="chevron-forward" size={18} color={C.textMuted} />
+            </LinearGradient>
           </TouchableOpacity>
         </View>
 
@@ -214,34 +256,38 @@ export default function SettingsScreen() {
           
           {/* Monthly Plan */}
           <TouchableOpacity style={styles.subscriptionCard}>
-            <View style={styles.subscriptionHeader}>
-              <Text style={styles.subscriptionName}>{t('settings.monthlyPlan')}</Text>
-              <View style={styles.priceTag}>
-                <Text style={styles.priceAmount}>{currencySymbol}4.99</Text>
-                <Text style={styles.pricePeriod}>{t('settings.perMonth')}</Text>
+            <LinearGradient colors={['#252532', '#1E1E2A']} style={styles.subscriptionGradient}>
+              <View style={styles.subscriptionHeader}>
+                <Text style={styles.subscriptionName}>{t('settings.monthlyPlan')}</Text>
+                <View style={styles.priceTag}>
+                  <Text style={styles.priceAmount}>{currencySymbol}4.99</Text>
+                  <Text style={styles.pricePeriod}>{t('settings.perMonth')}</Text>
+                </View>
               </View>
-            </View>
-            <Text style={styles.trialText}>{t('settings.freeTrial')}</Text>
+              <Text style={styles.trialText}>{t('settings.freeTrial')}</Text>
+            </LinearGradient>
           </TouchableOpacity>
 
           {/* Yearly Plan */}
-          <TouchableOpacity style={[styles.subscriptionCard, styles.subscriptionCardHighlight]}>
-            <View style={styles.saveBadge}>
-              <Text style={styles.saveBadgeText}>{t('settings.savePercent', { percent: '30' })}</Text>
-            </View>
-            <View style={styles.subscriptionHeader}>
-              <Text style={[styles.subscriptionName, { color: '#fff' }]}>{t('settings.yearlyPlan')}</Text>
-              <View style={[styles.priceTag, { backgroundColor: 'rgba(255,255,255,0.2)' }]}>
-                <Text style={[styles.priceAmount, { color: '#fff' }]}>{currencySymbol}39.99</Text>
-                <Text style={[styles.pricePeriod, { color: 'rgba(255,255,255,0.8)' }]}>{t('settings.perYear')}</Text>
+          <TouchableOpacity style={styles.subscriptionCard}>
+            <LinearGradient colors={['#E91E9C', '#B8157A']} style={styles.subscriptionGradient}>
+              <View style={styles.saveBadge}>
+                <Text style={styles.saveBadgeText}>{t('settings.savePercent', { percent: '30' })}</Text>
               </View>
-            </View>
-            <Text style={[styles.trialText, { color: 'rgba(255,255,255,0.9)' }]}>{t('settings.freeTrial')}</Text>
+              <View style={styles.subscriptionHeader}>
+                <Text style={[styles.subscriptionName, { color: '#fff' }]}>{t('settings.yearlyPlan')}</Text>
+                <View style={[styles.priceTag, { backgroundColor: 'rgba(255,255,255,0.2)' }]}>
+                  <Text style={[styles.priceAmount, { color: '#fff' }]}>{currencySymbol}39.99</Text>
+                  <Text style={[styles.pricePeriod, { color: 'rgba(255,255,255,0.8)' }]}>{t('settings.perYear')}</Text>
+                </View>
+              </View>
+              <Text style={[styles.trialText, { color: 'rgba(255,255,255,0.9)' }]}>{t('settings.freeTrial')}</Text>
+            </LinearGradient>
           </TouchableOpacity>
         </View>
 
         {/* Copyright */}
-        <Text style={styles.copyright}>© 2026 MomManager by Diana-Elena Albu. All rights reserved.</Text>
+        <Text style={styles.copyright}>© 2026 MomManager by Diana-Elena Albu</Text>
         
         {/* Legal Links */}
         <View style={styles.legalLinks}>
@@ -255,7 +301,7 @@ export default function SettingsScreen() {
         </View>
         
         <Text style={styles.copyrightFull}>
-          Unauthorized reproduction or distribution of this app's content, code, or design is strictly prohibited.
+          All rights reserved. Unauthorized reproduction prohibited.
         </Text>
       </ScrollView>
 
@@ -263,38 +309,40 @@ export default function SettingsScreen() {
       <Modal visible={languageModalVisible} animationType="slide" transparent>
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>{t('settings.selectLanguage')}</Text>
-              <TouchableOpacity onPress={() => setLanguageModalVisible(false)}>
-                <Ionicons name="close" size={24} color="#6b7280" />
-              </TouchableOpacity>
-            </View>
-            <ScrollView style={styles.modalBody}>
-              {LANGUAGES.map((lang) => (
-                <TouchableOpacity
-                  key={lang.code}
-                  style={[
-                    styles.optionRow,
-                    language.code === lang.code && styles.optionRowActive,
-                  ]}
-                  onPress={() => {
-                    setLanguageCode(lang.code);
-                    setLanguageModalVisible(false);
-                  }}
-                >
-                  <Text style={styles.optionFlag}>{lang.flag}</Text>
-                  <Text style={[
-                    styles.optionText,
-                    language.code === lang.code && styles.optionTextActive,
-                  ]}>
-                    {lang.name}
-                  </Text>
-                  {language.code === lang.code && (
-                    <Ionicons name="checkmark-circle" size={24} color="#C5A059" />
-                  )}
+            <LinearGradient colors={['#1E1E2A', '#0F0F14']} style={styles.modalGradient}>
+              <View style={styles.modalHeader}>
+                <Text style={styles.modalTitle}>{t('settings.selectLanguage')}</Text>
+                <TouchableOpacity onPress={() => setLanguageModalVisible(false)}>
+                  <Ionicons name="close" size={24} color={C.textMuted} />
                 </TouchableOpacity>
-              ))}
-            </ScrollView>
+              </View>
+              <ScrollView style={styles.modalBody}>
+                {LANGUAGES.map((lang) => (
+                  <TouchableOpacity
+                    key={lang.code}
+                    style={[
+                      styles.optionRow,
+                      language.code === lang.code && styles.optionRowActive,
+                    ]}
+                    onPress={() => {
+                      setLanguageCode(lang.code);
+                      setLanguageModalVisible(false);
+                    }}
+                  >
+                    <Text style={styles.optionFlag}>{lang.flag}</Text>
+                    <Text style={[
+                      styles.optionText,
+                      language.code === lang.code && styles.optionTextActive,
+                    ]}>
+                      {lang.name}
+                    </Text>
+                    {language.code === lang.code && (
+                      <Ionicons name="checkmark-circle" size={24} color={C.primary} />
+                    )}
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+            </LinearGradient>
           </View>
         </View>
       </Modal>
@@ -303,43 +351,45 @@ export default function SettingsScreen() {
       <Modal visible={currencyModalVisible} animationType="slide" transparent>
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>{t('settings.selectCurrency')}</Text>
-              <TouchableOpacity onPress={() => setCurrencyModalVisible(false)}>
-                <Ionicons name="close" size={24} color="#6b7280" />
-              </TouchableOpacity>
-            </View>
-            <ScrollView style={styles.modalBody}>
-              {CURRENCIES.map((curr) => (
-                <TouchableOpacity
-                  key={curr.code}
-                  style={[
-                    styles.optionRow,
-                    currency.code === curr.code && styles.optionRowActive,
-                  ]}
-                  onPress={() => {
-                    setCurrencyCode(curr.code);
-                    setCurrencyModalVisible(false);
-                  }}
-                >
-                  <View style={styles.currencySymbolBox}>
-                    <Text style={styles.currencySymbol}>{curr.symbol}</Text>
-                  </View>
-                  <View style={styles.currencyInfo}>
-                    <Text style={[
-                      styles.optionText,
-                      currency.code === curr.code && styles.optionTextActive,
-                    ]}>
-                      {curr.name}
-                    </Text>
-                    <Text style={styles.currencyCode}>{curr.code}</Text>
-                  </View>
-                  {currency.code === curr.code && (
-                    <Ionicons name="checkmark-circle" size={24} color="#C5A059" />
-                  )}
+            <LinearGradient colors={['#1E1E2A', '#0F0F14']} style={styles.modalGradient}>
+              <View style={styles.modalHeader}>
+                <Text style={styles.modalTitle}>{t('settings.selectCurrency')}</Text>
+                <TouchableOpacity onPress={() => setCurrencyModalVisible(false)}>
+                  <Ionicons name="close" size={24} color={C.textMuted} />
                 </TouchableOpacity>
-              ))}
-            </ScrollView>
+              </View>
+              <ScrollView style={styles.modalBody}>
+                {CURRENCIES.map((curr) => (
+                  <TouchableOpacity
+                    key={curr.code}
+                    style={[
+                      styles.optionRow,
+                      currency.code === curr.code && styles.optionRowActive,
+                    ]}
+                    onPress={() => {
+                      setCurrencyCode(curr.code);
+                      setCurrencyModalVisible(false);
+                    }}
+                  >
+                    <View style={styles.currencySymbolBox}>
+                      <Text style={styles.currencySymbolText}>{curr.symbol}</Text>
+                    </View>
+                    <View style={styles.currencyInfo}>
+                      <Text style={[
+                        styles.optionText,
+                        currency.code === curr.code && styles.optionTextActive,
+                      ]}>
+                        {curr.name}
+                      </Text>
+                      <Text style={styles.currencyCode}>{curr.code}</Text>
+                    </View>
+                    {currency.code === curr.code && (
+                      <Ionicons name="checkmark-circle" size={24} color={C.primary} />
+                    )}
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+            </LinearGradient>
           </View>
         </View>
       </Modal>
@@ -350,7 +400,7 @@ export default function SettingsScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#F5F5DC',
+    backgroundColor: C.bg,
   },
   content: {
     padding: 20,
@@ -360,43 +410,36 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
-    marginBottom: 20,
+    marginBottom: 24,
   },
   backButton: {
     width: 40,
     height: 40,
-    borderRadius: 20,
-    backgroundColor: 'rgba(197, 160, 89, 0.15)',
+    borderRadius: 12,
+    backgroundColor: C.surface,
     justifyContent: 'center',
     alignItems: 'center',
   },
   title: {
-    fontSize: 24,
+    fontSize: 22,
     fontWeight: '700',
-    color: '#3D2B1F',
-    fontFamily: 'PlayfairDisplay_700Bold',
+    color: C.text,
   },
   profileCard: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    borderRadius: 24,
+    borderRadius: 20,
     padding: 16,
     marginBottom: 24,
-    shadowColor: '#3D2B1F',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.05,
-    shadowRadius: 20,
-    elevation: 4,
   },
   profileAvatar: {
-    width: 56,
-    height: 56,
-    borderRadius: 28,
-    backgroundColor: 'rgba(197, 160, 89, 0.15)',
+    width: 52,
+    height: 52,
+    borderRadius: 16,
+    backgroundColor: C.primaryGlow,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 16,
+    marginRight: 14,
   },
   profileInfo: {
     flex: 1,
@@ -404,38 +447,39 @@ const styles = StyleSheet.create({
   profileName: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#3D2B1F',
+    color: C.text,
   },
   profileEmail: {
     fontSize: 14,
-    color: '#6B5D52',
+    color: C.textMuted,
     marginTop: 2,
   },
   section: {
     marginBottom: 24,
   },
   sectionTitle: {
-    fontSize: 14,
+    fontSize: 12,
     fontWeight: '600',
-    color: '#C5A059',
+    color: C.primary,
     textTransform: 'uppercase',
+    letterSpacing: 1,
     marginBottom: 12,
     paddingLeft: 4,
-    letterSpacing: 1,
   },
   settingRow: {
+    borderRadius: 14,
+    overflow: 'hidden',
+    marginBottom: 8,
+  },
+  settingGradient: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
     padding: 14,
-    marginBottom: 8,
   },
   settingIcon: {
     width: 40,
     height: 40,
-    borderRadius: 10,
-    backgroundColor: 'rgba(197, 160, 89, 0.12)',
+    borderRadius: 12,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
@@ -446,11 +490,11 @@ const styles = StyleSheet.create({
   settingLabel: {
     fontSize: 15,
     fontWeight: '600',
-    color: '#3D2B1F',
+    color: C.text,
   },
   settingHint: {
     fontSize: 12,
-    color: '#9C8B7E',
+    color: C.textMuted,
     marginTop: 2,
   },
   settingValue: {
@@ -460,25 +504,21 @@ const styles = StyleSheet.create({
   },
   settingValueText: {
     fontSize: 13,
-    color: '#6B5D52',
+    color: C.textSecondary,
   },
   subscriptionCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 24,
-    padding: 16,
+    borderRadius: 20,
+    overflow: 'hidden',
     marginBottom: 12,
-    borderWidth: 2,
-    borderColor: '#E8E4D9',
   },
-  subscriptionCardHighlight: {
-    backgroundColor: '#C5A059',
-    borderColor: '#C5A059',
+  subscriptionGradient: {
+    padding: 16,
   },
   saveBadge: {
     position: 'absolute',
-    top: -10,
-    right: 16,
-    backgroundColor: '#7A9E7E',
+    top: 10,
+    right: 14,
+    backgroundColor: C.green,
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 12,
@@ -496,12 +536,12 @@ const styles = StyleSheet.create({
   subscriptionName: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#3D2B1F',
+    color: C.text,
   },
   priceTag: {
     flexDirection: 'row',
     alignItems: 'baseline',
-    backgroundColor: 'rgba(197, 160, 89, 0.15)',
+    backgroundColor: C.primaryGlow,
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 20,
@@ -510,21 +550,21 @@ const styles = StyleSheet.create({
   priceAmount: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#C5A059',
+    color: C.primary,
   },
   pricePeriod: {
-    fontSize: 12,
-    color: '#A68A45',
+    fontSize: 11,
+    color: C.textMuted,
   },
   trialText: {
     fontSize: 13,
-    color: '#6B5D52',
+    color: C.textMuted,
     marginTop: 8,
   },
   copyright: {
     textAlign: 'center',
     fontSize: 12,
-    color: '#9C8B7E',
+    color: C.textMuted,
     marginTop: 16,
     fontWeight: '600',
   },
@@ -537,32 +577,34 @@ const styles = StyleSheet.create({
   },
   legalLink: {
     fontSize: 12,
-    color: '#C5A059',
+    color: C.primary,
     fontWeight: '500',
   },
   legalSeparator: {
     fontSize: 12,
-    color: '#D4B87A',
+    color: C.textMuted,
   },
   copyrightFull: {
     textAlign: 'center',
     fontSize: 10,
-    color: '#9C8B7E',
+    color: C.textMuted,
     marginTop: 8,
     marginBottom: 30,
     paddingHorizontal: 20,
-    lineHeight: 14,
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(61, 43, 31, 0.4)',
+    backgroundColor: 'rgba(0,0,0,0.8)',
     justifyContent: 'flex-end',
   },
   modalContent: {
-    backgroundColor: '#FFFFFF',
     borderTopLeftRadius: 28,
     borderTopRightRadius: 28,
+    overflow: 'hidden',
     maxHeight: '70%',
+  },
+  modalGradient: {
+    padding: 0,
   },
   modalHeader: {
     flexDirection: 'row',
@@ -570,13 +612,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 20,
     borderBottomWidth: 1,
-    borderBottomColor: '#E8E4D9',
+    borderBottomColor: C.border,
   },
   modalTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#3D2B1F',
-    fontFamily: 'PlayfairDisplay_600SemiBold',
+    color: C.text,
   },
   modalBody: {
     padding: 16,
@@ -590,7 +631,7 @@ const styles = StyleSheet.create({
     marginBottom: 4,
   },
   optionRowActive: {
-    backgroundColor: 'rgba(197, 160, 89, 0.15)',
+    backgroundColor: C.primaryGlow,
   },
   optionFlag: {
     fontSize: 24,
@@ -599,32 +640,32 @@ const styles = StyleSheet.create({
   optionText: {
     flex: 1,
     fontSize: 16,
-    color: '#3D2B1F',
+    color: C.text,
   },
   optionTextActive: {
     fontWeight: '600',
-    color: '#C5A059',
+    color: C.primary,
   },
   currencySymbolBox: {
     width: 40,
     height: 40,
-    borderRadius: 8,
-    backgroundColor: 'rgba(197, 160, 89, 0.12)',
+    borderRadius: 10,
+    backgroundColor: C.primaryGlow,
     justifyContent: 'center',
     alignItems: 'center',
     marginRight: 12,
   },
-  currencySymbol: {
+  currencySymbolText: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#C5A059',
+    color: C.primary,
   },
   currencyInfo: {
     flex: 1,
   },
   currencyCode: {
     fontSize: 12,
-    color: '#9C8B7E',
+    color: C.textMuted,
     marginTop: 2,
   },
 });

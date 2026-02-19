@@ -13,15 +13,38 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import { api } from '../../src/utils/api';
 import { format, startOfWeek, addDays } from 'date-fns';
 import { ro, enUS, es, fr, de, it } from 'date-fns/locale';
 import { useSettings } from '../../src/context/SettingsContext';
 
+// Modern 2026 Dark Theme
+const C = {
+  bg: '#0F0F14',
+  bgLight: '#1A1A24',
+  card: '#1E1E2A',
+  surface: '#252532',
+  primary: '#E91E9C',
+  primaryGlow: 'rgba(233, 30, 156, 0.15)',
+  purple: '#8B5CF6',
+  blue: '#3B82F6',
+  cyan: '#06B6D4',
+  gold: '#F5A623',
+  goldGlow: 'rgba(245, 166, 35, 0.15)',
+  green: '#10B981',
+  orange: '#F97316',
+  red: '#EF4444',
+  text: '#FFFFFF',
+  textSecondary: '#A1A1B5',
+  textMuted: '#6B6B80',
+  border: '#2A2A3A',
+};
+
 export default function KitchenScreen() {
   const { t, language } = useSettings();
+  const isRo = language.code === 'ro';
   
-  // Get translated days array
   const DAYS_KEYS = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
   const DAYS = DAYS_KEYS.map(key => t(`kitchen.days.${key}`));
   
@@ -77,10 +100,10 @@ export default function KitchenScreen() {
       });
       setMealPlans([newPlan, ...mealPlans]);
       setCurrentPlan(newPlan);
-      Alert.alert(t('common.success'), t('kitchen.mealPlan') + '!');
+      Alert.alert(t('common.success'), isRo ? 'Plan generat cu succes!' : 'Plan generated!');
     } catch (error) {
       console.error('Error generating meal plan:', error);
-      Alert.alert(t('common.error'), t('common.error'));
+      Alert.alert(t('common.error'), isRo ? 'Nu s-a putut genera planul' : 'Could not generate plan');
     } finally {
       setGenerating(false);
     }
@@ -106,8 +129,8 @@ export default function KitchenScreen() {
 
   const deleteMealPlan = async (id: string) => {
     Alert.alert(
-      t('kitchen.deleteMealPlan'),
-      t('work.confirmDelete'),
+      isRo ? 'Șterge planul' : 'Delete plan',
+      isRo ? 'Ești sigură?' : 'Are you sure?',
       [
         { text: t('common.cancel'), style: 'cancel' },
         {
@@ -139,31 +162,36 @@ export default function KitchenScreen() {
     <SafeAreaView style={styles.container}>
       <ScrollView
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#f59e0b" />
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={C.gold} />
         }
       >
         {/* Header */}
         <View style={styles.header}>
-          <Text style={styles.title}>{t('kitchen.mealPlan')}</Text>
+          <View>
+            <Text style={styles.title}>{t('kitchen.mealPlan')}</Text>
+            <Text style={styles.subtitle}>{isRo ? 'Plan săptămânal generat de AI' : 'AI-generated weekly plan'}</Text>
+          </View>
           <TouchableOpacity
             style={styles.generateButton}
             onPress={() => setPreferencesModal(true)}
             disabled={generating}
           >
-            {generating ? (
-              <ActivityIndicator size="small" color="#fff" />
-            ) : (
-              <>
-                <Ionicons name="sparkles" size={20} color="#fff" />
-                <Text style={styles.generateButtonText}>{t('kitchen.generate')}</Text>
-              </>
-            )}
+            <LinearGradient colors={['#F5A623', '#D4920B']} style={styles.generateGradient}>
+              {generating ? (
+                <ActivityIndicator size="small" color="#fff" />
+              ) : (
+                <>
+                  <Ionicons name="sparkles" size={18} color="#fff" />
+                  <Text style={styles.generateButtonText}>{isRo ? 'Generează' : 'Generate'}</Text>
+                </>
+              )}
+            </LinearGradient>
           </TouchableOpacity>
         </View>
 
         {generating && (
           <View style={styles.generatingContainer}>
-            <ActivityIndicator size="large" color="#f59e0b" />
+            <ActivityIndicator size="large" color={C.gold} />
             <Text style={styles.generatingText}>{t('kitchen.generating')}</Text>
             <Text style={styles.generatingSubtext}>{t('kitchen.generatingHint')}</Text>
           </View>
@@ -177,11 +205,7 @@ export default function KitchenScreen() {
                 style={[styles.toggleButton, showAdult && styles.toggleActive]}
                 onPress={() => setShowAdult(true)}
               >
-                <Ionicons
-                  name="person"
-                  size={18}
-                  color={showAdult ? '#fff' : '#f59e0b'}
-                />
+                <Ionicons name="person" size={18} color={showAdult ? '#fff' : C.gold} />
                 <Text style={[styles.toggleText, showAdult && styles.toggleTextActive]}>
                   {t('kitchen.adults')}
                 </Text>
@@ -190,11 +214,7 @@ export default function KitchenScreen() {
                 style={[styles.toggleButton, !showAdult && styles.toggleActive]}
                 onPress={() => setShowAdult(false)}
               >
-                <Ionicons
-                  name="happy"
-                  size={18}
-                  color={!showAdult ? '#fff' : '#f59e0b'}
-                />
+                <Ionicons name="happy" size={18} color={!showAdult ? '#fff' : C.gold} />
                 <Text style={[styles.toggleText, !showAdult && styles.toggleTextActive]}>
                   {t('kitchen.kids')}
                 </Text>
@@ -233,33 +253,39 @@ export default function KitchenScreen() {
             {currentMeals && (
               <View style={styles.mealsContainer}>
                 <View style={styles.mealCard}>
-                  <View style={[styles.mealIcon, { backgroundColor: '#fef3c7' }]}>
-                    <Ionicons name="sunny" size={24} color="#f59e0b" />
-                  </View>
-                  <View style={styles.mealContent}>
-                    <Text style={styles.mealLabel}>{t('kitchen.meals.breakfast')}</Text>
-                    <Text style={styles.mealText}>{currentMeals.breakfast}</Text>
-                  </View>
+                  <LinearGradient colors={['#252532', '#1E1E2A']} style={styles.mealGradient}>
+                    <View style={[styles.mealIcon, { backgroundColor: C.goldGlow }]}>
+                      <Ionicons name="sunny" size={22} color={C.gold} />
+                    </View>
+                    <View style={styles.mealContent}>
+                      <Text style={styles.mealLabel}>{t('kitchen.meals.breakfast')}</Text>
+                      <Text style={styles.mealText}>{currentMeals.breakfast}</Text>
+                    </View>
+                  </LinearGradient>
                 </View>
 
                 <View style={styles.mealCard}>
-                  <View style={[styles.mealIcon, { backgroundColor: '#dbeafe' }]}>
-                    <Ionicons name="restaurant" size={24} color="#3b82f6" />
-                  </View>
-                  <View style={styles.mealContent}>
-                    <Text style={styles.mealLabel}>{t('kitchen.meals.lunch')}</Text>
-                    <Text style={styles.mealText}>{currentMeals.lunch}</Text>
-                  </View>
+                  <LinearGradient colors={['#252532', '#1E1E2A']} style={styles.mealGradient}>
+                    <View style={[styles.mealIcon, { backgroundColor: 'rgba(59, 130, 246, 0.15)' }]}>
+                      <Ionicons name="restaurant" size={22} color={C.blue} />
+                    </View>
+                    <View style={styles.mealContent}>
+                      <Text style={styles.mealLabel}>{t('kitchen.meals.lunch')}</Text>
+                      <Text style={styles.mealText}>{currentMeals.lunch}</Text>
+                    </View>
+                  </LinearGradient>
                 </View>
 
                 <View style={styles.mealCard}>
-                  <View style={[styles.mealIcon, { backgroundColor: '#ede9fe' }]}>
-                    <Ionicons name="moon" size={24} color="#8b5cf6" />
-                  </View>
-                  <View style={styles.mealContent}>
-                    <Text style={styles.mealLabel}>{t('kitchen.meals.dinner')}</Text>
-                    <Text style={styles.mealText}>{currentMeals.dinner}</Text>
-                  </View>
+                  <LinearGradient colors={['#252532', '#1E1E2A']} style={styles.mealGradient}>
+                    <View style={[styles.mealIcon, { backgroundColor: 'rgba(139, 92, 246, 0.15)' }]}>
+                      <Ionicons name="moon" size={22} color={C.purple} />
+                    </View>
+                    <View style={styles.mealContent}>
+                      <Text style={styles.mealLabel}>{t('kitchen.meals.dinner')}</Text>
+                      <Text style={styles.mealText}>{currentMeals.dinner}</Text>
+                    </View>
+                  </LinearGradient>
                 </View>
               </View>
             )}
@@ -269,16 +295,18 @@ export default function KitchenScreen() {
               style={styles.shoppingButton}
               onPress={() => setShoppingModal(true)}
             >
-              <View style={styles.shoppingIcon}>
-                <Ionicons name="cart" size={24} color="#f59e0b" />
-              </View>
-              <View style={styles.shoppingContent}>
-                <Text style={styles.shoppingTitle}>{t('kitchen.shoppingList')}</Text>
-                <Text style={styles.shoppingSubtitle}>
-                  {checkedCount}/{totalCount} {t('kitchen.itemsChecked')}
-                </Text>
-              </View>
-              <Ionicons name="chevron-forward" size={24} color="#9ca3af" />
+              <LinearGradient colors={['#252532', '#1E1E2A']} style={styles.shoppingGradient}>
+                <View style={styles.shoppingIcon}>
+                  <Ionicons name="cart" size={24} color={C.gold} />
+                </View>
+                <View style={styles.shoppingContent}>
+                  <Text style={styles.shoppingTitle}>{t('kitchen.shoppingList')}</Text>
+                  <Text style={styles.shoppingSubtitle}>
+                    {checkedCount}/{totalCount} {t('kitchen.itemsChecked')}
+                  </Text>
+                </View>
+                <Ionicons name="chevron-forward" size={24} color={C.textMuted} />
+              </LinearGradient>
             </TouchableOpacity>
 
             {/* Delete Button */}
@@ -286,7 +314,7 @@ export default function KitchenScreen() {
               style={styles.deleteButton}
               onPress={() => deleteMealPlan(currentPlan.id)}
             >
-              <Ionicons name="trash-outline" size={20} color="#ef4444" />
+              <Ionicons name="trash-outline" size={20} color={C.red} />
               <Text style={styles.deleteButtonText}>{t('kitchen.deleteMealPlan')}</Text>
             </TouchableOpacity>
           </>
@@ -294,7 +322,7 @@ export default function KitchenScreen() {
 
         {!generating && !currentPlan && (
           <View style={styles.emptyState}>
-            <Ionicons name="restaurant-outline" size={64} color="#d1d5db" />
+            <Ionicons name="restaurant-outline" size={64} color={C.textMuted} />
             <Text style={styles.emptyTitle}>{t('kitchen.noMealPlan')}</Text>
             <Text style={styles.emptySubtitle}>
               {t('kitchen.generateHint')}
@@ -303,8 +331,10 @@ export default function KitchenScreen() {
               style={styles.emptyButton}
               onPress={() => setPreferencesModal(true)}
             >
-              <Ionicons name="sparkles" size={20} color="#fff" />
-              <Text style={styles.emptyButtonText}>{t('kitchen.generateNow')}</Text>
+              <LinearGradient colors={['#F5A623', '#D4920B']} style={styles.emptyButtonGradient}>
+                <Ionicons name="sparkles" size={20} color="#fff" />
+                <Text style={styles.emptyButtonText}>{t('kitchen.generateNow')}</Text>
+              </LinearGradient>
             </TouchableOpacity>
           </View>
         )}
@@ -314,65 +344,71 @@ export default function KitchenScreen() {
       <Modal visible={preferencesModal} animationType="slide" transparent>
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>{t('kitchen.preferences')}</Text>
-              <TouchableOpacity onPress={() => setPreferencesModal(false)}>
-                <Ionicons name="close" size={24} color="#6b7280" />
-              </TouchableOpacity>
-            </View>
-            <ScrollView style={styles.modalBody}>
-              <Text style={styles.inputLabel}>{t('kitchen.adultPreferences')}</Text>
-              <TextInput
-                style={styles.input}
-                value={adultPrefs}
-                onChangeText={setAdultPrefs}
-                placeholder={t('selfcare.exampleGoal')}
-                placeholderTextColor="#9ca3af"
-              />
-
-              <Text style={styles.inputLabel}>{t('kitchen.kidPreferences')}</Text>
-              <TextInput
-                style={styles.input}
-                value={kidPrefs}
-                onChangeText={setKidPrefs}
-                placeholder={t('selfcare.exampleGoal')}
-                placeholderTextColor="#9ca3af"
-              />
-
-              <Text style={styles.inputLabel}>{t('kitchen.dietaryRestrictions')}</Text>
-              <TextInput
-                style={styles.input}
-                value={restrictions}
-                onChangeText={setRestrictions}
-                placeholder={t('selfcare.exampleRestrictions')}
-                placeholderTextColor="#9ca3af"
-              />
-
-              <View style={styles.numberRow}>
-                <View style={styles.numberInput}>
-                  <Text style={styles.inputLabel}>{t('kitchen.numAdults')}</Text>
-                  <TextInput
-                    style={styles.input}
-                    value={numAdults}
-                    onChangeText={setNumAdults}
-                    keyboardType="numeric"
-                  />
-                </View>
-                <View style={styles.numberInput}>
-                  <Text style={styles.inputLabel}>{t('kitchen.numKids')}</Text>
-                  <TextInput
-                    style={styles.input}
-                    value={numKids}
-                    onChangeText={setNumKids}
-                    keyboardType="numeric"
-                  />
-                </View>
+            <LinearGradient colors={['#1E1E2A', '#0F0F14']} style={styles.modalGradient}>
+              <View style={styles.modalHeader}>
+                <Text style={styles.modalTitle}>{t('kitchen.preferences')}</Text>
+                <TouchableOpacity onPress={() => setPreferencesModal(false)}>
+                  <Ionicons name="close" size={24} color={C.textMuted} />
+                </TouchableOpacity>
               </View>
-            </ScrollView>
-            <TouchableOpacity style={styles.saveButton} onPress={generateMealPlan}>
-              <Ionicons name="sparkles" size={20} color="#fff" />
-              <Text style={styles.saveButtonText}>{t('kitchen.generateWithAI')}</Text>
-            </TouchableOpacity>
+              <ScrollView style={styles.modalBody}>
+                <Text style={styles.inputLabel}>{t('kitchen.adultPreferences')}</Text>
+                <TextInput
+                  style={styles.input}
+                  value={adultPrefs}
+                  onChangeText={setAdultPrefs}
+                  placeholder={isRo ? 'Ex: mâncăruri sănătoase' : 'Ex: healthy meals'}
+                  placeholderTextColor={C.textMuted}
+                />
+
+                <Text style={styles.inputLabel}>{t('kitchen.kidPreferences')}</Text>
+                <TextInput
+                  style={styles.input}
+                  value={kidPrefs}
+                  onChangeText={setKidPrefs}
+                  placeholder={isRo ? 'Ex: paste, cartofi' : 'Ex: pasta, potatoes'}
+                  placeholderTextColor={C.textMuted}
+                />
+
+                <Text style={styles.inputLabel}>{t('kitchen.dietaryRestrictions')}</Text>
+                <TextInput
+                  style={styles.input}
+                  value={restrictions}
+                  onChangeText={setRestrictions}
+                  placeholder={isRo ? 'Ex: fără lactate' : 'Ex: dairy-free'}
+                  placeholderTextColor={C.textMuted}
+                />
+
+                <View style={styles.numberRow}>
+                  <View style={styles.numberInput}>
+                    <Text style={styles.inputLabel}>{t('kitchen.numAdults')}</Text>
+                    <TextInput
+                      style={styles.input}
+                      value={numAdults}
+                      onChangeText={setNumAdults}
+                      keyboardType="numeric"
+                      placeholderTextColor={C.textMuted}
+                    />
+                  </View>
+                  <View style={styles.numberInput}>
+                    <Text style={styles.inputLabel}>{t('kitchen.numKids')}</Text>
+                    <TextInput
+                      style={styles.input}
+                      value={numKids}
+                      onChangeText={setNumKids}
+                      keyboardType="numeric"
+                      placeholderTextColor={C.textMuted}
+                    />
+                  </View>
+                </View>
+              </ScrollView>
+              <TouchableOpacity style={styles.saveButton} onPress={generateMealPlan}>
+                <LinearGradient colors={['#F5A623', '#D4920B']} style={styles.saveGradient}>
+                  <Ionicons name="sparkles" size={20} color="#fff" />
+                  <Text style={styles.saveButtonText}>{t('kitchen.generateWithAI')}</Text>
+                </LinearGradient>
+              </TouchableOpacity>
+            </LinearGradient>
           </View>
         </View>
       </Modal>
@@ -381,36 +417,38 @@ export default function KitchenScreen() {
       <Modal visible={shoppingModal} animationType="slide" transparent>
         <View style={styles.modalOverlay}>
           <View style={[styles.modalContent, { maxHeight: '80%' }]}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>{t('kitchen.shoppingList')}</Text>
-              <TouchableOpacity onPress={() => setShoppingModal(false)}>
-                <Ionicons name="close" size={24} color="#6b7280" />
-              </TouchableOpacity>
-            </View>
-            <ScrollView style={styles.modalBody}>
-              {currentPlan?.shopping_list?.map((item: any, index: number) => (
-                <TouchableOpacity
-                  key={index}
-                  style={styles.shoppingItem}
-                  onPress={() => toggleShoppingItem(index)}
-                >
-                  <Ionicons
-                    name={item.checked ? 'checkbox' : 'square-outline'}
-                    size={24}
-                    color={item.checked ? '#10b981' : '#9ca3af'}
-                  />
-                  <Text
-                    style={[
-                      styles.shoppingItemText,
-                      item.checked && styles.shoppingItemChecked,
-                    ]}
-                  >
-                    {item.item}
-                  </Text>
-                  <Text style={styles.shoppingItemQty}>{item.quantity}</Text>
+            <LinearGradient colors={['#1E1E2A', '#0F0F14']} style={styles.modalGradient}>
+              <View style={styles.modalHeader}>
+                <Text style={styles.modalTitle}>{t('kitchen.shoppingList')}</Text>
+                <TouchableOpacity onPress={() => setShoppingModal(false)}>
+                  <Ionicons name="close" size={24} color={C.textMuted} />
                 </TouchableOpacity>
-              ))}
-            </ScrollView>
+              </View>
+              <ScrollView style={styles.modalBody}>
+                {currentPlan?.shopping_list?.map((item: any, index: number) => (
+                  <TouchableOpacity
+                    key={index}
+                    style={styles.shoppingItem}
+                    onPress={() => toggleShoppingItem(index)}
+                  >
+                    <Ionicons
+                      name={item.checked ? 'checkbox' : 'square-outline'}
+                      size={24}
+                      color={item.checked ? C.green : C.textMuted}
+                    />
+                    <Text
+                      style={[
+                        styles.shoppingItemText,
+                        item.checked && styles.shoppingItemChecked,
+                      ]}
+                    >
+                      {item.item}
+                    </Text>
+                    <Text style={styles.shoppingItemQty}>{item.quantity}</Text>
+                  </TouchableOpacity>
+                ))}
+              </ScrollView>
+            </LinearGradient>
           </View>
         </View>
       </Modal>
@@ -421,31 +459,39 @@ export default function KitchenScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#fffbeb',
+    backgroundColor: C.bg,
   },
   header: {
     flexDirection: 'row',
     justifyContent: 'space-between',
-    alignItems: 'center',
+    alignItems: 'flex-start',
     padding: 20,
   },
   title: {
-    fontSize: 28,
+    fontSize: 26,
     fontWeight: '700',
-    color: '#92400e',
+    color: C.text,
+  },
+  subtitle: {
+    fontSize: 14,
+    color: C.textMuted,
+    marginTop: 4,
   },
   generateButton: {
+    borderRadius: 20,
+    overflow: 'hidden',
+  },
+  generateGradient: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#f59e0b',
     paddingVertical: 10,
     paddingHorizontal: 16,
-    borderRadius: 20,
     gap: 6,
   },
   generateButtonText: {
     color: '#fff',
     fontWeight: '600',
+    fontSize: 14,
   },
   generatingContainer: {
     alignItems: 'center',
@@ -455,19 +501,19 @@ const styles = StyleSheet.create({
     marginTop: 16,
     fontSize: 16,
     fontWeight: '600',
-    color: '#92400e',
+    color: C.text,
   },
   generatingSubtext: {
     marginTop: 8,
     fontSize: 14,
-    color: '#9ca3af',
+    color: C.textMuted,
   },
   toggleContainer: {
     flexDirection: 'row',
     marginHorizontal: 20,
     marginBottom: 16,
-    backgroundColor: '#fef3c7',
-    borderRadius: 12,
+    backgroundColor: C.surface,
+    borderRadius: 14,
     padding: 4,
   },
   toggleButton: {
@@ -480,12 +526,12 @@ const styles = StyleSheet.create({
     gap: 6,
   },
   toggleActive: {
-    backgroundColor: '#f59e0b',
+    backgroundColor: C.gold,
   },
   toggleText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#f59e0b',
+    color: C.gold,
   },
   toggleTextActive: {
     color: '#fff',
@@ -501,15 +547,15 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
     paddingHorizontal: 16,
     borderRadius: 20,
-    backgroundColor: '#fff',
+    backgroundColor: C.surface,
   },
   dayButtonActive: {
-    backgroundColor: '#f59e0b',
+    backgroundColor: C.gold,
   },
   dayText: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#92400e',
+    color: C.textSecondary,
   },
   dayTextActive: {
     color: '#fff',
@@ -519,22 +565,19 @@ const styles = StyleSheet.create({
     gap: 12,
   },
   mealCard: {
-    flexDirection: 'row',
-    backgroundColor: '#fff',
     borderRadius: 16,
+    overflow: 'hidden',
+  },
+  mealGradient: {
+    flexDirection: 'row',
     padding: 16,
     alignItems: 'flex-start',
-    gap: 12,
-    shadowColor: '#000',
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.05,
-    shadowRadius: 4,
-    elevation: 2,
+    gap: 14,
   },
   mealIcon: {
     width: 48,
     height: 48,
-    borderRadius: 12,
+    borderRadius: 14,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -542,32 +585,35 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   mealLabel: {
-    fontSize: 12,
+    fontSize: 11,
     fontWeight: '600',
-    color: '#9ca3af',
+    color: C.textMuted,
     textTransform: 'uppercase',
+    letterSpacing: 0.5,
     marginBottom: 4,
   },
   mealText: {
     fontSize: 15,
-    color: '#374151',
+    color: C.text,
     lineHeight: 22,
   },
   shoppingButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    backgroundColor: '#fff',
     marginHorizontal: 20,
     marginTop: 20,
-    padding: 16,
     borderRadius: 16,
-    gap: 12,
+    overflow: 'hidden',
+  },
+  shoppingGradient: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 16,
+    gap: 14,
   },
   shoppingIcon: {
     width: 48,
     height: 48,
-    borderRadius: 12,
-    backgroundColor: '#fef3c7',
+    borderRadius: 14,
+    backgroundColor: C.goldGlow,
     justifyContent: 'center',
     alignItems: 'center',
   },
@@ -577,11 +623,11 @@ const styles = StyleSheet.create({
   shoppingTitle: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#1f2937',
+    color: C.text,
   },
   shoppingSubtitle: {
     fontSize: 13,
-    color: '#6b7280',
+    color: C.textMuted,
     marginTop: 2,
   },
   deleteButton: {
@@ -595,7 +641,7 @@ const styles = StyleSheet.create({
   },
   deleteButtonText: {
     fontSize: 14,
-    color: '#ef4444',
+    color: C.red,
     fontWeight: '500',
   },
   emptyState: {
@@ -606,23 +652,25 @@ const styles = StyleSheet.create({
   emptyTitle: {
     fontSize: 20,
     fontWeight: '700',
-    color: '#92400e',
+    color: C.text,
     marginTop: 16,
   },
   emptySubtitle: {
-    fontSize: 15,
-    color: '#6b7280',
+    fontSize: 14,
+    color: C.textMuted,
     textAlign: 'center',
     marginTop: 8,
   },
   emptyButton: {
+    borderRadius: 25,
+    overflow: 'hidden',
+    marginTop: 24,
+  },
+  emptyButtonGradient: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#f59e0b',
     paddingVertical: 14,
     paddingHorizontal: 24,
-    borderRadius: 25,
-    marginTop: 24,
     gap: 8,
   },
   emptyButtonText: {
@@ -632,13 +680,16 @@ const styles = StyleSheet.create({
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
+    backgroundColor: 'rgba(0,0,0,0.8)',
     justifyContent: 'flex-end',
   },
   modalContent: {
-    backgroundColor: '#fff',
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
+    overflow: 'hidden',
+  },
+  modalGradient: {
+    padding: 0,
   },
   modalHeader: {
     flexDirection: 'row',
@@ -646,12 +697,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 20,
     borderBottomWidth: 1,
-    borderBottomColor: '#f3f4f6',
+    borderBottomColor: C.border,
   },
   modalTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#1f2937',
+    color: C.text,
   },
   modalBody: {
     padding: 20,
@@ -659,18 +710,18 @@ const styles = StyleSheet.create({
   inputLabel: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#374151',
+    color: C.textSecondary,
     marginBottom: 8,
   },
   input: {
-    borderWidth: 1,
-    borderColor: '#e5e7eb',
-    borderRadius: 12,
+    backgroundColor: C.surface,
+    borderRadius: 14,
     padding: 14,
     fontSize: 16,
-    color: '#1f2937',
+    color: C.text,
     marginBottom: 16,
-    backgroundColor: '#f9fafb',
+    borderWidth: 1,
+    borderColor: C.border,
   },
   numberRow: {
     flexDirection: 'row',
@@ -680,13 +731,15 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   saveButton: {
+    margin: 20,
+    borderRadius: 14,
+    overflow: 'hidden',
+  },
+  saveGradient: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#f59e0b',
-    margin: 20,
     paddingVertical: 16,
-    borderRadius: 12,
     gap: 8,
   },
   saveButtonText: {
@@ -699,20 +752,20 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     paddingVertical: 12,
     borderBottomWidth: 1,
-    borderBottomColor: '#f3f4f6',
+    borderBottomColor: C.border,
     gap: 12,
   },
   shoppingItemText: {
     flex: 1,
     fontSize: 15,
-    color: '#374151',
+    color: C.text,
   },
   shoppingItemChecked: {
     textDecorationLine: 'line-through',
-    color: '#9ca3af',
+    color: C.textMuted,
   },
   shoppingItemQty: {
     fontSize: 14,
-    color: '#6b7280',
+    color: C.textMuted,
   },
 });

@@ -13,6 +13,7 @@ import {
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import { api } from '../../src/utils/api';
 import { format } from 'date-fns';
 import { ro, enUS, es, fr, de } from 'date-fns/locale';
@@ -20,19 +21,38 @@ import * as ImagePicker from 'expo-image-picker';
 import { v4 as uuidv4 } from 'uuid';
 import { useSettings } from '../../src/context/SettingsContext';
 
+// Modern 2026 Dark Theme
+const C = {
+  bg: '#0F0F14',
+  bgLight: '#1A1A24',
+  card: '#1E1E2A',
+  surface: '#252532',
+  primary: '#E91E9C',
+  primaryGlow: 'rgba(233, 30, 156, 0.15)',
+  purple: '#8B5CF6',
+  blue: '#3B82F6',
+  blueGlow: 'rgba(59, 130, 246, 0.15)',
+  cyan: '#06B6D4',
+  gold: '#F5A623',
+  green: '#10B981',
+  greenGlow: 'rgba(16, 185, 129, 0.15)',
+  orange: '#F97316',
+  red: '#EF4444',
+  text: '#FFFFFF',
+  textSecondary: '#A1A1B5',
+  textMuted: '#6B6B80',
+  border: '#2A2A3A',
+};
+
 type TabType = 'checklist' | 'budget' | 'receipts';
 
 const dateLocales: { [key: string]: any } = {
-  ro: ro,
-  en: enUS,
-  'en-US': enUS,
-  es: es,
-  fr: fr,
-  de: de,
+  ro: ro, en: enUS, 'en-US': enUS, es: es, fr: fr, de: de,
 };
 
 export default function OrganizeScreen() {
   const { t, currencySymbol, language } = useSettings();
+  const isRo = language.code === 'ro';
   const [activeTab, setActiveTab] = useState<TabType>('checklist');
   const [refreshing, setRefreshing] = useState(false);
   const today = new Date();
@@ -40,7 +60,6 @@ export default function OrganizeScreen() {
   const currentMonth = format(today, 'yyyy-MM');
   const dateLocale = dateLocales[language.code] || dateLocales[language.code.split('-')[0]] || enUS;
 
-  // Translated category names
   const getCategoryName = (key: string) => {
     const categoryMap: { [key: string]: string } = {
       'Alimente': t('organize.categories.food'),
@@ -53,7 +72,6 @@ export default function OrganizeScreen() {
     return categoryMap[key] || key;
   };
 
-  // Default categories with translation keys
   const DEFAULT_CATEGORIES = [
     { name: 'Alimente', budget: 2000, spent: 0 },
     { name: 'Utilități', budget: 800, spent: 0 },
@@ -73,8 +91,6 @@ export default function OrganizeScreen() {
   const [editingCategory, setEditingCategory] = useState<any>(null);
   const [categorySpent, setCategorySpent] = useState('');
   const [categoryBudgetAmount, setCategoryBudgetAmount] = useState('');
-  
-  // Edit total budget
   const [editTotalBudgetModal, setEditTotalBudgetModal] = useState(false);
   const [totalBudgetInput, setTotalBudgetInput] = useState('');
 
@@ -167,7 +183,7 @@ export default function OrganizeScreen() {
     }
   };
 
-  // Budget functions - Update category spent and budget
+  // Budget functions
   const updateCategory = async () => {
     if (!editingCategory) return;
 
@@ -188,11 +204,10 @@ export default function OrganizeScreen() {
     }
   };
 
-  // Update total budget - redistribute proportionally
   const updateTotalBudget = async () => {
     const newTotal = parseFloat(totalBudgetInput);
     if (!newTotal || newTotal <= 0) {
-      Alert.alert(t('common.error'), t('organize.invalidBudget') || 'Please enter a valid amount');
+      Alert.alert(t('common.error'), isRo ? 'Te rog introdu o sumă validă' : 'Please enter a valid amount');
       return;
     }
 
@@ -219,7 +234,7 @@ export default function OrganizeScreen() {
     try {
       const permission = await ImagePicker.requestCameraPermissionsAsync();
       if (!permission.granted) {
-        Alert.alert(t('common.error'), t('organize.cameraPermission') || 'Camera permission required');
+        Alert.alert(t('common.error'), isRo ? 'Permisiune cameră necesară' : 'Camera permission required');
         return;
       }
 
@@ -233,41 +248,10 @@ export default function OrganizeScreen() {
         try {
           const receipt = await api.scanReceipt(result.assets[0].base64);
           setReceipts([receipt, ...receipts]);
-          Alert.alert(t('common.success'), t('organize.receiptAdded') || 'Receipt scanned successfully!');
+          Alert.alert(t('common.success'), isRo ? 'Bon scanat cu succes!' : 'Receipt scanned!');
         } catch (error) {
           console.error('Error scanning receipt:', error);
-          Alert.alert(t('common.error'), t('organize.receiptError') || 'Could not process receipt');
-        } finally {
-          setScanning(false);
-        }
-      }
-    } catch (error) {
-      console.error('Error picking image:', error);
-    }
-  };
-
-  const pickReceiptImage = async () => {
-    try {
-      const permission = await ImagePicker.requestMediaLibraryPermissionsAsync();
-      if (!permission.granted) {
-        Alert.alert(t('common.error'), t('organize.galleryPermission') || 'Gallery permission required');
-        return;
-      }
-
-      const result = await ImagePicker.launchImageLibraryAsync({
-        base64: true,
-        quality: 0.5,
-      });
-
-      if (!result.canceled && result.assets[0].base64) {
-        setScanning(true);
-        try {
-          const receipt = await api.scanReceipt(result.assets[0].base64);
-          setReceipts([receipt, ...receipts]);
-          Alert.alert(t('common.success'), t('organize.receiptAdded') || 'Receipt scanned successfully!');
-        } catch (error) {
-          console.error('Error scanning receipt:', error);
-          Alert.alert(t('common.error'), t('organize.receiptError') || 'Could not process receipt');
+          Alert.alert(t('common.error'), isRo ? 'Nu s-a putut procesa bonul' : 'Could not process receipt');
         } finally {
           setScanning(false);
         }
@@ -300,8 +284,8 @@ export default function OrganizeScreen() {
         >
           <Ionicons
             name="checkbox"
-            size={20}
-            color={activeTab === 'checklist' ? '#fff' : '#10b981'}
+            size={18}
+            color={activeTab === 'checklist' ? '#fff' : C.blue}
           />
           <Text style={[styles.tabText, activeTab === 'checklist' && styles.tabTextActive]}>
             {t('organize.checklist')}
@@ -313,8 +297,8 @@ export default function OrganizeScreen() {
         >
           <Ionicons
             name="wallet"
-            size={20}
-            color={activeTab === 'budget' ? '#fff' : '#10b981'}
+            size={18}
+            color={activeTab === 'budget' ? '#fff' : C.green}
           />
           <Text style={[styles.tabText, activeTab === 'budget' && styles.tabTextActive]}>
             {t('organize.budget')}
@@ -326,8 +310,8 @@ export default function OrganizeScreen() {
         >
           <Ionicons
             name="receipt"
-            size={20}
-            color={activeTab === 'receipts' ? '#fff' : '#10b981'}
+            size={18}
+            color={activeTab === 'receipts' ? '#fff' : C.purple}
           />
           <Text style={[styles.tabText, activeTab === 'receipts' && styles.tabTextActive]}>
             {t('organize.receipts')}
@@ -338,13 +322,13 @@ export default function OrganizeScreen() {
       <ScrollView
         style={styles.content}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor="#10b981" />
+          <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={C.primary} />
         }
       >
         {/* Checklist Tab */}
         {activeTab === 'checklist' && (
           <View>
-            <View style={styles.headerCard}>
+            <LinearGradient colors={['#252532', '#1E1E2A']} style={styles.headerCard}>
               <Text style={styles.headerTitle}>{t('organize.dailyChecklist')}</Text>
               <Text style={styles.headerSubtitle}>
                 {format(today, 'EEEE, d MMMM', { locale: dateLocale })}
@@ -364,7 +348,7 @@ export default function OrganizeScreen() {
                   {completedTasks}/{checklistItems.length} {t('organize.complete')}
                 </Text>
               </View>
-            </View>
+            </LinearGradient>
 
             <View style={styles.addTaskContainer}>
               <TextInput
@@ -372,11 +356,13 @@ export default function OrganizeScreen() {
                 value={newTask}
                 onChangeText={setNewTask}
                 placeholder={t('organize.addTask')}
-                placeholderTextColor="#9ca3af"
+                placeholderTextColor={C.textMuted}
                 onSubmitEditing={addTask}
               />
               <TouchableOpacity style={styles.addTaskButton} onPress={addTask}>
-                <Ionicons name="add" size={24} color="#fff" />
+                <LinearGradient colors={['#3B82F6', '#2563EB']} style={styles.addTaskGradient}>
+                  <Ionicons name="add" size={24} color="#fff" />
+                </LinearGradient>
               </TouchableOpacity>
             </View>
 
@@ -386,17 +372,19 @@ export default function OrganizeScreen() {
                 style={styles.taskItem}
                 onPress={() => toggleTask(item.id)}
               >
-                <Ionicons
-                  name={item.completed ? 'checkbox' : 'square-outline'}
-                  size={24}
-                  color={item.completed ? '#10b981' : '#9ca3af'}
-                />
-                <Text style={[styles.taskText, item.completed && styles.taskCompleted]}>
-                  {item.text}
-                </Text>
-                <TouchableOpacity onPress={() => deleteTask(item.id)}>
-                  <Ionicons name="close-circle" size={22} color="#ef4444" />
-                </TouchableOpacity>
+                <LinearGradient colors={['#252532', '#1E1E2A']} style={styles.taskGradient}>
+                  <Ionicons
+                    name={item.completed ? 'checkbox' : 'square-outline'}
+                    size={24}
+                    color={item.completed ? C.green : C.textMuted}
+                  />
+                  <Text style={[styles.taskText, item.completed && styles.taskCompleted]}>
+                    {item.text}
+                  </Text>
+                  <TouchableOpacity onPress={() => deleteTask(item.id)}>
+                    <Ionicons name="close-circle" size={22} color={C.red} />
+                  </TouchableOpacity>
+                </LinearGradient>
               </TouchableOpacity>
             ))}
           </View>
@@ -405,7 +393,7 @@ export default function OrganizeScreen() {
         {/* Budget Tab */}
         {activeTab === 'budget' && budget && (
           <View>
-            <View style={styles.headerCard}>
+            <LinearGradient colors={['#252532', '#1E1E2A']} style={styles.headerCard}>
               <View style={styles.budgetHeaderRow}>
                 <Text style={styles.headerTitle}>{t('organize.familyBudget')}</Text>
                 <TouchableOpacity 
@@ -415,8 +403,7 @@ export default function OrganizeScreen() {
                     setEditTotalBudgetModal(true);
                   }}
                 >
-                  <Ionicons name="pencil" size={16} color="#10b981" />
-                  <Text style={styles.editBudgetText}>{t('common.edit')}</Text>
+                  <Ionicons name="pencil" size={16} color={C.green} />
                 </TouchableOpacity>
               </View>
               <Text style={styles.headerSubtitle}>
@@ -429,16 +416,16 @@ export default function OrganizeScreen() {
                 </View>
                 <View style={styles.budgetItem}>
                   <Text style={styles.budgetLabel}>{t('organize.spent')}</Text>
-                  <Text style={[styles.budgetValue, { color: '#ef4444' }]}>{totalSpent} {currencySymbol}</Text>
+                  <Text style={[styles.budgetValue, { color: C.red }]}>{totalSpent} {currencySymbol}</Text>
                 </View>
                 <View style={styles.budgetItem}>
                   <Text style={styles.budgetLabel}>{t('organize.remaining')}</Text>
-                  <Text style={[styles.budgetValue, { color: '#10b981' }]}>
+                  <Text style={[styles.budgetValue, { color: C.green }]}>
                     {totalBudget - totalSpent} {currencySymbol}
                   </Text>
                 </View>
               </View>
-            </View>
+            </LinearGradient>
 
             {budget.categories.map((cat: any) => {
               const percentage = cat.budget > 0 ? (cat.spent / cat.budget) * 100 : 0;
@@ -455,23 +442,25 @@ export default function OrganizeScreen() {
                     setEditCategoryModal(true);
                   }}
                 >
-                  <View style={styles.categoryHeader}>
-                    <Text style={styles.categoryName}>{getCategoryName(cat.name)}</Text>
-                    <Text style={[styles.categorySpent, isOver && { color: '#ef4444' }]}>
-                      {cat.spent} / {cat.budget} {currencySymbol}
-                    </Text>
-                  </View>
-                  <View style={styles.categoryProgress}>
-                    <View
-                      style={[
-                        styles.categoryProgressFill,
-                        {
-                          width: `${Math.min(percentage, 100)}%`,
-                          backgroundColor: isOver ? '#ef4444' : '#10b981',
-                        },
-                      ]}
-                    />
-                  </View>
+                  <LinearGradient colors={['#252532', '#1E1E2A']} style={styles.categoryGradient}>
+                    <View style={styles.categoryHeader}>
+                      <Text style={styles.categoryName}>{getCategoryName(cat.name)}</Text>
+                      <Text style={[styles.categorySpent, isOver && { color: C.red }]}>
+                        {cat.spent} / {cat.budget} {currencySymbol}
+                      </Text>
+                    </View>
+                    <View style={styles.categoryProgress}>
+                      <View
+                        style={[
+                          styles.categoryProgressFill,
+                          {
+                            width: `${Math.min(percentage, 100)}%`,
+                            backgroundColor: isOver ? C.red : C.green,
+                          },
+                        ]}
+                      />
+                    </View>
+                  </LinearGradient>
                 </TouchableOpacity>
               );
             })}
@@ -481,80 +470,57 @@ export default function OrganizeScreen() {
         {/* Receipts Tab */}
         {activeTab === 'receipts' && (
           <View>
-            <View style={styles.headerCard}>
+            <LinearGradient colors={['#252532', '#1E1E2A']} style={styles.headerCard}>
               <Text style={styles.headerTitle}>{t('organize.scannedReceipts')}</Text>
               <Text style={styles.headerSubtitle}>
-                {t('organize.scanReceiptsHint')}
+                {isRo ? 'Scanează bonuri cu AI' : 'Scan receipts with AI'}
               </Text>
               <View style={styles.scanButtons}>
-                <TouchableOpacity
-                  style={styles.scanButton}
-                  onPress={scanReceipt}
-                  disabled={scanning}
-                >
-                  <Ionicons name="camera" size={24} color="#fff" />
-                  <Text style={styles.scanButtonText}>{t('organize.camera')}</Text>
-                </TouchableOpacity>
-                <TouchableOpacity
-                  style={[styles.scanButton, { backgroundColor: '#6366f1' }]}
-                  onPress={pickReceiptImage}
-                  disabled={scanning}
-                >
-                  <Ionicons name="images" size={24} color="#fff" />
-                  <Text style={styles.scanButtonText}>{t('organize.gallery')}</Text>
+                <TouchableOpacity style={styles.scanButton} onPress={scanReceipt} disabled={scanning}>
+                  <LinearGradient colors={['#8B5CF6', '#6D28D9']} style={styles.scanGradient}>
+                    <Ionicons name="camera" size={22} color="#fff" />
+                    <Text style={styles.scanButtonText}>{isRo ? 'Cameră' : 'Camera'}</Text>
+                  </LinearGradient>
                 </TouchableOpacity>
               </View>
-            </View>
+            </LinearGradient>
 
             {scanning && (
               <View style={styles.scanningContainer}>
-                <ActivityIndicator size="large" color="#10b981" />
-                <Text style={styles.scanningText}>{t('organize.processingAI')}</Text>
+                <ActivityIndicator size="large" color={C.purple} />
+                <Text style={styles.scanningText}>{isRo ? 'AI procesează...' : 'AI processing...'}</Text>
               </View>
             )}
 
             {receipts.map((receipt) => (
               <View key={receipt.id} style={styles.receiptCard}>
-                <View style={styles.receiptHeader}>
-                  <View>
-                    <Text style={styles.receiptStore}>
-                      {receipt.parsed_data?.store || t('organize.unknownStore')}
-                    </Text>
-                    <Text style={styles.receiptDate}>
-                      {receipt.parsed_data?.date || format(new Date(receipt.created_at), 'dd/MM/yyyy')}
-                    </Text>
-                  </View>
-                  <TouchableOpacity onPress={() => deleteReceipt(receipt.id)}>
-                    <Ionicons name="trash-outline" size={22} color="#ef4444" />
-                  </TouchableOpacity>
-                </View>
-                {receipt.parsed_data?.items?.length > 0 && (
-                  <View style={styles.receiptItems}>
-                    {receipt.parsed_data.items.slice(0, 3).map((item: any, idx: number) => (
-                      <View key={idx} style={styles.receiptItem}>
-                        <Text style={styles.receiptItemName}>{item.name}</Text>
-                        <Text style={styles.receiptItemPrice}>{item.price} {currencySymbol}</Text>
-                      </View>
-                    ))}
-                    {receipt.parsed_data.items.length > 3 && (
-                      <Text style={styles.moreItems}>
-                        +{receipt.parsed_data.items.length - 3} {t('organize.otherProducts')}
+                <LinearGradient colors={['#252532', '#1E1E2A']} style={styles.receiptGradient}>
+                  <View style={styles.receiptHeader}>
+                    <View>
+                      <Text style={styles.receiptStore}>
+                        {receipt.parsed_data?.store || (isRo ? 'Magazin necunoscut' : 'Unknown store')}
                       </Text>
-                    )}
+                      <Text style={styles.receiptDate}>
+                        {receipt.parsed_data?.date || format(new Date(receipt.created_at), 'dd/MM/yyyy')}
+                      </Text>
+                    </View>
+                    <TouchableOpacity onPress={() => deleteReceipt(receipt.id)}>
+                      <Ionicons name="trash-outline" size={22} color={C.red} />
+                    </TouchableOpacity>
                   </View>
-                )}
-                <View style={styles.receiptTotal}>
-                  <Text style={styles.receiptTotalLabel}>{t('organize.total')}</Text>
-                  <Text style={styles.receiptTotalValue}>
-                    {receipt.parsed_data?.total || '0'} {currencySymbol}
-                  </Text>
-                </View>
+                  <View style={styles.receiptTotal}>
+                    <Text style={styles.receiptTotalLabel}>{t('organize.total')}</Text>
+                    <Text style={styles.receiptTotalValue}>
+                      {receipt.parsed_data?.total || '0'} {currencySymbol}
+                    </Text>
+                  </View>
+                </LinearGradient>
               </View>
             ))}
 
             {receipts.length === 0 && !scanning && (
               <View style={styles.emptyState}>
-                <Ionicons name="receipt-outline" size={48} color="#d1d5db" />
+                <Ionicons name="receipt-outline" size={48} color={C.textMuted} />
                 <Text style={styles.emptyText}>{t('organize.noReceipts')}</Text>
               </View>
             )}
@@ -566,36 +532,42 @@ export default function OrganizeScreen() {
       <Modal visible={editCategoryModal} animationType="slide" transparent>
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>
-                {t('organize.updateCategory')} {editingCategory ? getCategoryName(editingCategory.name) : ''}
-              </Text>
-              <TouchableOpacity onPress={() => setEditCategoryModal(false)}>
-                <Ionicons name="close" size={24} color="#6b7280" />
-              </TouchableOpacity>
-            </View>
-            <View style={styles.modalBody}>
-              <Text style={styles.inputLabel}>{t('organize.categoryBudget')} ({currencySymbol})</Text>
-              <TextInput
-                style={styles.input}
-                value={categoryBudgetAmount}
-                onChangeText={setCategoryBudgetAmount}
-                keyboardType="numeric"
-                placeholder="0"
-              />
-              
-              <Text style={styles.inputLabel}>{t('organize.spentAmount')} ({currencySymbol})</Text>
-              <TextInput
-                style={styles.input}
-                value={categorySpent}
-                onChangeText={setCategorySpent}
-                keyboardType="numeric"
-                placeholder="0"
-              />
-              <TouchableOpacity style={styles.saveButton} onPress={updateCategory}>
-                <Text style={styles.saveButtonText}>{t('common.save')}</Text>
-              </TouchableOpacity>
-            </View>
+            <LinearGradient colors={['#1E1E2A', '#0F0F14']} style={styles.modalGradient}>
+              <View style={styles.modalHeader}>
+                <Text style={styles.modalTitle}>
+                  {editingCategory ? getCategoryName(editingCategory.name) : ''}
+                </Text>
+                <TouchableOpacity onPress={() => setEditCategoryModal(false)}>
+                  <Ionicons name="close" size={24} color={C.textMuted} />
+                </TouchableOpacity>
+              </View>
+              <View style={styles.modalBody}>
+                <Text style={styles.inputLabel}>{isRo ? 'Buget categorie' : 'Category budget'} ({currencySymbol})</Text>
+                <TextInput
+                  style={styles.input}
+                  value={categoryBudgetAmount}
+                  onChangeText={setCategoryBudgetAmount}
+                  keyboardType="numeric"
+                  placeholder="0"
+                  placeholderTextColor={C.textMuted}
+                />
+                
+                <Text style={styles.inputLabel}>{isRo ? 'Sumă cheltuită' : 'Amount spent'} ({currencySymbol})</Text>
+                <TextInput
+                  style={styles.input}
+                  value={categorySpent}
+                  onChangeText={setCategorySpent}
+                  keyboardType="numeric"
+                  placeholder="0"
+                  placeholderTextColor={C.textMuted}
+                />
+                <TouchableOpacity style={styles.saveButton} onPress={updateCategory}>
+                  <LinearGradient colors={['#10B981', '#059669']} style={styles.saveGradient}>
+                    <Text style={styles.saveButtonText}>{t('common.save')}</Text>
+                  </LinearGradient>
+                </TouchableOpacity>
+              </View>
+            </LinearGradient>
           </View>
         </View>
       </Modal>
@@ -604,28 +576,30 @@ export default function OrganizeScreen() {
       <Modal visible={editTotalBudgetModal} animationType="slide" transparent>
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            <View style={styles.modalHeader}>
-              <Text style={styles.modalTitle}>{t('organize.editBudget')}</Text>
-              <TouchableOpacity onPress={() => setEditTotalBudgetModal(false)}>
-                <Ionicons name="close" size={24} color="#6b7280" />
-              </TouchableOpacity>
-            </View>
-            <View style={styles.modalBody}>
-              <Text style={styles.inputLabel}>{t('organize.setBudget')} ({currencySymbol})</Text>
-              <TextInput
-                style={styles.input}
-                value={totalBudgetInput}
-                onChangeText={setTotalBudgetInput}
-                keyboardType="numeric"
-                placeholder={totalBudget.toString()}
-              />
-              <Text style={styles.budgetHint}>
-                {t('organize.budgetHint') || 'Category budgets will be adjusted proportionally'}
-              </Text>
-              <TouchableOpacity style={styles.saveButton} onPress={updateTotalBudget}>
-                <Text style={styles.saveButtonText}>{t('common.save')}</Text>
-              </TouchableOpacity>
-            </View>
+            <LinearGradient colors={['#1E1E2A', '#0F0F14']} style={styles.modalGradient}>
+              <View style={styles.modalHeader}>
+                <Text style={styles.modalTitle}>{t('organize.editBudget')}</Text>
+                <TouchableOpacity onPress={() => setEditTotalBudgetModal(false)}>
+                  <Ionicons name="close" size={24} color={C.textMuted} />
+                </TouchableOpacity>
+              </View>
+              <View style={styles.modalBody}>
+                <Text style={styles.inputLabel}>{isRo ? 'Buget total' : 'Total budget'} ({currencySymbol})</Text>
+                <TextInput
+                  style={styles.input}
+                  value={totalBudgetInput}
+                  onChangeText={setTotalBudgetInput}
+                  keyboardType="numeric"
+                  placeholder={totalBudget.toString()}
+                  placeholderTextColor={C.textMuted}
+                />
+                <TouchableOpacity style={styles.saveButton} onPress={updateTotalBudget}>
+                  <LinearGradient colors={['#10B981', '#059669']} style={styles.saveGradient}>
+                    <Text style={styles.saveButtonText}>{t('common.save')}</Text>
+                  </LinearGradient>
+                </TouchableOpacity>
+              </View>
+            </LinearGradient>
           </View>
         </View>
       </Modal>
@@ -636,7 +610,7 @@ export default function OrganizeScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#FAF8F5',
+    backgroundColor: C.bg,
   },
   tabContainer: {
     flexDirection: 'row',
@@ -650,16 +624,16 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     paddingVertical: 12,
     borderRadius: 14,
-    backgroundColor: 'rgba(197, 160, 89, 0.12)',
+    backgroundColor: C.surface,
     gap: 6,
   },
   tabActive: {
-    backgroundColor: '#C5A059',
+    backgroundColor: C.primary,
   },
   tabText: {
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: '600',
-    color: '#C5A059',
+    color: C.textSecondary,
   },
   tabTextActive: {
     color: '#FFFFFF',
@@ -669,15 +643,9 @@ const styles = StyleSheet.create({
     padding: 16,
   },
   headerCard: {
-    backgroundColor: '#FFFFFF',
     borderRadius: 20,
     padding: 20,
     marginBottom: 16,
-    shadowColor: '#3D2B1F',
-    shadowOffset: { width: 0, height: 4 },
-    shadowOpacity: 0.04,
-    shadowRadius: 16,
-    elevation: 3,
   },
   budgetHeaderRow: {
     flexDirection: 'row',
@@ -685,28 +653,21 @@ const styles = StyleSheet.create({
     alignItems: 'center',
   },
   editBudgetButton: {
-    flexDirection: 'row',
+    width: 36,
+    height: 36,
+    borderRadius: 10,
+    backgroundColor: C.greenGlow,
+    justifyContent: 'center',
     alignItems: 'center',
-    backgroundColor: 'rgba(197, 160, 89, 0.12)',
-    paddingVertical: 6,
-    paddingHorizontal: 12,
-    borderRadius: 20,
-    gap: 4,
-  },
-  editBudgetText: {
-    fontSize: 13,
-    fontWeight: '600',
-    color: '#C5A059',
   },
   headerTitle: {
     fontSize: 22,
     fontWeight: '700',
-    color: '#3D2B1F',
-    fontFamily: 'PlayfairDisplay_700Bold',
+    color: C.text,
   },
   headerSubtitle: {
     fontSize: 14,
-    color: '#8B7D70',
+    color: C.textMuted,
     marginTop: 4,
     textTransform: 'capitalize',
   },
@@ -715,18 +676,18 @@ const styles = StyleSheet.create({
   },
   progressBar: {
     height: 8,
-    backgroundColor: '#E8E4DD',
+    backgroundColor: C.border,
     borderRadius: 4,
     overflow: 'hidden',
   },
   progressFill: {
     height: '100%',
-    backgroundColor: '#C5A059',
+    backgroundColor: C.blue,
     borderRadius: 4,
   },
   progressText: {
     fontSize: 13,
-    color: '#8B7D70',
+    color: C.textMuted,
     marginTop: 8,
     textAlign: 'right',
   },
@@ -737,39 +698,43 @@ const styles = StyleSheet.create({
   },
   addTaskInput: {
     flex: 1,
-    backgroundColor: '#FFFFFF',
+    backgroundColor: C.surface,
     borderRadius: 14,
     padding: 14,
     fontSize: 16,
-    color: '#3D2B1F',
+    color: C.text,
     borderWidth: 1,
-    borderColor: '#E8E4DD',
+    borderColor: C.border,
   },
   addTaskButton: {
+    borderRadius: 14,
+    overflow: 'hidden',
+  },
+  addTaskGradient: {
     width: 50,
     height: 50,
-    borderRadius: 14,
-    backgroundColor: '#C5A059',
     justifyContent: 'center',
     alignItems: 'center',
   },
   taskItem: {
+    borderRadius: 14,
+    overflow: 'hidden',
+    marginBottom: 8,
+  },
+  taskGradient: {
     flexDirection: 'row',
     alignItems: 'center',
-    backgroundColor: '#fff',
-    borderRadius: 12,
     padding: 14,
-    marginBottom: 8,
     gap: 12,
   },
   taskText: {
     flex: 1,
     fontSize: 15,
-    color: '#374151',
+    color: C.text,
   },
   taskCompleted: {
     textDecorationLine: 'line-through',
-    color: '#9ca3af',
+    color: C.textMuted,
   },
   budgetSummary: {
     flexDirection: 'row',
@@ -777,45 +742,48 @@ const styles = StyleSheet.create({
     marginTop: 16,
     paddingTop: 16,
     borderTopWidth: 1,
-    borderTopColor: '#e5e7eb',
+    borderTopColor: C.border,
   },
   budgetItem: {
     alignItems: 'center',
   },
   budgetLabel: {
-    fontSize: 12,
-    color: '#6b7280',
+    fontSize: 11,
+    color: C.textMuted,
+    textTransform: 'uppercase',
   },
   budgetValue: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#1f2937',
+    color: C.text,
     marginTop: 4,
   },
   categoryCard: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 16,
+    borderRadius: 14,
+    overflow: 'hidden',
     marginBottom: 8,
+  },
+  categoryGradient: {
+    padding: 16,
   },
   categoryHeader: {
     flexDirection: 'row',
     justifyContent: 'space-between',
     alignItems: 'center',
-    marginBottom: 8,
+    marginBottom: 10,
   },
   categoryName: {
     fontSize: 15,
     fontWeight: '600',
-    color: '#374151',
+    color: C.text,
   },
   categorySpent: {
     fontSize: 14,
-    color: '#6b7280',
+    color: C.textSecondary,
   },
   categoryProgress: {
     height: 6,
-    backgroundColor: '#e5e7eb',
+    backgroundColor: C.border,
     borderRadius: 3,
     overflow: 'hidden',
   },
@@ -824,18 +792,17 @@ const styles = StyleSheet.create({
     borderRadius: 3,
   },
   scanButtons: {
-    flexDirection: 'row',
-    gap: 12,
     marginTop: 16,
   },
   scanButton: {
-    flex: 1,
+    borderRadius: 14,
+    overflow: 'hidden',
+  },
+  scanGradient: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#10b981',
     paddingVertical: 14,
-    borderRadius: 12,
     gap: 8,
   },
   scanButtonText: {
@@ -850,13 +817,15 @@ const styles = StyleSheet.create({
   scanningText: {
     marginTop: 12,
     fontSize: 15,
-    color: '#6b7280',
+    color: C.textMuted,
   },
   receiptCard: {
-    backgroundColor: '#fff',
-    borderRadius: 12,
-    padding: 16,
+    borderRadius: 14,
+    overflow: 'hidden',
     marginBottom: 12,
+  },
+  receiptGradient: {
+    padding: 16,
   },
   receiptHeader: {
     flexDirection: 'row',
@@ -866,39 +835,12 @@ const styles = StyleSheet.create({
   receiptStore: {
     fontSize: 16,
     fontWeight: '600',
-    color: '#1f2937',
+    color: C.text,
   },
   receiptDate: {
     fontSize: 13,
-    color: '#6b7280',
+    color: C.textMuted,
     marginTop: 2,
-  },
-  receiptItems: {
-    marginTop: 12,
-    paddingTop: 12,
-    borderTopWidth: 1,
-    borderTopColor: '#f3f4f6',
-  },
-  receiptItem: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    marginBottom: 6,
-  },
-  receiptItemName: {
-    fontSize: 14,
-    color: '#6b7280',
-    flex: 1,
-  },
-  receiptItemPrice: {
-    fontSize: 14,
-    fontWeight: '500',
-    color: '#374151',
-  },
-  moreItems: {
-    fontSize: 13,
-    color: '#9ca3af',
-    fontStyle: 'italic',
-    marginTop: 4,
   },
   receiptTotal: {
     flexDirection: 'row',
@@ -906,36 +848,39 @@ const styles = StyleSheet.create({
     marginTop: 12,
     paddingTop: 12,
     borderTopWidth: 1,
-    borderTopColor: '#f3f4f6',
+    borderTopColor: C.border,
   },
   receiptTotalLabel: {
-    fontSize: 15,
+    fontSize: 14,
     fontWeight: '600',
-    color: '#374151',
+    color: C.textSecondary,
   },
   receiptTotalValue: {
     fontSize: 16,
     fontWeight: '700',
-    color: '#10b981',
+    color: C.green,
   },
   emptyState: {
     alignItems: 'center',
     paddingVertical: 40,
   },
   emptyText: {
-    fontSize: 16,
-    color: '#9ca3af',
+    fontSize: 15,
+    color: C.textMuted,
     marginTop: 12,
   },
   modalOverlay: {
     flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.5)',
+    backgroundColor: 'rgba(0,0,0,0.8)',
     justifyContent: 'flex-end',
   },
   modalContent: {
-    backgroundColor: '#fff',
-    borderTopLeftRadius: 24,
-    borderTopRightRadius: 24,
+    borderTopLeftRadius: 28,
+    borderTopRightRadius: 28,
+    overflow: 'hidden',
+  },
+  modalGradient: {
+    padding: 0,
   },
   modalHeader: {
     flexDirection: 'row',
@@ -943,12 +888,12 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 20,
     borderBottomWidth: 1,
-    borderBottomColor: '#f3f4f6',
+    borderBottomColor: C.border,
   },
   modalTitle: {
     fontSize: 18,
     fontWeight: '700',
-    color: '#1f2937',
+    color: C.text,
   },
   modalBody: {
     padding: 20,
@@ -956,29 +901,26 @@ const styles = StyleSheet.create({
   inputLabel: {
     fontSize: 14,
     fontWeight: '600',
-    color: '#374151',
+    color: C.textSecondary,
     marginBottom: 8,
   },
   input: {
-    borderWidth: 1,
-    borderColor: '#e5e7eb',
-    borderRadius: 12,
+    backgroundColor: C.surface,
+    borderRadius: 14,
     padding: 14,
     fontSize: 16,
-    color: '#1f2937',
+    color: C.text,
     marginBottom: 16,
-    backgroundColor: '#f9fafb',
-  },
-  budgetHint: {
-    fontSize: 13,
-    color: '#9ca3af',
-    fontStyle: 'italic',
-    marginBottom: 16,
+    borderWidth: 1,
+    borderColor: C.border,
   },
   saveButton: {
-    backgroundColor: '#10b981',
+    borderRadius: 14,
+    overflow: 'hidden',
+    marginTop: 8,
+  },
+  saveGradient: {
     paddingVertical: 16,
-    borderRadius: 12,
     alignItems: 'center',
   },
   saveButtonText: {
