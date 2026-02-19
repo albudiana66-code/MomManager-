@@ -357,7 +357,6 @@ const styles = StyleSheet.create({
   sectionTitle: {
     fontSize: 16,
     fontWeight: '700',
-    color: C.text,
     marginBottom: 14,
     letterSpacing: 0.3,
   },
@@ -387,7 +386,6 @@ const styles = StyleSheet.create({
   actionLabel: {
     fontSize: 14,
     fontWeight: '600',
-    color: C.text,
     flex: 1,
   },
   quoteCard: {
@@ -401,7 +399,6 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 14,
     fontStyle: 'italic',
-    color: C.textSecondary,
     lineHeight: 20,
   },
 });
