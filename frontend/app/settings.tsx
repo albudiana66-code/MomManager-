@@ -494,11 +494,9 @@ const styles = StyleSheet.create({
   settingLabel: {
     fontSize: 15,
     fontWeight: '600',
-    color: C.text,
   },
   settingHint: {
     fontSize: 12,
-    color: C.textMuted,
     marginTop: 2,
   },
   settingValue: {
@@ -508,7 +506,13 @@ const styles = StyleSheet.create({
   },
   settingValueText: {
     fontSize: 13,
-    color: C.textSecondary,
+  },
+  themeToggle: {
+    width: 36,
+    height: 36,
+    borderRadius: 18,
+    justifyContent: 'center',
+    alignItems: 'center',
   },
   subscriptionCard: {
     borderRadius: 20,
@@ -522,7 +526,6 @@ const styles = StyleSheet.create({
     position: 'absolute',
     top: 10,
     right: 14,
-    backgroundColor: C.green,
     paddingHorizontal: 10,
     paddingVertical: 4,
     borderRadius: 12,
@@ -540,12 +543,10 @@ const styles = StyleSheet.create({
   subscriptionName: {
     fontSize: 16,
     fontWeight: '700',
-    color: C.text,
   },
   priceTag: {
     flexDirection: 'row',
     alignItems: 'baseline',
-    backgroundColor: C.primaryGlow,
     paddingHorizontal: 12,
     paddingVertical: 6,
     borderRadius: 20,
@@ -554,7 +555,6 @@ const styles = StyleSheet.create({
   priceAmount: {
     fontSize: 18,
     fontWeight: '700',
-    color: C.primary,
   },
   pricePeriod: {
     fontSize: 11,
