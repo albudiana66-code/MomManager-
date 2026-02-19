@@ -71,6 +71,61 @@ export interface NotificationPreferences {
   foodExpirationAlerts: boolean;
 }
 
+// Theme type
+export type ThemeMode = 'light' | 'dark';
+
+// Theme colors
+export const THEMES = {
+  dark: {
+    bg: '#0F0F14',
+    bgLight: '#1A1A24',
+    card: '#1E1E2A',
+    surface: '#252532',
+    primary: '#E91E9C',
+    primaryGlow: 'rgba(233, 30, 156, 0.15)',
+    purple: '#8B5CF6',
+    purpleGlow: 'rgba(139, 92, 246, 0.15)',
+    blue: '#3B82F6',
+    blueGlow: 'rgba(59, 130, 246, 0.15)',
+    cyan: '#06B6D4',
+    gold: '#F5A623',
+    goldGlow: 'rgba(245, 166, 35, 0.15)',
+    green: '#10B981',
+    greenGlow: 'rgba(16, 185, 129, 0.15)',
+    orange: '#F97316',
+    orangeGlow: 'rgba(249, 115, 22, 0.15)',
+    red: '#EF4444',
+    text: '#FFFFFF',
+    textSecondary: '#A1A1B5',
+    textMuted: '#6B6B80',
+    border: '#2A2A3A',
+  },
+  light: {
+    bg: '#FFFFFF',
+    bgLight: '#F8F9FA',
+    card: '#FFFFFF',
+    surface: '#F1F3F5',
+    primary: '#E91E9C',
+    primaryGlow: 'rgba(233, 30, 156, 0.1)',
+    purple: '#8B5CF6',
+    purpleGlow: 'rgba(139, 92, 246, 0.1)',
+    blue: '#3B82F6',
+    blueGlow: 'rgba(59, 130, 246, 0.1)',
+    cyan: '#06B6D4',
+    gold: '#F5A623',
+    goldGlow: 'rgba(245, 166, 35, 0.1)',
+    green: '#10B981',
+    greenGlow: 'rgba(16, 185, 129, 0.1)',
+    orange: '#F97316',
+    orangeGlow: 'rgba(249, 115, 22, 0.1)',
+    red: '#EF4444',
+    text: '#1A1A2E',
+    textSecondary: '#4A4A5A',
+    textMuted: '#8A8A9A',
+    border: '#E5E7EB',
+  },
+};
+
 interface SettingsContextType {
   // Language
   language: typeof LANGUAGES[0];
