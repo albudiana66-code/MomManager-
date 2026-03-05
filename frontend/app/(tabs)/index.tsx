@@ -80,26 +80,13 @@ export default function HomeScreen() {
             <Text style={[styles.greeting, { color: C.textMuted }]}>{t('home.greeting')}</Text>
             <Text style={[styles.userName, { color: C.text }]}>{user?.name?.split(' ')[0]}</Text>
           </View>
-          <View style={styles.headerButtons}>
-            {/* Day/Night Toggle */}
-            <TouchableOpacity 
-              style={[styles.iconButton, { backgroundColor: C.surface }]} 
-              onPress={toggleTheme}
-            >
-              <Ionicons 
-                name={isDarkMode ? 'sunny-outline' : 'moon-outline'} 
-                size={22} 
-                color={isDarkMode ? C.gold : C.purple} 
-              />
-            </TouchableOpacity>
-            {/* Settings */}
-            <TouchableOpacity 
-              style={[styles.iconButton, { backgroundColor: C.surface }]} 
-              onPress={() => router.push('/settings')}
-            >
-              <Ionicons name="settings-outline" size={22} color={C.textSecondary} />
-            </TouchableOpacity>
-          </View>
+          {/* Settings Button Only */}
+          <TouchableOpacity 
+            style={[styles.iconButton, { backgroundColor: C.surface }]} 
+            onPress={() => router.push('/settings')}
+          >
+            <Ionicons name="settings-outline" size={22} color={C.textSecondary} />
+          </TouchableOpacity>
         </View>
 
         {/* Date Card */}
