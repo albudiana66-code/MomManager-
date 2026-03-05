@@ -1177,38 +1177,60 @@ async def get_stories(current_user: User = Depends(require_auth)):
 
 @app.post("/api/stories/generate")
 async def generate_story(request: Request, current_user: User = Depends(require_auth)):
-    """Generate AI story for kids based on age group"""
+    """Generate AI story for kids based on age group with fictional characters"""
     body = await request.json()
     age_group = body.get("age_group", "1-4")
     themes = body.get("themes", [])
     language = body.get("language", "ro")
-    kid_name = body.get("kid_name", "")
     
     if not EMERGENT_LLM_KEY:
         raise HTTPException(status_code=500, detail="AI service not configured")
     
     from emergentintegrations.llm.chat import LlmChat, UserMessage
     
-    # Age-specific instructions
-    age_instructions = {
-        "1-4": {
-            "ro": "Creează o poveste FOARTE simplă pentru copii de 1-4 ani. Folosește propoziții scurte și simple. Temele trebuie să fie despre bucurie, culori, animale drăguțe, familie. Povestea trebuie să fie pozitivă și fericită, fără elemente înfricoșătoare. Maximum 300 cuvinte.",
-            "en": "Create a VERY simple story for children aged 1-4. Use short, simple sentences. Themes should be about joy, colors, cute animals, family. The story must be positive and happy, with no scary elements. Maximum 300 words."
+    lang_code = language.split("-")[0] if "-" in language else language
+    
+    # Fictional character names based on age group and language
+    fictional_characters = {
+        "ro": {
+            "1-4": ["Ursulețul Miki", "Pisicuța Luna", "Cățelușul Max", "Iepurașul Pufi", "Fluturaș"],
+            "4-7": ["Zâna Florilor", "Elfii veseli", "Prințesa Sofia", "Căpitanul Curaj", "Piticii Harnici"],
+            "7+": ["Detectivul Alex", "Exploratoarea Maya", "Magicianul Orion", "Inventatorul Leo", "Aventurierii Curajosi"],
         },
-        "4-7": {
-            "ro": "Creează o poveste pentru copii de 4-7 ani despre prietenie, empatie, înțelegere și încredere de sine. Povestea trebuie să aibă un mesaj moral pozitiv. Personajele pot fi copii sau animale prietenoase. Include situații care învață despre emoții și relații. Maximum 500 cuvinte.",
-            "en": "Create a story for children aged 4-7 about friendship, empathy, understanding, and self-confidence. The story must have a positive moral message. Characters can be children or friendly animals. Include situations that teach about emotions and relationships. Maximum 500 words."
-        },
-        "7+": {
-            "ro": "Creează o poveste pentru copii de 7+ ani cu elemente de mister și curiozitate, dar prietenoasă și empatică. Personajele pot rezolva mistere sau descoperi lucruri noi. Povestea trebuie să promoveze curiozitatea, curajul și bunătatea. Include aventuri interesante. Maximum 700 cuvinte.",
-            "en": "Create a story for children aged 7+ with mystery and curiosity elements, but friendly and empathetic. Characters can solve mysteries or discover new things. The story should promote curiosity, courage, and kindness. Include interesting adventures. Maximum 700 words."
+        "en": {
+            "1-4": ["Teddy Bear Miki", "Kitten Luna", "Puppy Max", "Bunny Fluffy", "Little Butterfly"],
+            "4-7": ["Flower Fairy", "Happy Elves", "Princess Sofia", "Captain Courage", "Busy Dwarfs"],
+            "7+": ["Detective Alex", "Explorer Maya", "Wizard Orion", "Inventor Leo", "The Brave Adventurers"],
         }
     }
     
-    lang_code = language.split("-")[0] if "-" in language else language
+    # Get character suggestions for prompt
+    char_lang = "ro" if lang_code == "ro" else "en"
+    suggested_chars = fictional_characters.get(char_lang, fictional_characters["en"]).get(age_group, fictional_characters["en"]["4-7"])
+    char_suggestions = ", ".join(suggested_chars[:3])
+    
+    # Age-specific instructions
+    age_instructions = {
+        "1-4": {
+            "ro": f"Creează o poveste FOARTE simplă pentru copii de 1-4 ani. Folosește propoziții scurte și simple. Temele trebuie să fie despre bucurie, culori, animale drăguțe, familie. Povestea trebuie să fie pozitivă și fericită, fără elemente înfricoșătoare. IMPORTANT: Folosește DOAR personaje fictive precum: {char_suggestions}. NU folosi nume reale de copii. Maximum 300 cuvinte.",
+            "en": f"Create a VERY simple story for children aged 1-4. Use short, simple sentences. Themes should be about joy, colors, cute animals, family. The story must be positive and happy, with no scary elements. IMPORTANT: Use ONLY fictional characters like: {char_suggestions}. Do NOT use real children names. Maximum 300 words."
+        },
+        "4-7": {
+            "ro": f"Creează o poveste pentru copii de 4-7 ani despre prietenie, empatie, înțelegere și încredere de sine. Povestea trebuie să aibă un mesaj moral pozitiv. IMPORTANT: Folosește DOAR personaje fictive precum: {char_suggestions}. NU folosi nume reale de copii. Include situații care învață despre emoții și relații. Maximum 500 cuvinte.",
+            "en": f"Create a story for children aged 4-7 about friendship, empathy, understanding, and self-confidence. The story must have a positive moral message. IMPORTANT: Use ONLY fictional characters like: {char_suggestions}. Do NOT use real children names. Include situations that teach about emotions and relationships. Maximum 500 words."
+        },
+        "7+": {
+            "ro": f"Creează o poveste pentru copii de 7+ ani cu elemente de mister și curiozitate, dar prietenoasă și empatică. IMPORTANT: Folosește DOAR personaje fictive precum: {char_suggestions}. NU folosi nume reale de copii. Povestea trebuie să promoveze curiozitatea, curajul și bunătatea. Include aventuri interesante. Maximum 700 cuvinte.",
+            "en": f"Create a story for children aged 7+ with mystery and curiosity elements, but friendly and empathetic. IMPORTANT: Use ONLY fictional characters like: {char_suggestions}. Do NOT use real children names. The story should promote curiosity, courage, and kindness. Include interesting adventures. Maximum 700 words."
+        }
+    }
+    
     instruction = age_instructions.get(age_group, age_instructions["4-7"]).get(lang_code, age_instructions["4-7"]["en"])
     
     system_msg = f"""Ești un povestitor magic pentru copii. Creezi povești frumoase, educative și potrivite vârstei.
+
+REGULA IMPORTANTĂ: Folosește ÎNTOTDEAUNA personaje fictive (animale vorbitoare, zâne, elfi, detectivi imaginari, etc.). 
+NU folosi NICIODATĂ nume reale de copii sau persoane.
 
 {instruction}
 
