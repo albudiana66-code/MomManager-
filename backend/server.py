@@ -1250,8 +1250,7 @@ Răspunde în limba {'română' if lang_code == 'ro' else 'engleză'}."""
     ).with_model("openai", "gpt-5.2")
     
     themes_str = ", ".join(themes) if themes else ""
-    kid_mention = f" pentru {kid_name}" if kid_name else ""
-    prompt = f"Creează o poveste{kid_mention}. Grupa de vârstă: {age_group}. Teme sugerate: {themes_str}."
+    prompt = f"Creează o poveste cu personaje fictive. Grupa de vârstă: {age_group}. Teme sugerate: {themes_str}. Folosește animale vorbitoare, zâne sau alte personaje imaginare, NU copii reali."
     
     user_message = UserMessage(text=prompt)
     
@@ -1285,7 +1284,6 @@ Răspunde în limba {'română' if lang_code == 'ro' else 'engleză'}."""
             "age_group": age_group,
             "themes": themes,
             "language": language,
-            "kid_name": kid_name,
             "created_at": datetime.now(timezone.utc)
         }
         await db.stories.insert_one(story_doc)
