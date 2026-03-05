@@ -221,10 +221,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     marginBottom: 24,
   },
-  headerButtons: {
-    flexDirection: 'row',
-    gap: 10,
-  },
   greeting: {
     fontSize: 14,
     letterSpacing: 0.5,
