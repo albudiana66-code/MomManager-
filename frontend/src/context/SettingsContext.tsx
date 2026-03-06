@@ -9,6 +9,7 @@ import esTranslations from '../translations/es.json';
 import frTranslations from '../translations/fr.json';
 import deTranslations from '../translations/de.json';
 import itTranslations from '../translations/it.json';
+import ptTranslations from '../translations/pt.json';
 
 // All translations
 const translations: { [key: string]: any } = {
@@ -18,6 +19,7 @@ const translations: { [key: string]: any } = {
   fr: frTranslations,
   de: deTranslations,
   it: itTranslations,
+  pt: ptTranslations,
 };
 
 // Languages with their names

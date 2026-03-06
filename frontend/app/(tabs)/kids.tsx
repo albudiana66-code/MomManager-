@@ -183,27 +183,27 @@ export default function KidsScreen() {
   };
 
   const deleteKid = async (id: string) => {
-    Alert.alert(
-      isRo ? 'Sterge copilul' : 'Delete child',
-      isRo ? 'Esti sigura ca vrei sa stergi?' : 'Are you sure?',
-      [
-        { text: isRo ? 'Anuleaza' : 'Cancel', style: 'cancel' },
-        {
-          text: isRo ? 'Sterge' : 'Delete',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await api.deleteKid(id);
-              const updatedKids = kids.filter((k) => k.id !== id);
-              setKids(updatedKids);
-              setSelectedKid(updatedKids[0] || null);
-            } catch (error) {
-              console.error('Error deleting kid:', error);
-            }
-          },
-        },
-      ]
-    );
+    const msg = isRo ? 'Esti sigura ca vrei sa stergi?' : 'Are you sure you want to delete?';
+    if (typeof window !== 'undefined' && !window.confirm(msg)) return;
+    try {
+      await api.deleteKid(id);
+      const updatedKids = kids.filter((k) => k.id !== id);
+      setKids(updatedKids);
+      setSelectedKid(updatedKids[0] || null);
+    } catch (error) {
+      console.error('Error deleting kid:', error);
+    }
+  };
+
+  const deleteStory = async (id: string) => {
+    const msg = isRo ? 'Esti sigura ca vrei sa stergi povestea?' : 'Are you sure you want to delete this story?';
+    if (typeof window !== 'undefined' && !window.confirm(msg)) return;
+    try {
+      await api.deleteStory(id);
+      setSavedStories(savedStories.filter((st) => st.id !== id));
+    } catch (error) {
+      console.error('Error deleting story:', error);
+    }
   };
 
   const borderStyle = !isDarkMode ? { borderWidth: 1, borderColor: C.border } : {};
@@ -228,15 +228,18 @@ export default function KidsScreen() {
         {kids.length > 0 && (
           <ScrollView horizontal showsHorizontalScrollIndicator={false} style={s.kidsScroll} contentContainerStyle={s.kidsContainer}>
             {kids.map((kid) => (
-              <TouchableOpacity
-                key={kid.id}
-                style={[s.kidChip, { backgroundColor: C.surface }, selectedKid?.id === kid.id && { backgroundColor: C.purple }]}
-                onPress={() => setSelectedKid(kid)}
-                onLongPress={() => deleteKid(kid.id)}
-              >
-                <Ionicons name="happy" size={18} color={selectedKid?.id === kid.id ? '#fff' : C.purple} />
-                <Text style={[s.kidChipText, { color: C.purple }, selectedKid?.id === kid.id && { color: '#fff' }]}>{kid.kid_name}</Text>
-              </TouchableOpacity>
+              <View key={kid.id} style={[s.kidChip, { backgroundColor: C.surface }, selectedKid?.id === kid.id && { backgroundColor: C.purple }]}>
+                <TouchableOpacity
+                  style={s.kidChipInner}
+                  onPress={() => setSelectedKid(kid)}
+                >
+                  <Ionicons name="happy" size={18} color={selectedKid?.id === kid.id ? '#fff' : C.purple} />
+                  <Text style={[s.kidChipText, { color: C.purple }, selectedKid?.id === kid.id && { color: '#fff' }]}>{kid.kid_name}</Text>
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => deleteKid(kid.id)} style={s.kidDeleteBtn}>
+                  <Ionicons name="close-circle" size={18} color={selectedKid?.id === kid.id ? 'rgba(255,255,255,0.7)' : C.red} />
+                </TouchableOpacity>
+              </View>
             ))}
           </ScrollView>
         )}
@@ -292,20 +295,24 @@ export default function KidsScreen() {
             </View>
           ) : (
             savedStories.map((story: any, index: number) => (
-              <TouchableOpacity key={story.id || index} style={s.storyCard} onPress={() => { setCurrentStory(story); setViewStoryModal(true); }}>
-                <LinearGradient colors={gradCard} style={[s.storyGradient, borderStyle]}>
-                  <View style={[s.storyIcon, { backgroundColor: C.purpleGlow }]}>
-                    <Ionicons name="book" size={24} color={C.purple} />
-                  </View>
-                  <View style={s.storyContent}>
-                    <Text style={[s.storyTitle, { color: C.text }]} numberOfLines={1}>{story.title}</Text>
-                    <Text style={[s.storyMetaText, { color: C.textMuted }]}>
-                      {story.age_group} {story.created_at ? `- ${format(new Date(story.created_at), 'dd MMM', { locale: isRo ? ro : enUS })}` : ''}
-                    </Text>
-                  </View>
-                  <Ionicons name="chevron-forward" size={20} color={C.textMuted} />
-                </LinearGradient>
-              </TouchableOpacity>
+              <View key={story.id || index} style={s.storyCard}>
+                <TouchableOpacity onPress={() => { setCurrentStory(story); setViewStoryModal(true); }} style={{ flex: 1 }}>
+                  <LinearGradient colors={gradCard} style={[s.storyGradient, borderStyle]}>
+                    <View style={[s.storyIcon, { backgroundColor: C.purpleGlow }]}>
+                      <Ionicons name="book" size={24} color={C.purple} />
+                    </View>
+                    <View style={s.storyContent}>
+                      <Text style={[s.storyTitle, { color: C.text }]} numberOfLines={1}>{story.title}</Text>
+                      <Text style={[s.storyMetaText, { color: C.textMuted }]}>
+                        {story.age_group} {story.created_at ? `- ${format(new Date(story.created_at), 'dd MMM', { locale: isRo ? ro : enUS })}` : ''}
+                      </Text>
+                    </View>
+                    <TouchableOpacity onPress={(e) => { e.stopPropagation(); deleteStory(story.id); }} style={s.storyDeleteBtn}>
+                      <Ionicons name="trash-outline" size={18} color={C.red} />
+                    </TouchableOpacity>
+                  </LinearGradient>
+                </TouchableOpacity>
+              </View>
             ))
           )}
         </View>
@@ -463,8 +470,10 @@ const s = StyleSheet.create({
   addButton: { width: 44, height: 44, borderRadius: 14, justifyContent: 'center', alignItems: 'center' },
   kidsScroll: { marginBottom: 16 },
   kidsContainer: { paddingHorizontal: 16, gap: 8 },
-  kidChip: { flexDirection: 'row', alignItems: 'center', paddingVertical: 10, paddingHorizontal: 16, borderRadius: 25, gap: 6 },
+  kidChip: { flexDirection: 'row', alignItems: 'center', paddingLeft: 4, paddingRight: 4, paddingVertical: 4, borderRadius: 25 },
+  kidChipInner: { flexDirection: 'row', alignItems: 'center', paddingVertical: 6, paddingHorizontal: 12, gap: 6 },
   kidChipText: { fontSize: 14, fontWeight: '600' },
+  kidDeleteBtn: { padding: 4, marginRight: 4 },
   section: { paddingHorizontal: 20, marginBottom: 24 },
   sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
   sectionTitle: { fontSize: 18, fontWeight: '700', marginBottom: 16 },
@@ -483,6 +492,7 @@ const s = StyleSheet.create({
   storyContent: { flex: 1 },
   storyTitle: { fontSize: 15, fontWeight: '600' },
   storyMetaText: { fontSize: 12, marginTop: 2 },
+  storyDeleteBtn: { padding: 8 },
   activityCard: { flexDirection: 'row', borderRadius: 12, padding: 14, marginBottom: 8, gap: 12 },
   activityIcon: { width: 36, height: 36, borderRadius: 10, justifyContent: 'center', alignItems: 'center' },
   activityContent: { flex: 1 },

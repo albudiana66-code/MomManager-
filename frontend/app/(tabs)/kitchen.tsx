@@ -110,27 +110,16 @@ export default function KitchenScreen() {
   };
 
   const deleteMealPlan = async (id: string) => {
-    Alert.alert(
-      isRo ? 'Sterge planul' : 'Delete plan',
-      isRo ? 'Esti sigura?' : 'Are you sure?',
-      [
-        { text: t('common.cancel'), style: 'cancel' },
-        {
-          text: t('common.delete'),
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await api.deleteMealPlan(id);
-              const updatedPlans = mealPlans.filter((p) => p.id !== id);
-              setMealPlans(updatedPlans);
-              setCurrentPlan(updatedPlans[0] || null);
-            } catch (error) {
-              console.error('Error deleting meal plan:', error);
-            }
-          },
-        },
-      ]
-    );
+    const msg = isRo ? 'Esti sigura ca vrei sa stergi planul?' : 'Are you sure you want to delete this plan?';
+    if (typeof window !== 'undefined' && !window.confirm(msg)) return;
+    try {
+      await api.deleteMealPlan(id);
+      const updatedPlans = mealPlans.filter((p) => p.id !== id);
+      setMealPlans(updatedPlans);
+      setCurrentPlan(updatedPlans[0] || null);
+    } catch (error) {
+      console.error('Error deleting meal plan:', error);
+    }
   };
 
   // Scanner functions

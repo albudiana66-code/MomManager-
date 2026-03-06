@@ -234,9 +234,11 @@
   "ai": {
     "assistant": "Mom Assistant",
     "alwaysHere": "Always here for you",
+    "hereForYou": "I'm here for you",
+    "tapToChat": "Tap here to chat with AI",
     "typing": "Typing...",
     "placeholder": "Tell me what's on your mind...",
-    "welcome": "Hello, dear mom! 💕 I'm here for you. How can I help you today? You can tell me anything - I'm here to listen and support you."
+    "welcome": "Hello, dear mom! I'm here for you. How can I help you today?"
   },
   "auth": {
     "continueWithGoogle": "Continue with Google",

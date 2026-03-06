@@ -271,7 +271,7 @@ export default function SettingsScreen() {
               <View style={styles.subscriptionHeader}>
                 <Text style={[styles.subscriptionName, { color: C.text }]}>{t('settings.monthlyPlan')}</Text>
                 <View style={[styles.priceTag, { backgroundColor: C.surface }]}>
-                  <Text style={[styles.priceAmount, { color: C.text }]}>{currencySymbol}4.99</Text>
+                  <Text style={[styles.priceAmount, { color: C.text }]}>£9.99</Text>
                   <Text style={[styles.pricePeriod, { color: C.textMuted }]}>{t('settings.perMonth')}</Text>
                 </View>
               </View>
@@ -282,13 +282,10 @@ export default function SettingsScreen() {
           {/* Yearly Plan */}
           <TouchableOpacity style={styles.subscriptionCard}>
             <LinearGradient colors={['#E91E9C', '#B8157A']} style={styles.subscriptionGradient}>
-              <View style={styles.saveBadge}>
-                <Text style={styles.saveBadgeText}>{t('settings.savePercent', { percent: '30' })}</Text>
-              </View>
               <View style={styles.subscriptionHeader}>
                 <Text style={[styles.subscriptionName, { color: '#fff' }]}>{t('settings.yearlyPlan')}</Text>
                 <View style={[styles.priceTag, { backgroundColor: 'rgba(255,255,255,0.2)' }]}>
-                  <Text style={[styles.priceAmount, { color: '#fff' }]}>{currencySymbol}39.99</Text>
+                  <Text style={[styles.priceAmount, { color: '#fff' }]}>£79.99</Text>
                   <Text style={[styles.pricePeriod, { color: 'rgba(255,255,255,0.8)' }]}>{t('settings.perYear')}</Text>
                 </View>
               </View>

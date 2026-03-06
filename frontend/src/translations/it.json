@@ -204,7 +204,9 @@
     "alwaysHere": "Sempre qui per te",
     "typing": "Sta scrivendo...",
     "placeholder": "Dimmi cosa hai in mente...",
-    "welcome": "Ciao, cara mamma! 💕 Sono qui per te. Come posso aiutarti oggi?"
+    "welcome": "Ciao, cara mamma! 💕 Sono qui per te. Come posso aiutarti oggi?",
+    "hereForYou": "Sono qui per te",
+    "tapToChat": "Tocca qui per parlare con l'IA"
   },
   "auth": {
     "continueWithGoogle": "Continua con Google",

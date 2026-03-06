@@ -233,10 +233,12 @@
   },
   "ai": {
     "assistant": "Assistant Maman",
-    "alwaysHere": "Toujours là pour vous",
-    "typing": "En train d'écrire...",
-    "placeholder": "Dites-moi ce que vous avez en tête...",
-    "welcome": "Bonjour, chère maman ! 💕 Je suis là pour vous. Comment puis-je vous aider aujourd'hui ? Vous pouvez me dire n'importe quoi - je suis là pour vous écouter et vous soutenir."
+    "alwaysHere": "Toujours la pour vous",
+    "hereForYou": "Je suis la pour vous",
+    "tapToChat": "Appuyez ici pour discuter avec l'IA",
+    "typing": "En train d'ecrire...",
+    "placeholder": "Dites-moi ce que vous avez en tete...",
+    "welcome": "Bonjour, chere maman! Je suis la pour vous. Comment puis-je vous aider aujourd'hui?"
   },
   "auth": {
     "continueWithGoogle": "Continuer avec Google",

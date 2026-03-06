@@ -236,7 +236,9 @@
     "alwaysHere": "Siempre aquí para ti",
     "typing": "Escribiendo...",
     "placeholder": "Cuéntame qué piensas...",
-    "welcome": "¡Hola, querida mamá! 💕 Estoy aquí para ti. ¿Cómo puedo ayudarte hoy? Puedes contarme cualquier cosa - estoy aquí para escucharte y apoyarte."
+    "welcome": "¡Hola, querida mamá! 💕 Estoy aquí para ti. ¿Cómo puedo ayudarte hoy? Puedes contarme cualquier cosa - estoy aquí para escucharte y apoyarte.",
+    "hereForYou": "Estoy aqui para ti",
+    "tapToChat": "Toca aqui para hablar con la IA"
   },
   "auth": {
     "continueWithGoogle": "Continuar con Google",

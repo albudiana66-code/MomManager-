@@ -133,7 +133,6 @@ export default function WorkScreen() {
 
   const addItem = async () => {
     if (!newItemTitle.trim()) return;
-
     try {
       if (newItemType === 'meeting') {
         await api.createMeeting({
@@ -141,14 +140,28 @@ export default function WorkScreen() {
           date: format(selectedDate, 'yyyy-MM-dd'),
           start_time: newItemTime,
           end_time: newItemTime,
-          color: COLORS.primary,
+          color: C.primary,
         });
       }
       await loadPlannerItems();
       setAddModalVisible(false);
       setNewItemTitle('');
     } catch (error) {
-      Alert.alert('Error', 'Could not add item');
+      console.error('Error adding item:', error);
+    }
+  };
+
+  const deleteItem = async (item: PlannerItem) => {
+    if (item.aiGenerated) return;
+    const msg = language.code === 'ro' ? 'Esti sigura ca vrei sa stergi?' : 'Are you sure you want to delete?';
+    if (typeof window !== 'undefined' && !window.confirm(msg)) return;
+    try {
+      if (item.type === 'meeting') {
+        await api.deleteMeeting(item.id);
+      }
+      await loadPlannerItems();
+    } catch (error) {
+      console.error('Error deleting item:', error);
     }
   };
 
@@ -261,18 +274,23 @@ export default function WorkScreen() {
                     </View>
                     <View style={styles.itemContent}>
                       <View style={styles.itemHeader}>
-                        <Text style={styles.itemTitle}>{item.title}</Text>
+                        <Text style={[styles.itemTitle, { color: C.text }]}>{item.title}</Text>
                         {item.aiGenerated && (
                           <View style={styles.aiBadge}>
-                            <Ionicons name="sparkles" size={10} color={COLORS.primary} />
-                            <Text style={styles.aiBadgeText}>AI</Text>
+                            <Ionicons name="sparkles" size={10} color={C.primary} />
+                            <Text style={[styles.aiBadgeText, { color: C.primary }]}>AI</Text>
                           </View>
                         )}
                       </View>
                       {item.description && (
-                        <Text style={styles.itemDescription}>{item.description}</Text>
+                        <Text style={[styles.itemDescription, { color: C.textMuted }]}>{item.description}</Text>
                       )}
                     </View>
+                    {!item.aiGenerated && (
+                      <TouchableOpacity onPress={() => deleteItem(item)} style={{ padding: 8 }}>
+                        <Ionicons name="trash-outline" size={18} color={C.red || '#EF4444'} />
+                      </TouchableOpacity>
+                    )}
                   </View>
                 </View>
               ))}

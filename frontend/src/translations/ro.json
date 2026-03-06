@@ -234,9 +234,11 @@
   "ai": {
     "assistant": "Asistent Mamă",
     "alwaysHere": "Mereu aici pentru tine",
+    "hereForYou": "Sunt aici pentru tine",
+    "tapToChat": "Apasa aici sa vorbesti cu AI",
     "typing": "Scriu...",
     "placeholder": "Scrie-mi ce ai pe suflet...",
-    "welcome": "Bună, dragă mamă! 💕 Sunt aici pentru tine. Cum te pot ajuta astăzi? Poți să-mi spui orice - sunt aici să te ascult și să te sprijin."
+    "welcome": "Buna, draga mama! Sunt aici pentru tine. Cum te pot ajuta astazi?"
   },
   "auth": {
     "continueWithGoogle": "Continuă cu Google",

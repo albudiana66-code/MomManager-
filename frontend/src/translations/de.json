@@ -236,7 +236,9 @@
     "alwaysHere": "Immer für Sie da",
     "typing": "Schreibt...",
     "placeholder": "Erzählen Sie mir, was Sie denken...",
-    "welcome": "Hallo, liebe Mama! 💕 Ich bin für Sie da. Wie kann ich Ihnen heute helfen? Sie können mir alles erzählen - ich bin hier, um Ihnen zuzuhören und Sie zu unterstützen."
+    "welcome": "Hallo, liebe Mama! 💕 Ich bin für Sie da. Wie kann ich Ihnen heute helfen? Sie können mir alles erzählen - ich bin hier, um Ihnen zuzuhören und Sie zu unterstützen.",
+    "hereForYou": "Ich bin hier fuer dich",
+    "tapToChat": "Tippe hier um mit der KI zu sprechen"
   },
   "auth": {
     "continueWithGoogle": "Weiter mit Google",
