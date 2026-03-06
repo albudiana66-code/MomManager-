@@ -682,6 +682,95 @@ async def delete_meal_plan(plan_id: str, current_user: User = Depends(require_au
         raise HTTPException(status_code=404, detail="Meal plan not found")
     return {"message": "Meal plan deleted"}
 
+# ============== Kitchen AI - Image to Meals ==============
+
+@app.post("/api/kitchen/generate-meals-from-image")
+async def generate_meals_from_image(request: Request, current_user: User = Depends(require_auth)):
+    """Analyze food image/receipt and generate meal suggestions"""
+    body = await request.json()
+    image_base64 = body.get("image_base64")
+    language = body.get("language", "ro")
+
+    if not image_base64:
+        raise HTTPException(status_code=400, detail="No image provided")
+
+    if not EMERGENT_LLM_KEY:
+        raise HTTPException(status_code=500, detail="AI service not configured")
+
+    from emergentintegrations.llm.chat import LlmChat, UserMessage, ImageContent
+    import json
+
+    lang_code = language.split("-")[0] if "-" in language else language
+
+    # Step 1: Analyze image to extract food items
+    vision_chat = LlmChat(
+        api_key=EMERGENT_LLM_KEY,
+        session_id=f"kitchen_vision_{uuid.uuid4().hex[:8]}",
+        system_message="You analyze grocery receipts and food photos. Extract all food items. Return ONLY a JSON array of food item names. No explanations. No questions."
+    ).with_model("openai", "gpt-4o")
+
+    image_content = ImageContent(image_base64=image_base64)
+    vision_message = UserMessage(
+        text="List all food items visible in this image. Return only a JSON array.",
+        file_contents=[image_content]
+    )
+
+    try:
+        vision_response = await vision_chat.send_message(vision_message)
+
+        try:
+            if "```json" in vision_response:
+                json_str = vision_response.split("```json")[1].split("```")[0]
+            elif "```" in vision_response:
+                json_str = vision_response.split("```")[1].split("```")[0]
+            else:
+                json_str = vision_response
+            food_items = json.loads(json_str.strip())
+        except:
+            food_items = [item.strip() for item in vision_response.replace('[', '').replace(']', '').replace('"', '').split(',') if item.strip()]
+
+        # Step 2: Generate meals from food items
+        meal_chat = LlmChat(
+            api_key=EMERGENT_LLM_KEY,
+            session_id=f"kitchen_meals_{uuid.uuid4().hex[:8]}",
+            system_message=f"""Given food items, suggest 3-5 meals. Be direct. No questions.
+Return ONLY valid JSON:
+{{
+    "meals": [
+        {{"name": "Meal name", "ingredients": "key ingredients", "instructions": "Brief steps", "time": "30 min"}}
+    ]
+}}
+Respond in {'Romanian' if lang_code == 'ro' else 'English'}."""
+        ).with_model("openai", "gpt-5.2")
+
+        items_str = ", ".join(food_items) if isinstance(food_items, list) else str(food_items)
+        meal_response = await meal_chat.send_message(UserMessage(text=f"Generate meals from: {items_str}"))
+
+        try:
+            if "```json" in meal_response:
+                json_str = meal_response.split("```json")[1].split("```")[0]
+            elif "```" in meal_response:
+                json_str = meal_response.split("```")[1].split("```")[0]
+            else:
+                json_str = meal_response
+            meals_data = json.loads(json_str.strip())
+        except:
+            meals_data = {"meals": []}
+
+        result_doc = {
+            "id": f"imgmeal_{uuid.uuid4().hex[:12]}",
+            "user_id": current_user.user_id,
+            "food_items": food_items if isinstance(food_items, list) else [food_items],
+            "meals": meals_data.get("meals", []),
+            "created_at": datetime.now(timezone.utc)
+        }
+        await db.kitchen_meals.insert_one(result_doc)
+        return {k: v for k, v in result_doc.items() if k != "_id"}
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"AI processing error: {str(e)}")
+
 # ============== Kids Endpoints ==============
 
 @app.get("/api/kids")
@@ -1339,6 +1428,8 @@ REGULI FOARTE IMPORTANTE:
 - Folosește un limbaj prietenos și încurajator
 - Adaugă emoji-uri pentru a fi mai prietenoasă
 - Răspunde concis dar cu empatie
+- Răspunde DIRECT la întrebare, fără întrebări suplimentare sau clarificări
+- Oferă soluția sau informația imediat, fără a cere detalii în plus
 - Dacă mama pare obosită sau copleșită, oferă cuvinte de încurajare
 - Reamintește-i că este o mamă minunată care face tot posibilul
 
@@ -1355,6 +1446,8 @@ VERY IMPORTANT RULES:
 - Use friendly and encouraging language
 - Add emojis to be more friendly
 - Respond concisely but with empathy
+- Answer DIRECTLY without asking clarifying questions unless absolutely necessary
+- Provide the solution or information immediately
 - If the mom seems tired or overwhelmed, offer words of encouragement
 - Remind her that she is an amazing mom doing her best
 

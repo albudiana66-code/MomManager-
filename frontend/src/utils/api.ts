@@ -222,6 +222,14 @@ class ApiClient {
     });
   }
 
+  // Kitchen AI - Generate meals from image
+  async generateMealsFromImage(imageBase64: string, language: string = 'ro') {
+    return this.request('/kitchen/generate-meals-from-image', {
+      method: 'POST',
+      body: JSON.stringify({ image_base64: imageBase64, language }),
+    });
+  }
+
   // AI Chat
   async sendChatMessage(message: string, language: string, history: any[] = []) {
     return this.request('/ai/chat', {

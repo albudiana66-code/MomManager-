@@ -91,8 +91,11 @@ const HEALTH_CONDITIONS = [
 type TabType = 'workouts' | 'nutrition' | 'profile';
 
 export default function SelfCareScreen() {
-  const { language, t } = useSettings();
+  const { language, t, colors: TC, isDarkMode } = useSettings();
   const isRo = language.code === 'ro';
+  const gradCard = isDarkMode ? ['#252532', '#1E1E2A'] as const : ['#F8F9FA', '#FFFFFF'] as const;
+  const gradModal = isDarkMode ? ['#1E1E2A', '#0F0F14'] as const : ['#F8F9FA', '#E5E7EB'] as const;
+  const borderStyle = !isDarkMode ? { borderWidth: 1, borderColor: TC.border } : {};
   
   const [activeTab, setActiveTab] = useState<TabType>('workouts');
   const [refreshing, setRefreshing] = useState(false);
@@ -283,7 +286,7 @@ export default function SelfCareScreen() {
   const weightDiff = getWeightDiff();
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: TC.bg }]}>
       {/* Tab Buttons */}
       <View style={styles.tabContainer}>
         <TouchableOpacity

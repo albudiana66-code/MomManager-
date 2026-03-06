@@ -44,7 +44,10 @@ interface PlannerItem {
 }
 
 export default function WorkScreen() {
-  const { t, language } = useSettings();
+  const { t, language, colors: C, isDarkMode } = useSettings();
+  const gradCard = isDarkMode ? ['#252532', '#1E1E2A'] as const : ['#F8F9FA', '#FFFFFF'] as const;
+  const gradModal = isDarkMode ? ['#1E1E2A', '#0F0F14'] as const : ['#F8F9FA', '#E5E7EB'] as const;
+  const borderStyle = !isDarkMode ? { borderWidth: 1, borderColor: C.border } : {};
   const [selectedDate, setSelectedDate] = useState(new Date());
   const [weekDates, setWeekDates] = useState<Date[]>([]);
   const [plannerItems, setPlannerItems] = useState<PlannerItem[]>([]);
@@ -161,43 +164,43 @@ export default function WorkScreen() {
   };
 
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[styles.container, { backgroundColor: C.bg }]} data-testid="work-screen">
       <ScrollView
         contentContainerStyle={styles.content}
-        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={COLORS.primary} />}
+        refreshControl={<RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={C.primary} />}
       >
         {/* Header */}
         <View style={styles.header}>
           <View>
-            <Text style={styles.title}>AI Smart Planner</Text>
-            <Text style={styles.subtitle}>
-              {language.code === 'ro' ? 'Asistentul tău de organizare' : 'Your organizing assistant'}
+            <Text style={[styles.title, { color: C.text }]}>AI Smart Planner</Text>
+            <Text style={[styles.subtitle, { color: C.textMuted }]}>
+              {language.code === 'ro' ? 'Asistentul tau de organizare' : 'Your organizing assistant'}
             </Text>
           </View>
-          <TouchableOpacity style={styles.addButton} onPress={() => setAddModalVisible(true)}>
+          <TouchableOpacity style={[styles.addButton, { backgroundColor: C.primary }]} onPress={() => setAddModalVisible(true)}>
             <Ionicons name="add" size={24} color="#FFFFFF" />
           </TouchableOpacity>
         </View>
 
         {/* AI Insight Card */}
-        <View style={styles.aiCard}>
-          <View style={styles.aiIconContainer}>
-            <Ionicons name="sparkles" size={24} color={COLORS.primary} />
+        <View style={[styles.aiCard, { backgroundColor: C.surface, borderColor: C.border }]}>
+          <View style={[styles.aiIconContainer, { backgroundColor: C.primaryGlow }]}>
+            <Ionicons name="sparkles" size={24} color={C.primary} />
           </View>
           <View style={styles.aiContent}>
-            <Text style={styles.aiTitle}>
+            <Text style={[styles.aiTitle, { color: C.text }]}>
               {language.code === 'ro' ? 'Insight AI' : 'AI Insight'}
             </Text>
-            <Text style={styles.aiText}>
+            <Text style={[styles.aiText, { color: C.textMuted }]}>
               {language.code === 'ro' 
-                ? 'Întreabă-mă orice în chat și voi completa calendarul automat pentru tine.'
+                ? 'Intreaba-ma orice in chat si voi completa calendarul automat pentru tine.'
                 : 'Ask me anything in chat and I\'ll fill your calendar automatically.'}
             </Text>
           </View>
         </View>
 
         {/* Month Display */}
-        <Text style={styles.monthText}>
+        <Text style={[styles.monthText, { color: C.text }]}>
           {format(selectedDate, 'MMMM yyyy', { locale: dateLocale })}
         </Text>
 

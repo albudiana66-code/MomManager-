@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -10,6 +10,7 @@ import {
   Alert,
   ActivityIndicator,
   TextInput,
+  Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
@@ -18,36 +19,19 @@ import { api } from '../../src/utils/api';
 import { format, startOfWeek, addDays } from 'date-fns';
 import { ro, enUS, es, fr, de, it } from 'date-fns/locale';
 import { useSettings } from '../../src/context/SettingsContext';
-
-// Modern 2026 Dark Theme
-const C = {
-  bg: '#0F0F14',
-  bgLight: '#1A1A24',
-  card: '#1E1E2A',
-  surface: '#252532',
-  primary: '#E91E9C',
-  primaryGlow: 'rgba(233, 30, 156, 0.15)',
-  purple: '#8B5CF6',
-  blue: '#3B82F6',
-  cyan: '#06B6D4',
-  gold: '#F5A623',
-  goldGlow: 'rgba(245, 166, 35, 0.15)',
-  green: '#10B981',
-  orange: '#F97316',
-  red: '#EF4444',
-  text: '#FFFFFF',
-  textSecondary: '#A1A1B5',
-  textMuted: '#6B6B80',
-  border: '#2A2A3A',
-};
+import * as ImagePicker from 'expo-image-picker';
 
 export default function KitchenScreen() {
-  const { t, language } = useSettings();
+  const { t, language, colors: C, isDarkMode } = useSettings();
   const isRo = language.code === 'ro';
-  
+
   const DAYS_KEYS = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
   const DAYS = DAYS_KEYS.map(key => t(`kitchen.days.${key}`));
-  
+
+  const gradCard = isDarkMode ? ['#252532', '#1E1E2A'] as const : ['#F8F9FA', '#FFFFFF'] as const;
+  const gradModal = isDarkMode ? ['#1E1E2A', '#0F0F14'] as const : ['#F8F9FA', '#E5E7EB'] as const;
+
+  // Meal plan state
   const [mealPlans, setMealPlans] = useState<any[]>([]);
   const [currentPlan, setCurrentPlan] = useState<any>(null);
   const [refreshing, setRefreshing] = useState(false);
@@ -56,6 +40,11 @@ export default function KitchenScreen() {
   const [showAdult, setShowAdult] = useState(true);
   const [preferencesModal, setPreferencesModal] = useState(false);
   const [shoppingModal, setShoppingModal] = useState(false);
+
+  // Scanner state
+  const [scanLoading, setScanLoading] = useState(false);
+  const [scanResult, setScanResult] = useState<any>(null);
+  const [scanResultModal, setScanResultModal] = useState(false);
 
   // Preferences
   const [adultPrefs, setAdultPrefs] = useState('');
@@ -89,7 +78,6 @@ export default function KitchenScreen() {
   const generateMealPlan = async () => {
     setPreferencesModal(false);
     setGenerating(true);
-
     try {
       const newPlan = await api.generateMealPlan({
         adult_preferences: adultPrefs,
@@ -111,17 +99,11 @@ export default function KitchenScreen() {
 
   const toggleShoppingItem = async (index: number) => {
     if (!currentPlan) return;
-
     const updatedList = [...currentPlan.shopping_list];
     updatedList[index] = { ...updatedList[index], checked: !updatedList[index].checked };
-
     setCurrentPlan({ ...currentPlan, shopping_list: updatedList });
-
     try {
-      await api.updateMealPlan(currentPlan.id, {
-        ...currentPlan,
-        shopping_list: updatedList,
-      });
+      await api.updateMealPlan(currentPlan.id, { ...currentPlan, shopping_list: updatedList });
     } catch (error) {
       console.error('Error updating shopping list:', error);
     }
@@ -129,8 +111,8 @@ export default function KitchenScreen() {
 
   const deleteMealPlan = async (id: string) => {
     Alert.alert(
-      isRo ? 'Șterge planul' : 'Delete plan',
-      isRo ? 'Ești sigură?' : 'Are you sure?',
+      isRo ? 'Sterge planul' : 'Delete plan',
+      isRo ? 'Esti sigura?' : 'Are you sure?',
       [
         { text: t('common.cancel'), style: 'cancel' },
         {
@@ -151,6 +133,44 @@ export default function KitchenScreen() {
     );
   };
 
+  // Scanner functions
+  const pickImage = async (useCamera: boolean) => {
+    try {
+      let result;
+      if (useCamera) {
+        const perm = await ImagePicker.requestCameraPermissionsAsync();
+        if (!perm.granted) {
+          Alert.alert(t('common.error'), isRo ? 'Permisiune camera necesara' : 'Camera permission required');
+          return;
+        }
+        result = await ImagePicker.launchCameraAsync({ base64: true, quality: 0.5 });
+      } else {
+        const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
+        if (!perm.granted) {
+          Alert.alert(t('common.error'), isRo ? 'Permisiune galerie necesara' : 'Gallery permission required');
+          return;
+        }
+        result = await ImagePicker.launchImageLibraryAsync({ base64: true, quality: 0.5 });
+      }
+
+      if (!result.canceled && result.assets[0].base64) {
+        setScanLoading(true);
+        try {
+          const data = await api.generateMealsFromImage(result.assets[0].base64, language.code);
+          setScanResult(data);
+          setScanResultModal(true);
+        } catch (error) {
+          console.error('Error scanning image:', error);
+          Alert.alert(t('common.error'), isRo ? 'Nu s-a putut analiza imaginea' : 'Could not analyze image');
+        } finally {
+          setScanLoading(false);
+        }
+      }
+    } catch (error) {
+      console.error('Error picking image:', error);
+    }
+  };
+
   const currentMeals = showAdult
     ? currentPlan?.adult_meals?.[selectedDay]
     : currentPlan?.kid_meals?.[selectedDay];
@@ -158,64 +178,143 @@ export default function KitchenScreen() {
   const checkedCount = currentPlan?.shopping_list?.filter((i: any) => i.checked).length || 0;
   const totalCount = currentPlan?.shopping_list?.length || 0;
 
+  const borderStyle = !isDarkMode ? { borderWidth: 1, borderColor: C.border } : {};
+
   return (
-    <SafeAreaView style={styles.container}>
+    <SafeAreaView style={[s.container, { backgroundColor: C.bg }]} data-testid="kitchen-screen">
       <ScrollView
         refreshControl={
           <RefreshControl refreshing={refreshing} onRefresh={onRefresh} tintColor={C.gold} />
         }
       >
         {/* Header */}
-        <View style={styles.header}>
+        <View style={s.header}>
           <View>
-            <Text style={styles.title}>{t('kitchen.mealPlan')}</Text>
-            <Text style={styles.subtitle}>{isRo ? 'Plan săptămânal generat de AI' : 'AI-generated weekly plan'}</Text>
+            <Text style={[s.title, { color: C.text }]}>{t('kitchen.mealPlan')}</Text>
+            <Text style={[s.subtitle, { color: C.textMuted }]}>
+              {isRo ? 'Plan saptamanal generat de AI' : 'AI-generated weekly plan'}
+            </Text>
           </View>
           <TouchableOpacity
-            style={styles.generateButton}
+            style={s.generateButton}
             onPress={() => setPreferencesModal(true)}
             disabled={generating}
+            data-testid="generate-meal-plan-btn"
           >
-            <LinearGradient colors={['#F5A623', '#D4920B']} style={styles.generateGradient}>
+            <LinearGradient colors={['#F5A623', '#D4920B']} style={s.generateGradient}>
               {generating ? (
                 <ActivityIndicator size="small" color="#fff" />
               ) : (
                 <>
                   <Ionicons name="sparkles" size={18} color="#fff" />
-                  <Text style={styles.generateButtonText}>{isRo ? 'Generează' : 'Generate'}</Text>
+                  <Text style={s.generateButtonText}>{isRo ? 'Genereaza' : 'Generate'}</Text>
                 </>
               )}
             </LinearGradient>
           </TouchableOpacity>
         </View>
 
+        {/* AI Image Scanner Section */}
+        <View style={s.scanSection}>
+          <LinearGradient colors={gradCard} style={[s.scanCard, borderStyle]}>
+            <View style={s.scanHeader}>
+              <View style={[s.scanIcon, { backgroundColor: C.primaryGlow }]}>
+                <Ionicons name="camera" size={24} color={C.primary} />
+              </View>
+              <View style={s.scanInfo}>
+                <Text style={[s.scanTitle, { color: C.text }]}>
+                  {isRo ? 'Scanare Alimente' : 'Food Scanner'}
+                </Text>
+                <Text style={[s.scanSubtitle, { color: C.textMuted }]}>
+                  {isRo ? 'Fotografiaza bonul sau alimentele' : 'Photo receipt or food items'}
+                </Text>
+              </View>
+            </View>
+            <View style={s.scanButtons}>
+              <TouchableOpacity
+                style={s.scanBtn}
+                onPress={() => pickImage(true)}
+                disabled={scanLoading}
+                data-testid="scan-camera-btn"
+              >
+                <LinearGradient colors={['#E91E9C', '#B8157A']} style={s.scanBtnGradient}>
+                  <Ionicons name="camera-outline" size={20} color="#fff" />
+                  <Text style={s.scanBtnText}>{isRo ? 'Camera' : 'Camera'}</Text>
+                </LinearGradient>
+              </TouchableOpacity>
+              <TouchableOpacity
+                style={s.scanBtn}
+                onPress={() => pickImage(false)}
+                disabled={scanLoading}
+                data-testid="scan-gallery-btn"
+              >
+                <LinearGradient colors={['#8B5CF6', '#6D28D9']} style={s.scanBtnGradient}>
+                  <Ionicons name="images-outline" size={20} color="#fff" />
+                  <Text style={s.scanBtnText}>{isRo ? 'Galerie' : 'Gallery'}</Text>
+                </LinearGradient>
+              </TouchableOpacity>
+            </View>
+            {scanLoading && (
+              <View style={s.scanLoading}>
+                <ActivityIndicator size="large" color={C.primary} />
+                <Text style={[s.scanLoadingText, { color: C.textMuted }]}>
+                  {isRo ? 'AI analizeaza imaginea...' : 'AI analyzing image...'}
+                </Text>
+              </View>
+            )}
+          </LinearGradient>
+        </View>
+
+        {/* Scan Results Preview */}
+        {scanResult && !scanResultModal && (
+          <TouchableOpacity
+            style={s.scanResultPreview}
+            onPress={() => setScanResultModal(true)}
+          >
+            <LinearGradient colors={gradCard} style={[s.scanResultPreviewGrad, borderStyle]}>
+              <View style={[s.scanResultIcon, { backgroundColor: C.greenGlow }]}>
+                <Ionicons name="checkmark-circle" size={22} color={C.green} />
+              </View>
+              <View style={{ flex: 1 }}>
+                <Text style={[s.scanResultTitle, { color: C.text }]}>
+                  {isRo ? 'Sugestii mese disponibile' : 'Meal suggestions available'}
+                </Text>
+                <Text style={[s.scanResultSub, { color: C.textMuted }]}>
+                  {scanResult.food_items?.length || 0} {isRo ? 'alimente' : 'items'} - {scanResult.meals?.length || 0} {isRo ? 'retete' : 'recipes'}
+                </Text>
+              </View>
+              <Ionicons name="chevron-forward" size={20} color={C.textMuted} />
+            </LinearGradient>
+          </TouchableOpacity>
+        )}
+
         {generating && (
-          <View style={styles.generatingContainer}>
+          <View style={s.generatingContainer}>
             <ActivityIndicator size="large" color={C.gold} />
-            <Text style={styles.generatingText}>{t('kitchen.generating')}</Text>
-            <Text style={styles.generatingSubtext}>{t('kitchen.generatingHint')}</Text>
+            <Text style={[s.generatingText, { color: C.text }]}>{t('kitchen.generating')}</Text>
+            <Text style={[s.generatingSubtext, { color: C.textMuted }]}>{t('kitchen.generatingHint')}</Text>
           </View>
         )}
 
         {!generating && currentPlan && (
           <>
             {/* Toggle Adult/Kids */}
-            <View style={styles.toggleContainer}>
+            <View style={[s.toggleContainer, { backgroundColor: C.surface }]}>
               <TouchableOpacity
-                style={[styles.toggleButton, showAdult && styles.toggleActive]}
+                style={[s.toggleButton, showAdult && { backgroundColor: C.gold }]}
                 onPress={() => setShowAdult(true)}
               >
                 <Ionicons name="person" size={18} color={showAdult ? '#fff' : C.gold} />
-                <Text style={[styles.toggleText, showAdult && styles.toggleTextActive]}>
+                <Text style={[s.toggleText, { color: showAdult ? '#fff' : C.gold }]}>
                   {t('kitchen.adults')}
                 </Text>
               </TouchableOpacity>
               <TouchableOpacity
-                style={[styles.toggleButton, !showAdult && styles.toggleActive]}
+                style={[s.toggleButton, !showAdult && { backgroundColor: C.gold }]}
                 onPress={() => setShowAdult(false)}
               >
                 <Ionicons name="happy" size={18} color={!showAdult ? '#fff' : C.gold} />
-                <Text style={[styles.toggleText, !showAdult && styles.toggleTextActive]}>
+                <Text style={[s.toggleText, { color: !showAdult ? '#fff' : C.gold }]}>
                   {t('kitchen.kids')}
                 </Text>
               </TouchableOpacity>
@@ -225,24 +324,20 @@ export default function KitchenScreen() {
             <ScrollView
               horizontal
               showsHorizontalScrollIndicator={false}
-              style={styles.daysScroll}
-              contentContainerStyle={styles.daysContainer}
+              style={s.daysScroll}
+              contentContainerStyle={s.daysContainer}
             >
               {DAYS.map((day, index) => (
                 <TouchableOpacity
                   key={day}
                   style={[
-                    styles.dayButton,
-                    selectedDay === index && styles.dayButtonActive,
+                    s.dayButton,
+                    { backgroundColor: C.surface },
+                    selectedDay === index && { backgroundColor: C.gold },
                   ]}
                   onPress={() => setSelectedDay(index)}
                 >
-                  <Text
-                    style={[
-                      styles.dayText,
-                      selectedDay === index && styles.dayTextActive,
-                    ]}
-                  >
+                  <Text style={[s.dayText, { color: C.textSecondary }, selectedDay === index && { color: '#fff' }]}>
                     {day}
                   </Text>
                 </TouchableOpacity>
@@ -251,57 +346,36 @@ export default function KitchenScreen() {
 
             {/* Meals for Selected Day */}
             {currentMeals && (
-              <View style={styles.mealsContainer}>
-                <View style={styles.mealCard}>
-                  <LinearGradient colors={['#252532', '#1E1E2A']} style={styles.mealGradient}>
-                    <View style={[styles.mealIcon, { backgroundColor: C.goldGlow }]}>
-                      <Ionicons name="sunny" size={22} color={C.gold} />
-                    </View>
-                    <View style={styles.mealContent}>
-                      <Text style={styles.mealLabel}>{t('kitchen.meals.breakfast')}</Text>
-                      <Text style={styles.mealText}>{currentMeals.breakfast}</Text>
-                    </View>
-                  </LinearGradient>
-                </View>
-
-                <View style={styles.mealCard}>
-                  <LinearGradient colors={['#252532', '#1E1E2A']} style={styles.mealGradient}>
-                    <View style={[styles.mealIcon, { backgroundColor: 'rgba(59, 130, 246, 0.15)' }]}>
-                      <Ionicons name="restaurant" size={22} color={C.blue} />
-                    </View>
-                    <View style={styles.mealContent}>
-                      <Text style={styles.mealLabel}>{t('kitchen.meals.lunch')}</Text>
-                      <Text style={styles.mealText}>{currentMeals.lunch}</Text>
-                    </View>
-                  </LinearGradient>
-                </View>
-
-                <View style={styles.mealCard}>
-                  <LinearGradient colors={['#252532', '#1E1E2A']} style={styles.mealGradient}>
-                    <View style={[styles.mealIcon, { backgroundColor: 'rgba(139, 92, 246, 0.15)' }]}>
-                      <Ionicons name="moon" size={22} color={C.purple} />
-                    </View>
-                    <View style={styles.mealContent}>
-                      <Text style={styles.mealLabel}>{t('kitchen.meals.dinner')}</Text>
-                      <Text style={styles.mealText}>{currentMeals.dinner}</Text>
-                    </View>
-                  </LinearGradient>
-                </View>
+              <View style={s.mealsContainer}>
+                {[
+                  { icon: 'sunny', label: t('kitchen.meals.breakfast'), text: currentMeals.breakfast, color: C.gold, glow: C.goldGlow },
+                  { icon: 'restaurant', label: t('kitchen.meals.lunch'), text: currentMeals.lunch, color: C.blue, glow: C.blueGlow },
+                  { icon: 'moon', label: t('kitchen.meals.dinner'), text: currentMeals.dinner, color: C.purple, glow: C.purpleGlow },
+                ].map((meal, i) => (
+                  <View key={i} style={s.mealCard}>
+                    <LinearGradient colors={gradCard} style={[s.mealGradient, borderStyle]}>
+                      <View style={[s.mealIcon, { backgroundColor: meal.glow }]}>
+                        <Ionicons name={meal.icon as any} size={22} color={meal.color} />
+                      </View>
+                      <View style={s.mealContent}>
+                        <Text style={[s.mealLabel, { color: C.textMuted }]}>{meal.label}</Text>
+                        <Text style={[s.mealText, { color: C.text }]}>{meal.text}</Text>
+                      </View>
+                    </LinearGradient>
+                  </View>
+                ))}
               </View>
             )}
 
             {/* Shopping List Button */}
-            <TouchableOpacity
-              style={styles.shoppingButton}
-              onPress={() => setShoppingModal(true)}
-            >
-              <LinearGradient colors={['#252532', '#1E1E2A']} style={styles.shoppingGradient}>
-                <View style={styles.shoppingIcon}>
+            <TouchableOpacity style={s.shoppingButton} onPress={() => setShoppingModal(true)}>
+              <LinearGradient colors={gradCard} style={[s.shoppingGradient, borderStyle]}>
+                <View style={[s.shoppingIcon, { backgroundColor: C.goldGlow }]}>
                   <Ionicons name="cart" size={24} color={C.gold} />
                 </View>
-                <View style={styles.shoppingContent}>
-                  <Text style={styles.shoppingTitle}>{t('kitchen.shoppingList')}</Text>
-                  <Text style={styles.shoppingSubtitle}>
+                <View style={s.shoppingContent}>
+                  <Text style={[s.shoppingTitle, { color: C.text }]}>{t('kitchen.shoppingList')}</Text>
+                  <Text style={[s.shoppingSub, { color: C.textMuted }]}>
                     {checkedCount}/{totalCount} {t('kitchen.itemsChecked')}
                   </Text>
                 </View>
@@ -309,31 +383,23 @@ export default function KitchenScreen() {
               </LinearGradient>
             </TouchableOpacity>
 
-            {/* Delete Button */}
-            <TouchableOpacity
-              style={styles.deleteButton}
-              onPress={() => deleteMealPlan(currentPlan.id)}
-            >
+            {/* Delete */}
+            <TouchableOpacity style={s.deleteButton} onPress={() => deleteMealPlan(currentPlan.id)}>
               <Ionicons name="trash-outline" size={20} color={C.red} />
-              <Text style={styles.deleteButtonText}>{t('kitchen.deleteMealPlan')}</Text>
+              <Text style={[s.deleteText, { color: C.red }]}>{t('kitchen.deleteMealPlan')}</Text>
             </TouchableOpacity>
           </>
         )}
 
         {!generating && !currentPlan && (
-          <View style={styles.emptyState}>
+          <View style={s.emptyState}>
             <Ionicons name="restaurant-outline" size={64} color={C.textMuted} />
-            <Text style={styles.emptyTitle}>{t('kitchen.noMealPlan')}</Text>
-            <Text style={styles.emptySubtitle}>
-              {t('kitchen.generateHint')}
-            </Text>
-            <TouchableOpacity
-              style={styles.emptyButton}
-              onPress={() => setPreferencesModal(true)}
-            >
-              <LinearGradient colors={['#F5A623', '#D4920B']} style={styles.emptyButtonGradient}>
+            <Text style={[s.emptyTitle, { color: C.text }]}>{t('kitchen.noMealPlan')}</Text>
+            <Text style={[s.emptySub, { color: C.textMuted }]}>{t('kitchen.generateHint')}</Text>
+            <TouchableOpacity style={s.emptyButton} onPress={() => setPreferencesModal(true)}>
+              <LinearGradient colors={['#F5A623', '#D4920B']} style={s.emptyButtonGrad}>
                 <Ionicons name="sparkles" size={20} color="#fff" />
-                <Text style={styles.emptyButtonText}>{t('kitchen.generateNow')}</Text>
+                <Text style={s.emptyButtonText}>{t('kitchen.generateNow')}</Text>
               </LinearGradient>
             </TouchableOpacity>
           </View>
@@ -342,70 +408,37 @@ export default function KitchenScreen() {
 
       {/* Preferences Modal */}
       <Modal visible={preferencesModal} animationType="slide" transparent>
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalContent}>
-            <LinearGradient colors={['#1E1E2A', '#0F0F14']} style={styles.modalGradient}>
-              <View style={styles.modalHeader}>
-                <Text style={styles.modalTitle}>{t('kitchen.preferences')}</Text>
+        <View style={s.modalOverlay}>
+          <View style={s.modalContent}>
+            <LinearGradient colors={gradModal} style={s.modalGradient}>
+              <View style={[s.modalHeader, { borderBottomColor: C.border }]}>
+                <Text style={[s.modalTitle, { color: C.text }]}>{t('kitchen.preferences')}</Text>
                 <TouchableOpacity onPress={() => setPreferencesModal(false)}>
                   <Ionicons name="close" size={24} color={C.textMuted} />
                 </TouchableOpacity>
               </View>
-              <ScrollView style={styles.modalBody}>
-                <Text style={styles.inputLabel}>{t('kitchen.adultPreferences')}</Text>
-                <TextInput
-                  style={styles.input}
-                  value={adultPrefs}
-                  onChangeText={setAdultPrefs}
-                  placeholder={isRo ? 'Ex: mâncăruri sănătoase' : 'Ex: healthy meals'}
-                  placeholderTextColor={C.textMuted}
-                />
-
-                <Text style={styles.inputLabel}>{t('kitchen.kidPreferences')}</Text>
-                <TextInput
-                  style={styles.input}
-                  value={kidPrefs}
-                  onChangeText={setKidPrefs}
-                  placeholder={isRo ? 'Ex: paste, cartofi' : 'Ex: pasta, potatoes'}
-                  placeholderTextColor={C.textMuted}
-                />
-
-                <Text style={styles.inputLabel}>{t('kitchen.dietaryRestrictions')}</Text>
-                <TextInput
-                  style={styles.input}
-                  value={restrictions}
-                  onChangeText={setRestrictions}
-                  placeholder={isRo ? 'Ex: fără lactate' : 'Ex: dairy-free'}
-                  placeholderTextColor={C.textMuted}
-                />
-
-                <View style={styles.numberRow}>
-                  <View style={styles.numberInput}>
-                    <Text style={styles.inputLabel}>{t('kitchen.numAdults')}</Text>
-                    <TextInput
-                      style={styles.input}
-                      value={numAdults}
-                      onChangeText={setNumAdults}
-                      keyboardType="numeric"
-                      placeholderTextColor={C.textMuted}
-                    />
+              <ScrollView style={s.modalBody}>
+                <Text style={[s.inputLabel, { color: C.textSecondary }]}>{t('kitchen.adultPreferences')}</Text>
+                <TextInput style={[s.input, { backgroundColor: C.surface, color: C.text, borderColor: C.border }]} value={adultPrefs} onChangeText={setAdultPrefs} placeholder={isRo ? 'Ex: mancaruri sanatoase' : 'Ex: healthy meals'} placeholderTextColor={C.textMuted} />
+                <Text style={[s.inputLabel, { color: C.textSecondary }]}>{t('kitchen.kidPreferences')}</Text>
+                <TextInput style={[s.input, { backgroundColor: C.surface, color: C.text, borderColor: C.border }]} value={kidPrefs} onChangeText={setKidPrefs} placeholder={isRo ? 'Ex: paste, cartofi' : 'Ex: pasta, potatoes'} placeholderTextColor={C.textMuted} />
+                <Text style={[s.inputLabel, { color: C.textSecondary }]}>{t('kitchen.dietaryRestrictions')}</Text>
+                <TextInput style={[s.input, { backgroundColor: C.surface, color: C.text, borderColor: C.border }]} value={restrictions} onChangeText={setRestrictions} placeholder={isRo ? 'Ex: fara lactate' : 'Ex: dairy-free'} placeholderTextColor={C.textMuted} />
+                <View style={s.numberRow}>
+                  <View style={s.numberInput}>
+                    <Text style={[s.inputLabel, { color: C.textSecondary }]}>{t('kitchen.numAdults')}</Text>
+                    <TextInput style={[s.input, { backgroundColor: C.surface, color: C.text, borderColor: C.border }]} value={numAdults} onChangeText={setNumAdults} keyboardType="numeric" placeholderTextColor={C.textMuted} />
                   </View>
-                  <View style={styles.numberInput}>
-                    <Text style={styles.inputLabel}>{t('kitchen.numKids')}</Text>
-                    <TextInput
-                      style={styles.input}
-                      value={numKids}
-                      onChangeText={setNumKids}
-                      keyboardType="numeric"
-                      placeholderTextColor={C.textMuted}
-                    />
+                  <View style={s.numberInput}>
+                    <Text style={[s.inputLabel, { color: C.textSecondary }]}>{t('kitchen.numKids')}</Text>
+                    <TextInput style={[s.input, { backgroundColor: C.surface, color: C.text, borderColor: C.border }]} value={numKids} onChangeText={setNumKids} keyboardType="numeric" placeholderTextColor={C.textMuted} />
                   </View>
                 </View>
               </ScrollView>
-              <TouchableOpacity style={styles.saveButton} onPress={generateMealPlan}>
-                <LinearGradient colors={['#F5A623', '#D4920B']} style={styles.saveGradient}>
+              <TouchableOpacity style={s.saveButton} onPress={generateMealPlan}>
+                <LinearGradient colors={['#F5A623', '#D4920B']} style={s.saveGradient}>
                   <Ionicons name="sparkles" size={20} color="#fff" />
-                  <Text style={styles.saveButtonText}>{t('kitchen.generateWithAI')}</Text>
+                  <Text style={s.saveButtonText}>{t('kitchen.generateWithAI')}</Text>
                 </LinearGradient>
               </TouchableOpacity>
             </LinearGradient>
@@ -415,37 +448,81 @@ export default function KitchenScreen() {
 
       {/* Shopping List Modal */}
       <Modal visible={shoppingModal} animationType="slide" transparent>
-        <View style={styles.modalOverlay}>
-          <View style={[styles.modalContent, { maxHeight: '80%' }]}>
-            <LinearGradient colors={['#1E1E2A', '#0F0F14']} style={styles.modalGradient}>
-              <View style={styles.modalHeader}>
-                <Text style={styles.modalTitle}>{t('kitchen.shoppingList')}</Text>
+        <View style={s.modalOverlay}>
+          <View style={[s.modalContent, { maxHeight: '80%' }]}>
+            <LinearGradient colors={gradModal} style={s.modalGradient}>
+              <View style={[s.modalHeader, { borderBottomColor: C.border }]}>
+                <Text style={[s.modalTitle, { color: C.text }]}>{t('kitchen.shoppingList')}</Text>
                 <TouchableOpacity onPress={() => setShoppingModal(false)}>
                   <Ionicons name="close" size={24} color={C.textMuted} />
                 </TouchableOpacity>
               </View>
-              <ScrollView style={styles.modalBody}>
+              <ScrollView style={s.modalBody}>
                 {currentPlan?.shopping_list?.map((item: any, index: number) => (
-                  <TouchableOpacity
-                    key={index}
-                    style={styles.shoppingItem}
-                    onPress={() => toggleShoppingItem(index)}
-                  >
-                    <Ionicons
-                      name={item.checked ? 'checkbox' : 'square-outline'}
-                      size={24}
-                      color={item.checked ? C.green : C.textMuted}
-                    />
-                    <Text
-                      style={[
-                        styles.shoppingItemText,
-                        item.checked && styles.shoppingItemChecked,
-                      ]}
-                    >
-                      {item.item}
-                    </Text>
-                    <Text style={styles.shoppingItemQty}>{item.quantity}</Text>
+                  <TouchableOpacity key={index} style={[s.shoppingItem, { borderBottomColor: C.border }]} onPress={() => toggleShoppingItem(index)}>
+                    <Ionicons name={item.checked ? 'checkbox' : 'square-outline'} size={24} color={item.checked ? C.green : C.textMuted} />
+                    <Text style={[s.shoppingItemText, { color: C.text }, item.checked && { textDecorationLine: 'line-through', color: C.textMuted }]}>{item.item}</Text>
+                    <Text style={[s.shoppingItemQty, { color: C.textMuted }]}>{item.quantity}</Text>
                   </TouchableOpacity>
+                ))}
+              </ScrollView>
+            </LinearGradient>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Scan Results Modal */}
+      <Modal visible={scanResultModal} animationType="slide" transparent>
+        <View style={s.modalOverlay}>
+          <View style={[s.modalContent, { maxHeight: '85%' }]}>
+            <LinearGradient colors={gradModal} style={s.modalGradient}>
+              <View style={[s.modalHeader, { borderBottomColor: C.border }]}>
+                <Text style={[s.modalTitle, { color: C.text }]}>
+                  {isRo ? 'Sugestii Mese' : 'Meal Suggestions'}
+                </Text>
+                <TouchableOpacity onPress={() => setScanResultModal(false)}>
+                  <Ionicons name="close" size={24} color={C.textMuted} />
+                </TouchableOpacity>
+              </View>
+              <ScrollView style={s.modalBody}>
+                {/* Food Items */}
+                <Text style={[s.scanSectionLabel, { color: C.textSecondary }]}>
+                  {isRo ? 'Alimente detectate' : 'Detected items'}
+                </Text>
+                <View style={s.foodChips}>
+                  {scanResult?.food_items?.map((item: string, i: number) => (
+                    <View key={i} style={[s.foodChip, { backgroundColor: C.surface }]}>
+                      <Text style={[s.foodChipText, { color: C.text }]}>{item}</Text>
+                    </View>
+                  ))}
+                </View>
+
+                {/* Meal Suggestions */}
+                <Text style={[s.scanSectionLabel, { color: C.textSecondary, marginTop: 20 }]}>
+                  {isRo ? 'Retete sugerate' : 'Suggested recipes'}
+                </Text>
+                {scanResult?.meals?.map((meal: any, i: number) => (
+                  <View key={i} style={[s.suggMealCard, { backgroundColor: C.surface }]}>
+                    <View style={s.suggMealHeader}>
+                      <View style={[s.suggMealIcon, { backgroundColor: C.goldGlow }]}>
+                        <Ionicons name="restaurant" size={18} color={C.gold} />
+                      </View>
+                      <View style={{ flex: 1 }}>
+                        <Text style={[s.suggMealName, { color: C.text }]}>{meal.name}</Text>
+                        {meal.time && <Text style={[s.suggMealTime, { color: C.textMuted }]}>{meal.time}</Text>}
+                      </View>
+                    </View>
+                    {meal.ingredients && (
+                      <Text style={[s.suggMealDetail, { color: C.textSecondary }]}>
+                        {isRo ? 'Ingrediente' : 'Ingredients'}: {meal.ingredients}
+                      </Text>
+                    )}
+                    {meal.instructions && (
+                      <Text style={[s.suggMealDetail, { color: C.textMuted }]}>
+                        {meal.instructions}
+                      </Text>
+                    )}
+                  </View>
                 ))}
               </ScrollView>
             </LinearGradient>
@@ -456,316 +533,101 @@ export default function KitchenScreen() {
   );
 }
 
-const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-    backgroundColor: C.bg,
-  },
-  header: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'flex-start',
-    padding: 20,
-  },
-  title: {
-    fontSize: 26,
-    fontWeight: '700',
-    color: C.text,
-  },
-  subtitle: {
-    fontSize: 14,
-    color: C.textMuted,
-    marginTop: 4,
-  },
-  generateButton: {
-    borderRadius: 20,
-    overflow: 'hidden',
-  },
-  generateGradient: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 10,
-    paddingHorizontal: 16,
-    gap: 6,
-  },
-  generateButtonText: {
-    color: '#fff',
-    fontWeight: '600',
-    fontSize: 14,
-  },
-  generatingContainer: {
-    alignItems: 'center',
-    padding: 40,
-  },
-  generatingText: {
-    marginTop: 16,
-    fontSize: 16,
-    fontWeight: '600',
-    color: C.text,
-  },
-  generatingSubtext: {
-    marginTop: 8,
-    fontSize: 14,
-    color: C.textMuted,
-  },
-  toggleContainer: {
-    flexDirection: 'row',
-    marginHorizontal: 20,
-    marginBottom: 16,
-    backgroundColor: C.surface,
-    borderRadius: 14,
-    padding: 4,
-  },
-  toggleButton: {
-    flex: 1,
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 10,
-    borderRadius: 10,
-    gap: 6,
-  },
-  toggleActive: {
-    backgroundColor: C.gold,
-  },
-  toggleText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: C.gold,
-  },
-  toggleTextActive: {
-    color: '#fff',
-  },
-  daysScroll: {
-    marginBottom: 16,
-  },
-  daysContainer: {
-    paddingHorizontal: 16,
-    gap: 8,
-  },
-  dayButton: {
-    paddingVertical: 10,
-    paddingHorizontal: 16,
-    borderRadius: 20,
-    backgroundColor: C.surface,
-  },
-  dayButtonActive: {
-    backgroundColor: C.gold,
-  },
-  dayText: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: C.textSecondary,
-  },
-  dayTextActive: {
-    color: '#fff',
-  },
-  mealsContainer: {
-    paddingHorizontal: 20,
-    gap: 12,
-  },
-  mealCard: {
-    borderRadius: 16,
-    overflow: 'hidden',
-  },
-  mealGradient: {
-    flexDirection: 'row',
-    padding: 16,
-    alignItems: 'flex-start',
-    gap: 14,
-  },
-  mealIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 14,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  mealContent: {
-    flex: 1,
-  },
-  mealLabel: {
-    fontSize: 11,
-    fontWeight: '600',
-    color: C.textMuted,
-    textTransform: 'uppercase',
-    letterSpacing: 0.5,
-    marginBottom: 4,
-  },
-  mealText: {
-    fontSize: 15,
-    color: C.text,
-    lineHeight: 22,
-  },
-  shoppingButton: {
-    marginHorizontal: 20,
-    marginTop: 20,
-    borderRadius: 16,
-    overflow: 'hidden',
-  },
-  shoppingGradient: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    padding: 16,
-    gap: 14,
-  },
-  shoppingIcon: {
-    width: 48,
-    height: 48,
-    borderRadius: 14,
-    backgroundColor: C.goldGlow,
-    justifyContent: 'center',
-    alignItems: 'center',
-  },
-  shoppingContent: {
-    flex: 1,
-  },
-  shoppingTitle: {
-    fontSize: 16,
-    fontWeight: '600',
-    color: C.text,
-  },
-  shoppingSubtitle: {
-    fontSize: 13,
-    color: C.textMuted,
-    marginTop: 2,
-  },
-  deleteButton: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    marginHorizontal: 20,
-    marginTop: 16,
-    paddingVertical: 12,
-    gap: 8,
-  },
-  deleteButtonText: {
-    fontSize: 14,
-    color: C.red,
-    fontWeight: '500',
-  },
-  emptyState: {
-    alignItems: 'center',
-    paddingVertical: 60,
-    paddingHorizontal: 40,
-  },
-  emptyTitle: {
-    fontSize: 20,
-    fontWeight: '700',
-    color: C.text,
-    marginTop: 16,
-  },
-  emptySubtitle: {
-    fontSize: 14,
-    color: C.textMuted,
-    textAlign: 'center',
-    marginTop: 8,
-  },
-  emptyButton: {
-    borderRadius: 25,
-    overflow: 'hidden',
-    marginTop: 24,
-  },
-  emptyButtonGradient: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 14,
-    paddingHorizontal: 24,
-    gap: 8,
-  },
-  emptyButtonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0,0,0,0.8)',
-    justifyContent: 'flex-end',
-  },
-  modalContent: {
-    borderTopLeftRadius: 28,
-    borderTopRightRadius: 28,
-    overflow: 'hidden',
-  },
-  modalGradient: {
-    padding: 0,
-  },
-  modalHeader: {
-    flexDirection: 'row',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    padding: 20,
-    borderBottomWidth: 1,
-    borderBottomColor: C.border,
-  },
-  modalTitle: {
-    fontSize: 18,
-    fontWeight: '700',
-    color: C.text,
-  },
-  modalBody: {
-    padding: 20,
-  },
-  inputLabel: {
-    fontSize: 14,
-    fontWeight: '600',
-    color: C.textSecondary,
-    marginBottom: 8,
-  },
-  input: {
-    backgroundColor: C.surface,
-    borderRadius: 14,
-    padding: 14,
-    fontSize: 16,
-    color: C.text,
-    marginBottom: 16,
-    borderWidth: 1,
-    borderColor: C.border,
-  },
-  numberRow: {
-    flexDirection: 'row',
-    gap: 12,
-  },
-  numberInput: {
-    flex: 1,
-  },
-  saveButton: {
-    margin: 20,
-    borderRadius: 14,
-    overflow: 'hidden',
-  },
-  saveGradient: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'center',
-    paddingVertical: 16,
-    gap: 8,
-  },
-  saveButtonText: {
-    color: '#fff',
-    fontSize: 16,
-    fontWeight: '600',
-  },
-  shoppingItem: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    paddingVertical: 12,
-    borderBottomWidth: 1,
-    borderBottomColor: C.border,
-    gap: 12,
-  },
-  shoppingItemText: {
-    flex: 1,
-    fontSize: 15,
-    color: C.text,
-  },
-  shoppingItemChecked: {
-    textDecorationLine: 'line-through',
-    color: C.textMuted,
-  },
-  shoppingItemQty: {
-    fontSize: 14,
-    color: C.textMuted,
-  },
+const s = StyleSheet.create({
+  container: { flex: 1 },
+  header: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'flex-start', padding: 20 },
+  title: { fontSize: 26, fontWeight: '700' },
+  subtitle: { fontSize: 14, marginTop: 4 },
+  generateButton: { borderRadius: 20, overflow: 'hidden' },
+  generateGradient: { flexDirection: 'row', alignItems: 'center', paddingVertical: 10, paddingHorizontal: 16, gap: 6 },
+  generateButtonText: { color: '#fff', fontWeight: '600', fontSize: 14 },
+
+  // Scanner
+  scanSection: { paddingHorizontal: 20, marginBottom: 16 },
+  scanCard: { borderRadius: 20, padding: 16 },
+  scanHeader: { flexDirection: 'row', alignItems: 'center', gap: 14, marginBottom: 14 },
+  scanIcon: { width: 48, height: 48, borderRadius: 14, justifyContent: 'center', alignItems: 'center' },
+  scanInfo: { flex: 1 },
+  scanTitle: { fontSize: 16, fontWeight: '700' },
+  scanSubtitle: { fontSize: 13, marginTop: 2 },
+  scanButtons: { flexDirection: 'row', gap: 10 },
+  scanBtn: { flex: 1, borderRadius: 14, overflow: 'hidden' },
+  scanBtnGradient: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 12, gap: 8 },
+  scanBtnText: { color: '#fff', fontWeight: '600', fontSize: 14 },
+  scanLoading: { alignItems: 'center', paddingVertical: 20 },
+  scanLoadingText: { marginTop: 12, fontSize: 14 },
+
+  // Scan result preview
+  scanResultPreview: { marginHorizontal: 20, marginBottom: 16, borderRadius: 16, overflow: 'hidden' },
+  scanResultPreviewGrad: { flexDirection: 'row', alignItems: 'center', padding: 14, gap: 12 },
+  scanResultIcon: { width: 40, height: 40, borderRadius: 12, justifyContent: 'center', alignItems: 'center' },
+  scanResultTitle: { fontSize: 14, fontWeight: '600' },
+  scanResultSub: { fontSize: 12, marginTop: 2 },
+
+  // Meal plan
+  generatingContainer: { alignItems: 'center', padding: 40 },
+  generatingText: { marginTop: 16, fontSize: 16, fontWeight: '600' },
+  generatingSubtext: { marginTop: 8, fontSize: 14 },
+  toggleContainer: { flexDirection: 'row', marginHorizontal: 20, marginBottom: 16, borderRadius: 14, padding: 4 },
+  toggleButton: { flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 10, borderRadius: 10, gap: 6 },
+  toggleText: { fontSize: 14, fontWeight: '600' },
+  daysScroll: { marginBottom: 16 },
+  daysContainer: { paddingHorizontal: 16, gap: 8 },
+  dayButton: { paddingVertical: 10, paddingHorizontal: 16, borderRadius: 20 },
+  dayText: { fontSize: 14, fontWeight: '600' },
+  mealsContainer: { paddingHorizontal: 20, gap: 12 },
+  mealCard: { borderRadius: 16, overflow: 'hidden' },
+  mealGradient: { flexDirection: 'row', padding: 16, alignItems: 'flex-start', gap: 14 },
+  mealIcon: { width: 48, height: 48, borderRadius: 14, justifyContent: 'center', alignItems: 'center' },
+  mealContent: { flex: 1 },
+  mealLabel: { fontSize: 11, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 0.5, marginBottom: 4 },
+  mealText: { fontSize: 15, lineHeight: 22 },
+
+  // Shopping
+  shoppingButton: { marginHorizontal: 20, marginTop: 20, borderRadius: 16, overflow: 'hidden' },
+  shoppingGradient: { flexDirection: 'row', alignItems: 'center', padding: 16, gap: 14 },
+  shoppingIcon: { width: 48, height: 48, borderRadius: 14, justifyContent: 'center', alignItems: 'center' },
+  shoppingContent: { flex: 1 },
+  shoppingTitle: { fontSize: 16, fontWeight: '600' },
+  shoppingSub: { fontSize: 13, marginTop: 2 },
+  deleteButton: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginHorizontal: 20, marginTop: 16, paddingVertical: 12, gap: 8 },
+  deleteText: { fontSize: 14, fontWeight: '500' },
+
+  // Empty state
+  emptyState: { alignItems: 'center', paddingVertical: 60, paddingHorizontal: 40 },
+  emptyTitle: { fontSize: 20, fontWeight: '700', marginTop: 16 },
+  emptySub: { fontSize: 14, textAlign: 'center', marginTop: 8 },
+  emptyButton: { borderRadius: 25, overflow: 'hidden', marginTop: 24 },
+  emptyButtonGrad: { flexDirection: 'row', alignItems: 'center', paddingVertical: 14, paddingHorizontal: 24, gap: 8 },
+  emptyButtonText: { color: '#fff', fontSize: 16, fontWeight: '600' },
+
+  // Modals
+  modalOverlay: { flex: 1, backgroundColor: 'rgba(0,0,0,0.8)', justifyContent: 'flex-end' },
+  modalContent: { borderTopLeftRadius: 28, borderTopRightRadius: 28, overflow: 'hidden' },
+  modalGradient: { padding: 0 },
+  modalHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', padding: 20, borderBottomWidth: 1 },
+  modalTitle: { fontSize: 18, fontWeight: '700' },
+  modalBody: { padding: 20 },
+  inputLabel: { fontSize: 14, fontWeight: '600', marginBottom: 8 },
+  input: { borderRadius: 14, padding: 14, fontSize: 16, marginBottom: 16, borderWidth: 1 },
+  numberRow: { flexDirection: 'row', gap: 12 },
+  numberInput: { flex: 1 },
+  saveButton: { margin: 20, borderRadius: 14, overflow: 'hidden' },
+  saveGradient: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 16, gap: 8 },
+  saveButtonText: { color: '#fff', fontSize: 16, fontWeight: '600' },
+  shoppingItem: { flexDirection: 'row', alignItems: 'center', paddingVertical: 12, borderBottomWidth: 1, gap: 12 },
+  shoppingItemText: { flex: 1, fontSize: 15 },
+  shoppingItemQty: { fontSize: 14 },
+
+  // Scan results modal
+  scanSectionLabel: { fontSize: 12, fontWeight: '600', textTransform: 'uppercase', letterSpacing: 1, marginBottom: 10 },
+  foodChips: { flexDirection: 'row', flexWrap: 'wrap', gap: 8 },
+  foodChip: { paddingHorizontal: 12, paddingVertical: 6, borderRadius: 20 },
+  foodChipText: { fontSize: 13, fontWeight: '500' },
+  suggMealCard: { borderRadius: 16, padding: 14, marginBottom: 10 },
+  suggMealHeader: { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 8 },
+  suggMealIcon: { width: 36, height: 36, borderRadius: 10, justifyContent: 'center', alignItems: 'center' },
+  suggMealName: { fontSize: 15, fontWeight: '700' },
+  suggMealTime: { fontSize: 12, marginTop: 2 },
+  suggMealDetail: { fontSize: 13, lineHeight: 20, marginTop: 4 },
 });

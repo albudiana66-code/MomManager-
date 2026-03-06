@@ -159,17 +159,17 @@ export default function SettingsScreen() {
 
         {/* Notifications Section */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>{t('settings.notifications')}</Text>
+          <Text style={[styles.sectionTitle, { color: C.primary }]}>{t('settings.notifications')}</Text>
           
           {/* Hydration Reminders */}
           <View style={styles.settingRow}>
-            <LinearGradient colors={['#252532', '#1E1E2A']} style={styles.settingGradient}>
+            <LinearGradient colors={isDarkMode ? ['#252532', '#1E1E2A'] : ['#F8F9FA', '#FFFFFF']} style={[styles.settingGradient, !isDarkMode && { borderWidth: 1, borderColor: C.border }]}>
               <View style={[styles.settingIcon, { backgroundColor: C.blueGlow }]}>
                 <Ionicons name="water-outline" size={20} color={C.blue} />
               </View>
               <View style={styles.settingContent}>
-                <Text style={styles.settingLabel}>{t('settings.hydrationReminders')}</Text>
-                <Text style={styles.settingHint}>{t('settings.hydrationHint')}</Text>
+                <Text style={[styles.settingLabel, { color: C.text }]}>{t('settings.hydrationReminders')}</Text>
+                <Text style={[styles.settingHint, { color: C.textMuted }]}>{t('settings.hydrationHint')}</Text>
               </View>
               <Switch
                 value={notifications.hydrationReminders}
@@ -182,13 +182,13 @@ export default function SettingsScreen() {
 
           {/* Work Calendar Alerts */}
           <View style={styles.settingRow}>
-            <LinearGradient colors={['#252532', '#1E1E2A']} style={styles.settingGradient}>
+            <LinearGradient colors={isDarkMode ? ['#252532', '#1E1E2A'] : ['#F8F9FA', '#FFFFFF']} style={[styles.settingGradient, !isDarkMode && { borderWidth: 1, borderColor: C.border }]}>
               <View style={[styles.settingIcon, { backgroundColor: C.purpleGlow }]}>
                 <Ionicons name="calendar-outline" size={20} color={C.purple} />
               </View>
               <View style={styles.settingContent}>
-                <Text style={styles.settingLabel}>{t('settings.workCalendarAlerts')}</Text>
-                <Text style={styles.settingHint}>{t('settings.workCalendarHint')}</Text>
+                <Text style={[styles.settingLabel, { color: C.text }]}>{t('settings.workCalendarAlerts')}</Text>
+                <Text style={[styles.settingHint, { color: C.textMuted }]}>{t('settings.workCalendarHint')}</Text>
               </View>
               <Switch
                 value={notifications.workCalendarAlerts}
@@ -201,13 +201,13 @@ export default function SettingsScreen() {
 
           {/* Food Expiration Alerts */}
           <View style={styles.settingRow}>
-            <LinearGradient colors={['#252532', '#1E1E2A']} style={styles.settingGradient}>
+            <LinearGradient colors={isDarkMode ? ['#252532', '#1E1E2A'] : ['#F8F9FA', '#FFFFFF']} style={[styles.settingGradient, !isDarkMode && { borderWidth: 1, borderColor: C.border }]}>
               <View style={[styles.settingIcon, { backgroundColor: C.goldGlow }]}>
                 <Ionicons name="fast-food-outline" size={20} color={C.gold} />
               </View>
               <View style={styles.settingContent}>
-                <Text style={styles.settingLabel}>{t('settings.foodExpirationAlerts')}</Text>
-                <Text style={styles.settingHint}>{t('settings.foodExpirationHint')}</Text>
+                <Text style={[styles.settingLabel, { color: C.text }]}>{t('settings.foodExpirationAlerts')}</Text>
+                <Text style={[styles.settingHint, { color: C.textMuted }]}>{t('settings.foodExpirationHint')}</Text>
               </View>
               <Switch
                 value={notifications.foodExpirationAlerts}
@@ -221,40 +221,40 @@ export default function SettingsScreen() {
 
         {/* Account Section */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>{t('settings.myAccount')}</Text>
+          <Text style={[styles.sectionTitle, { color: C.primary }]}>{t('settings.myAccount')}</Text>
           
           <TouchableOpacity style={styles.settingRow}>
-            <LinearGradient colors={['#252532', '#1E1E2A']} style={styles.settingGradient}>
+            <LinearGradient colors={isDarkMode ? ['#252532', '#1E1E2A'] : ['#F8F9FA', '#FFFFFF']} style={[styles.settingGradient, !isDarkMode && { borderWidth: 1, borderColor: C.border }]}>
               <View style={[styles.settingIcon, { backgroundColor: C.primaryGlow }]}>
                 <Ionicons name="mail-outline" size={20} color={C.primary} />
               </View>
               <View style={styles.settingContent}>
-                <Text style={styles.settingLabel}>{t('settings.changeEmail')}</Text>
+                <Text style={[styles.settingLabel, { color: C.text }]}>{t('settings.changeEmail')}</Text>
               </View>
               <Ionicons name="chevron-forward" size={18} color={C.textMuted} />
             </LinearGradient>
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.settingRow}>
-            <LinearGradient colors={['#252532', '#1E1E2A']} style={styles.settingGradient}>
+            <LinearGradient colors={isDarkMode ? ['#252532', '#1E1E2A'] : ['#F8F9FA', '#FFFFFF']} style={[styles.settingGradient, !isDarkMode && { borderWidth: 1, borderColor: C.border }]}>
               <View style={[styles.settingIcon, { backgroundColor: 'rgba(239, 68, 68, 0.15)' }]}>
                 <Ionicons name="lock-closed-outline" size={20} color={C.red} />
               </View>
               <View style={styles.settingContent}>
-                <Text style={styles.settingLabel}>{t('settings.changePassword')}</Text>
+                <Text style={[styles.settingLabel, { color: C.text }]}>{t('settings.changePassword')}</Text>
               </View>
               <Ionicons name="chevron-forward" size={18} color={C.textMuted} />
             </LinearGradient>
           </TouchableOpacity>
 
           <TouchableOpacity style={styles.settingRow} onPress={handleExportData}>
-            <LinearGradient colors={['#252532', '#1E1E2A']} style={styles.settingGradient}>
+            <LinearGradient colors={isDarkMode ? ['#252532', '#1E1E2A'] : ['#F8F9FA', '#FFFFFF']} style={[styles.settingGradient, !isDarkMode && { borderWidth: 1, borderColor: C.border }]}>
               <View style={[styles.settingIcon, { backgroundColor: C.greenGlow }]}>
                 <Ionicons name="download-outline" size={20} color={C.green} />
               </View>
               <View style={styles.settingContent}>
-                <Text style={styles.settingLabel}>{t('settings.exportData')}</Text>
-                <Text style={styles.settingHint}>{t('settings.exportHint')}</Text>
+                <Text style={[styles.settingLabel, { color: C.text }]}>{t('settings.exportData')}</Text>
+                <Text style={[styles.settingHint, { color: C.textMuted }]}>{t('settings.exportHint')}</Text>
               </View>
               <Ionicons name="chevron-forward" size={18} color={C.textMuted} />
             </LinearGradient>
@@ -263,19 +263,19 @@ export default function SettingsScreen() {
 
         {/* Subscription Section */}
         <View style={styles.section}>
-          <Text style={styles.sectionTitle}>{t('settings.subscription')}</Text>
+          <Text style={[styles.sectionTitle, { color: C.primary }]}>{t('settings.subscription')}</Text>
           
           {/* Monthly Plan */}
           <TouchableOpacity style={styles.subscriptionCard}>
-            <LinearGradient colors={['#252532', '#1E1E2A']} style={styles.subscriptionGradient}>
+            <LinearGradient colors={isDarkMode ? ['#252532', '#1E1E2A'] : ['#F8F9FA', '#FFFFFF']} style={[styles.subscriptionGradient, !isDarkMode && { borderWidth: 1, borderColor: C.border }]}>
               <View style={styles.subscriptionHeader}>
-                <Text style={styles.subscriptionName}>{t('settings.monthlyPlan')}</Text>
-                <View style={styles.priceTag}>
-                  <Text style={styles.priceAmount}>{currencySymbol}4.99</Text>
-                  <Text style={styles.pricePeriod}>{t('settings.perMonth')}</Text>
+                <Text style={[styles.subscriptionName, { color: C.text }]}>{t('settings.monthlyPlan')}</Text>
+                <View style={[styles.priceTag, { backgroundColor: C.surface }]}>
+                  <Text style={[styles.priceAmount, { color: C.text }]}>{currencySymbol}4.99</Text>
+                  <Text style={[styles.pricePeriod, { color: C.textMuted }]}>{t('settings.perMonth')}</Text>
                 </View>
               </View>
-              <Text style={styles.trialText}>{t('settings.freeTrial')}</Text>
+              <Text style={[styles.trialText, { color: C.textSecondary }]}>{t('settings.freeTrial')}</Text>
             </LinearGradient>
           </TouchableOpacity>
 
@@ -292,26 +292,25 @@ export default function SettingsScreen() {
                   <Text style={[styles.pricePeriod, { color: 'rgba(255,255,255,0.8)' }]}>{t('settings.perYear')}</Text>
                 </View>
               </View>
-              <Text style={[styles.trialText, { color: 'rgba(255,255,255,0.9)' }]}>{t('settings.freeTrial')}</Text>
             </LinearGradient>
           </TouchableOpacity>
         </View>
 
         {/* Copyright */}
-        <Text style={styles.copyright}>© 2026 MomManager by Diana-Elena Albu</Text>
+        <Text style={[styles.copyright, { color: C.textMuted }]}>© 2026 MomManager by Diana-Elena Albu</Text>
         
         {/* Legal Links */}
         <View style={styles.legalLinks}>
           <TouchableOpacity onPress={() => router.push('/legal/terms')}>
-            <Text style={styles.legalLink}>Terms & Conditions</Text>
+            <Text style={[styles.legalLink, { color: C.textSecondary }]}>Terms & Conditions</Text>
           </TouchableOpacity>
-          <Text style={styles.legalSeparator}>•</Text>
+          <Text style={[styles.legalSeparator, { color: C.textMuted }]}>•</Text>
           <TouchableOpacity onPress={() => router.push('/legal/privacy')}>
-            <Text style={styles.legalLink}>Privacy Policy</Text>
+            <Text style={[styles.legalLink, { color: C.textSecondary }]}>Privacy Policy</Text>
           </TouchableOpacity>
         </View>
         
-        <Text style={styles.copyrightFull}>
+        <Text style={[styles.copyrightFull, { color: C.textMuted }]}>
           All rights reserved. Unauthorized reproduction prohibited.
         </Text>
       </ScrollView>
