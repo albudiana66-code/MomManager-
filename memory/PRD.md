@@ -10,68 +10,46 @@ Build a "Modern 2026" mobile app called 'MomManager 2026' for working mothers. T
 - **AI**: OpenAI GPT-5.2 and GPT-4o (vision) via emergentintegrations with Emergent LLM Key
 - **Auth**: Google OAuth via Emergent
 
-## Tech Stack
-- Frontend: Expo, React Native, TypeScript, expo-router, expo-linear-gradient, expo-image-picker
-- Backend: FastAPI, motor (async MongoDB), emergentintegrations
-- Theming: Dynamic Day/Night via SettingsContext (React Context API)
-
 ## Core Requirements
 1. **Dynamic Day/Night Theme** - Toggle in Settings, affects entire app
-2. **AI Stories** (Kids Module) - Age-appropriate stories with fictional characters (1-4, 4-7, 7+)
+2. **AI Stories** (Kids Module) - Age-appropriate stories with fictional characters
 3. **Enhanced Self-Care** - Physical profile, AI workouts (home/gym), strength meals
 4. **Kitchen AI Scanner** - Upload receipt/food photo -> AI analyzes -> meal suggestions
-5. **AI Direct Responses** - All AI interactions direct and concise, no unnecessary questions
-6. **Subscription Plans** - 7-day free trial ONLY for monthly plan
+5. **AI Direct Responses** - All AI interactions direct and concise
+6. **Subscription Plans** - £9.99/month (7-day trial), £79.99/year (no discount)
+7. **Multilingual** - RO, EN, FR, PT, ES, DE, IT with full translation files
+8. **Delete functionality** - All items (meals, stories, meetings, kids) have visible delete buttons
+9. **AI Chat** - Full chat modal from dashboard pink AI bar (no floating button)
+10. **Calendar AI** - AI should help with meeting/task organization
 
-## What's Been Implemented (as of Feb 2026)
+## What's Been Implemented
 - [x] Dynamic Day/Night theme system (SettingsContext)
-- [x] Settings page with theme toggle
-- [x] Dashboard with dynamic theme
-- [x] Kitchen screen - full rewrite with dynamic theme + AI Food Scanner
-- [x] Kids screen - dynamic theme + fictional characters (no kid_name)
-- [x] Organize screen - dynamic theme (checklist, budget, receipts)
+- [x] Dashboard: AI chat modal via pink bar (floating button REMOVED)
+- [x] Kitchen: Full rewrite with dynamic theme + AI Food Scanner
+- [x] Kids: Dynamic theme + fictional characters + delete buttons for kids & stories
+- [x] Organize: Dynamic theme (checklist, budget, receipts)
+- [x] Settings: Theme toggle, £9.99/£79.99 prices, no annual discount
+- [x] AI prompts updated for directness (Romanian + English)
+- [x] Backend: POST /api/kitchen/generate-meals-from-image (GPT-4o vision)
+- [x] Delete functions: meal plans (window.confirm on web), stories, meetings, kids
+- [x] Portuguese translation file (pt.json)
+- [x] Translation keys use t() instead of isRo ternary
 - [x] Self-Care module (workouts, physical profile, strength meals) - partial theme
-- [x] Work/Planner screen - partial theme
-- [x] Settings subscription fix (7-day trial monthly only)
-- [x] AI prompts updated for directness
-- [x] Backend endpoint: POST /api/kitchen/generate-meals-from-image (GPT-4o vision)
-- [x] AI Chat with empathetic but direct responses
-
-## Key API Endpoints
-- `GET /api/health` - Health check
-- `POST /api/kitchen/generate-meals-from-image` - Vision AI food scanner
-- `POST /api/stories/generate` - AI story generation (no kid_name)
-- `POST /api/selfcare/workout-ai/generate` - AI workout with physical profile
-- `POST /api/selfcare/strength-meals/generate` - Strength meal plans
-- `POST /api/ai/chat` - AI assistant chat
-- CRUD endpoints for: meetings, checklists, budgets, receipts, kids, mealplans
+- [x] Work/Planner screen - partial theme + meeting delete buttons
 
 ## P0/P1/P2 Backlog
 ### P0 (Critical)
-- [ ] Calendar AI Notifications - AI generates and sends notifications for calendar events
-- [ ] Complete dynamic theme for selfcare.tsx (full rewrite, 1661 lines)
-- [ ] Complete dynamic theme for work.tsx (full rewrite, 675 lines)
+- [ ] Calendar AI Notifications - AI generates notifications for events
+- [ ] Complete dynamic theme for selfcare.tsx (full rewrite, large file)
+- [ ] Complete dynamic theme for work.tsx (full rewrite)
+- [ ] Fix remaining isRo ternaries in kitchen.tsx, kids.tsx, selfcare.tsx, work.tsx
 
 ### P1 (Important)
 - [ ] AI Smart Planner - Calendar as AI canvas for auto-generated plans
-- [ ] Push notifications integration (Expo Push Notifications)
+- [ ] Push notifications integration (Expo Push)
+- [ ] Add remaining language translations (nl, pl, ru, uk, tr, ar, hi, zh, ja, ko)
 
 ### P2 (Future)
-- [ ] Stripe Payment Integration (backend subscription logic)
+- [ ] Stripe Payment Integration
 - [ ] GDPR Export Data endpoint
-- [ ] More granular theme customization
-
-## File Structure
-```
-/app/backend/server.py - All backend endpoints and AI logic
-/app/frontend/app/(tabs)/index.tsx - Dashboard (dynamic theme)
-/app/frontend/app/(tabs)/kitchen.tsx - Kitchen + Food Scanner (dynamic theme)
-/app/frontend/app/(tabs)/kids.tsx - Kids Stories (dynamic theme)
-/app/frontend/app/(tabs)/organize.tsx - Checklist/Budget/Receipts (dynamic theme)
-/app/frontend/app/(tabs)/selfcare.tsx - Self-Care/Workouts (partial theme)
-/app/frontend/app/(tabs)/work.tsx - AI Smart Planner (partial theme)
-/app/frontend/app/settings.tsx - Settings with Day/Night toggle (dynamic theme)
-/app/frontend/src/context/SettingsContext.tsx - Theme + settings provider
-/app/frontend/src/theme/index.ts - Color palettes
-/app/frontend/src/utils/api.ts - API client
-```
+- [ ] Delete workouts (selfcare) with visible button
