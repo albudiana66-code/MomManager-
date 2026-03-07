@@ -17,10 +17,12 @@ Build a "Modern 2026" mobile app called 'MomManager 2026' for working mothers. T
 4. **Kitchen AI Scanner** - Upload receipt/food photo -> AI analyzes -> meal suggestions
 5. **AI Direct Responses** - All AI interactions direct and concise
 6. **Subscription Plans** - £9.99/month (7-day trial), £79.99/year (no discount)
-7. **Multilingual** - RO, EN, FR, PT, ES, DE, IT with full translation files
+7. **Multilingual** - RO, EN, FR, PT, ES, DE, IT, PL, AR, UK, RU with full translation files
 8. **Delete functionality** - All items (meals, stories, meetings, kids) have visible delete buttons
 9. **AI Chat** - Full chat modal from dashboard pink AI bar (no floating button)
 10. **Calendar AI** - AI should help with meeting/task organization
+11. **AI Me-Time Suggestions** - Find free calendar slots and suggest self-care activities
+12. **School Lunch Box AI** - Generate healthy lunch menus for school children
 
 ## What's Been Implemented
 - [x] Dynamic Day/Night theme system (SettingsContext)
@@ -36,6 +38,10 @@ Build a "Modern 2026" mobile app called 'MomManager 2026' for working mothers. T
 - [x] Translation keys use t() instead of isRo ternary
 - [x] Self-Care module (workouts, physical profile, strength meals) - partial theme
 - [x] Work/Planner screen - partial theme + meeting delete buttons
+- [x] AI Me-Time Suggestions: Backend endpoint + Frontend UI (work.tsx with LinearGradient)
+- [x] School Lunch Box AI: Backend endpoint + Frontend UI (kids.tsx with lunch box card/modal)
+- [x] New languages added: Polish (pl), Arabic (ar), Ukrainian (uk), Russian (ru) - translated files
+- [x] SettingsContext updated to import and register new language files
 
 ## P0/P1/P2 Backlog
 ### P0 (Critical)
@@ -47,7 +53,7 @@ Build a "Modern 2026" mobile app called 'MomManager 2026' for working mothers. T
 ### P1 (Important)
 - [ ] AI Smart Planner - Calendar as AI canvas for auto-generated plans
 - [ ] Push notifications integration (Expo Push)
-- [ ] Add remaining language translations (nl, pl, ru, uk, tr, ar, hi, zh, ja, ko)
+- [ ] Add remaining language translations (nl, tr, hi, zh, ja, ko)
 
 ### P2 (Future)
 - [ ] Stripe Payment Integration
