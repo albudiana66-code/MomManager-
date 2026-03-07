@@ -10,6 +10,10 @@ import frTranslations from '../translations/fr.json';
 import deTranslations from '../translations/de.json';
 import itTranslations from '../translations/it.json';
 import ptTranslations from '../translations/pt.json';
+import plTranslations from '../translations/pl.json';
+import arTranslations from '../translations/ar.json';
+import ukTranslations from '../translations/uk.json';
+import ruTranslations from '../translations/ru.json';
 
 // All translations
 const translations: { [key: string]: any } = {
@@ -20,6 +24,10 @@ const translations: { [key: string]: any } = {
   de: deTranslations,
   it: itTranslations,
   pt: ptTranslations,
+  pl: plTranslations,
+  ar: arTranslations,
+  uk: ukTranslations,
+  ru: ruTranslations,
 };
 
 // Languages with their names

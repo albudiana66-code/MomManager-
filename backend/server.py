@@ -1388,6 +1388,154 @@ async def delete_story(story_id: str, current_user: User = Depends(require_auth)
         raise HTTPException(status_code=404, detail="Story not found")
     return {"message": "Story deleted"}
 
+# ============== School Lunch Box Endpoint ==============
+
+@app.post("/api/kids/lunchbox/generate")
+async def generate_lunchbox(request: Request, current_user: User = Depends(require_auth)):
+    """Generate school lunch box meal ideas"""
+    body = await request.json()
+    kid_name = body.get("kid_name", "")
+    age_group = body.get("age_group", "4-7")
+    preferences = body.get("preferences", "")
+    allergies = body.get("allergies", "")
+    language = body.get("language", "ro")
+    days = body.get("days", 5)
+
+    if not EMERGENT_LLM_KEY:
+        raise HTTPException(status_code=500, detail="AI service not configured")
+
+    from emergentintegrations.llm.chat import LlmChat, UserMessage
+    import json
+
+    lang_code = language.split("-")[0] if "-" in language else language
+    is_ro = lang_code == "ro"
+
+    chat = LlmChat(
+        api_key=EMERGENT_LLM_KEY,
+        session_id=f"lunchbox_{uuid.uuid4().hex[:8]}",
+        system_message=f"""You create healthy, practical school lunch box menus for children.
+Be direct. No questions. Return ONLY valid JSON.
+{f'Allergies to avoid: {allergies}' if allergies else ''}
+{f'Preferences: {preferences}' if preferences else ''}
+Return format:
+{{
+    "lunches": [
+        {{
+            "day": "Monday",
+            "main": "Main item",
+            "snack": "Snack item",
+            "fruit": "Fruit",
+            "drink": "Drink",
+            "note": "Brief tip"
+        }}
+    ]
+}}
+Respond in {'Romanian' if is_ro else 'English'}."""
+    ).with_model("openai", "gpt-5.2")
+
+    msg = UserMessage(text=f"Generate {days} school lunch box menus for a child aged {age_group}.")
+
+    try:
+        response = await chat.send_message(msg)
+
+        try:
+            if "```json" in response:
+                json_str = response.split("```json")[1].split("```")[0]
+            elif "```" in response:
+                json_str = response.split("```")[1].split("```")[0]
+            else:
+                json_str = response
+            data = json.loads(json_str.strip())
+        except:
+            data = {"lunches": []}
+
+        result_doc = {
+            "id": f"lunch_{uuid.uuid4().hex[:12]}",
+            "user_id": current_user.user_id,
+            "kid_name": kid_name,
+            "age_group": age_group,
+            "lunches": data.get("lunches", []),
+            "created_at": datetime.now(timezone.utc)
+        }
+        await db.lunchboxes.insert_one(result_doc)
+        return {k: v for k, v in result_doc.items() if k != "_id"}
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"AI error: {str(e)}")
+
+# ============== AI Me-Time Suggestions ==============
+
+@app.post("/api/calendar/me-time-suggestions")
+async def get_me_time_suggestions(request: Request, current_user: User = Depends(require_auth)):
+    """AI analyzes calendar gaps and suggests me-time activities"""
+    body = await request.json()
+    date = body.get("date", "")
+    meetings = body.get("meetings", [])
+    language = body.get("language", "ro")
+
+    if not EMERGENT_LLM_KEY:
+        raise HTTPException(status_code=500, detail="AI service not configured")
+
+    from emergentintegrations.llm.chat import LlmChat, UserMessage
+    import json
+
+    lang_code = language.split("-")[0] if "-" in language else language
+    is_ro = lang_code == "ro"
+
+    meetings_text = ""
+    if meetings:
+        for m in meetings:
+            meetings_text += f"- {m.get('title', 'Meeting')} ({m.get('start_time', '?')} - {m.get('end_time', '?')})\n"
+    else:
+        meetings_text = "No meetings scheduled."
+
+    chat = LlmChat(
+        api_key=EMERGENT_LLM_KEY,
+        session_id=f"metime_{uuid.uuid4().hex[:8]}",
+        system_message=f"""You help working moms find free time in their schedule for self-care.
+Analyze the calendar and find gaps of 1-2 hours. Suggest relaxing activities:
+- Beauty: nails, hair, lashes, facial
+- Wellness: reading, yoga, meditation, bath
+- Fun: coffee date, shopping, podcast
+- Books: suggest real books available as PDF/ebook on Google
+Be direct. Return ONLY valid JSON:
+{{
+    "free_slots": [
+        {{
+            "start": "10:00",
+            "end": "12:00",
+            "suggestion": "Activity suggestion",
+            "category": "beauty|wellness|fun|books",
+            "detail": "Brief detail or book recommendation with Google search link"
+        }}
+    ]
+}}
+Respond in {'Romanian' if is_ro else 'English'}."""
+    ).with_model("openai", "gpt-5.2")
+
+    msg = UserMessage(text=f"Date: {date}\nSchedule:\n{meetings_text}\nFind free slots and suggest me-time activities.")
+
+    try:
+        response = await chat.send_message(msg)
+
+        try:
+            if "```json" in response:
+                json_str = response.split("```json")[1].split("```")[0]
+            elif "```" in response:
+                json_str = response.split("```")[1].split("```")[0]
+            else:
+                json_str = response
+            data = json.loads(json_str.strip())
+        except:
+            data = {"free_slots": []}
+
+        return {"date": date, "suggestions": data.get("free_slots", [])}
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"AI error: {str(e)}")
+
 # ============== AI Chat Endpoint ==============
 
 class ChatMessage(BaseModel):

@@ -80,6 +80,13 @@ export default function KidsScreen() {
   const [activityName, setActivityName] = useState('');
   const [activityNotes, setActivityNotes] = useState('');
 
+  // Lunch box state
+  const [lunchBoxLoading, setLunchBoxLoading] = useState(false);
+  const [lunchBoxResult, setLunchBoxResult] = useState<any>(null);
+  const [lunchBoxModal, setLunchBoxModal] = useState(false);
+  const [lunchPrefs, setLunchPrefs] = useState('');
+  const [lunchAllergies, setLunchAllergies] = useState('');
+
   const loadKids = async () => {
     try {
       const data = await api.getKids();
@@ -206,6 +213,31 @@ export default function KidsScreen() {
     }
   };
 
+  const generateLunchBox = async () => {
+    if (!selectedKid && kids.length === 0) {
+      Alert.alert(isRo ? 'Eroare' : 'Error', isRo ? 'Adauga un copil mai intai' : 'Add a child first');
+      return;
+    }
+    setLunchBoxLoading(true);
+    try {
+      const result = await api.generateLunchBox({
+        kid_name: selectedKid?.kid_name || '',
+        age_group: selectedAgeGroup.id,
+        preferences: lunchPrefs,
+        allergies: lunchAllergies,
+        language: language.code,
+        days: 5,
+      });
+      setLunchBoxResult(result);
+      setLunchBoxModal(true);
+    } catch (error) {
+      console.error('Error generating lunch box:', error);
+      Alert.alert(isRo ? 'Eroare' : 'Error', isRo ? 'Nu s-a putut genera meniul' : 'Could not generate menu');
+    } finally {
+      setLunchBoxLoading(false);
+    }
+  };
+
   const borderStyle = !isDarkMode ? { borderWidth: 1, borderColor: C.border } : {};
 
   return (
@@ -314,6 +346,43 @@ export default function KidsScreen() {
                 </TouchableOpacity>
               </View>
             ))
+          )}
+        </View>
+
+        {/* School Lunch Box */}
+        <View style={s.section}>
+          <Text style={[s.sectionTitle, { color: C.text }]}>{isRo ? 'School Lunch Box' : 'School Lunch Box'}</Text>
+          <TouchableOpacity activeOpacity={0.85} onPress={generateLunchBox} disabled={lunchBoxLoading} data-testid="generate-lunchbox-btn">
+            <LinearGradient colors={['#F5A623', '#D4920B']} style={s.lunchBoxCard}>
+              <View style={s.lunchBoxContent}>
+                <View style={s.lunchBoxIconCircle}>
+                  <Ionicons name="fast-food" size={24} color="#F5A623" />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={s.lunchBoxTitle}>{isRo ? 'Meniu Scoala' : 'School Menu'}</Text>
+                  <Text style={s.lunchBoxSub}>{isRo ? 'AI genereaza meniuri sanatoase pentru scoala' : 'AI generates healthy school menus'}</Text>
+                </View>
+                {lunchBoxLoading ? (
+                  <ActivityIndicator size="small" color="#fff" />
+                ) : (
+                  <Ionicons name="sparkles" size={24} color="rgba(255,255,255,0.8)" />
+                )}
+              </View>
+            </LinearGradient>
+          </TouchableOpacity>
+          {lunchBoxResult && (
+            <TouchableOpacity style={{ marginTop: 10 }} onPress={() => setLunchBoxModal(true)}>
+              <LinearGradient colors={gradCard} style={[s.lunchBoxPreview, borderStyle]}>
+                <View style={[s.lunchBoxPreviewIcon, { backgroundColor: C.goldGlow }]}>
+                  <Ionicons name="checkmark-circle" size={20} color={C.gold} />
+                </View>
+                <View style={{ flex: 1 }}>
+                  <Text style={[s.lunchBoxPreviewTitle, { color: C.text }]}>{isRo ? 'Meniu generat' : 'Menu generated'}</Text>
+                  <Text style={[s.lunchBoxPreviewSub, { color: C.textMuted }]}>{lunchBoxResult.lunches?.length || 0} {isRo ? 'zile' : 'days'}</Text>
+                </View>
+                <Ionicons name="chevron-forward" size={20} color={C.textMuted} />
+              </LinearGradient>
+            </TouchableOpacity>
           )}
         </View>
 
@@ -448,6 +517,63 @@ export default function KidsScreen() {
         </View>
       </Modal>
 
+      {/* Lunch Box Results Modal */}
+      <Modal visible={lunchBoxModal} animationType="slide" transparent>
+        <View style={s.modalOverlay}>
+          <View style={[s.modalContentFull, { maxHeight: '85%' }]}>
+            <LinearGradient colors={gradModal} style={{ flex: 1 }}>
+              <View style={[s.modalHeaderBorder, { borderBottomColor: C.border }]}>
+                <Text style={[s.modalTitle, { color: C.text }]}>{isRo ? 'Meniu Scoala' : 'School Lunch Box'}</Text>
+                <TouchableOpacity onPress={() => setLunchBoxModal(false)}>
+                  <Ionicons name="close" size={24} color={C.textMuted} />
+                </TouchableOpacity>
+              </View>
+              <ScrollView style={s.modalBody}>
+                {lunchBoxResult?.lunches?.map((lunch: any, i: number) => (
+                  <View key={i} style={[s.lunchDayCard, { backgroundColor: C.surface }]}>
+                    <View style={s.lunchDayHeader}>
+                      <View style={[s.lunchDayBadge, { backgroundColor: C.goldGlow }]}>
+                        <Text style={[s.lunchDayNum, { color: C.gold }]}>{i + 1}</Text>
+                      </View>
+                      <Text style={[s.lunchDayName, { color: C.text }]}>{lunch.day}</Text>
+                    </View>
+                    <View style={s.lunchItems}>
+                      {lunch.main && (
+                        <View style={s.lunchItem}>
+                          <Ionicons name="restaurant" size={14} color={C.primary} />
+                          <Text style={[s.lunchItemText, { color: C.textSecondary }]}>{lunch.main}</Text>
+                        </View>
+                      )}
+                      {lunch.snack && (
+                        <View style={s.lunchItem}>
+                          <Ionicons name="cafe" size={14} color={C.gold} />
+                          <Text style={[s.lunchItemText, { color: C.textSecondary }]}>{lunch.snack}</Text>
+                        </View>
+                      )}
+                      {lunch.fruit && (
+                        <View style={s.lunchItem}>
+                          <Ionicons name="nutrition" size={14} color={C.green} />
+                          <Text style={[s.lunchItemText, { color: C.textSecondary }]}>{lunch.fruit}</Text>
+                        </View>
+                      )}
+                      {lunch.drink && (
+                        <View style={s.lunchItem}>
+                          <Ionicons name="water" size={14} color={C.blue} />
+                          <Text style={[s.lunchItemText, { color: C.textSecondary }]}>{lunch.drink}</Text>
+                        </View>
+                      )}
+                    </View>
+                    {lunch.note && (
+                      <Text style={[s.lunchNote, { color: C.textMuted }]}>{lunch.note}</Text>
+                    )}
+                  </View>
+                ))}
+              </ScrollView>
+            </LinearGradient>
+          </View>
+        </View>
+      </Modal>
+
       {/* Loading Overlay */}
       {generatingStory && (
         <View style={s.loadingOverlay}>
@@ -493,6 +619,25 @@ const s = StyleSheet.create({
   storyTitle: { fontSize: 15, fontWeight: '600' },
   storyMetaText: { fontSize: 12, marginTop: 2 },
   storyDeleteBtn: { padding: 8 },
+  // Lunch Box
+  lunchBoxCard: { borderRadius: 16, padding: 16, flexDirection: 'row', alignItems: 'center' },
+  lunchBoxContent: { flexDirection: 'row', alignItems: 'center', gap: 14, flex: 1 },
+  lunchBoxIconCircle: { width: 48, height: 48, borderRadius: 14, backgroundColor: 'rgba(255,255,255,0.2)', justifyContent: 'center', alignItems: 'center' },
+  lunchBoxTitle: { fontSize: 16, fontWeight: '700', color: '#fff' },
+  lunchBoxSub: { fontSize: 12, color: 'rgba(255,255,255,0.7)', marginTop: 2 },
+  lunchBoxPreview: { flexDirection: 'row', alignItems: 'center', padding: 14, borderRadius: 14, gap: 12 },
+  lunchBoxPreviewIcon: { width: 36, height: 36, borderRadius: 10, justifyContent: 'center', alignItems: 'center' },
+  lunchBoxPreviewTitle: { fontSize: 14, fontWeight: '600' },
+  lunchBoxPreviewSub: { fontSize: 12, marginTop: 2 },
+  lunchDayCard: { borderRadius: 14, padding: 14, marginBottom: 10 },
+  lunchDayHeader: { flexDirection: 'row', alignItems: 'center', gap: 12, marginBottom: 10 },
+  lunchDayBadge: { width: 32, height: 32, borderRadius: 10, justifyContent: 'center', alignItems: 'center' },
+  lunchDayNum: { fontSize: 14, fontWeight: '700' },
+  lunchDayName: { fontSize: 15, fontWeight: '600' },
+  lunchItems: { gap: 6, marginLeft: 44 },
+  lunchItem: { flexDirection: 'row', alignItems: 'center', gap: 8 },
+  lunchItemText: { fontSize: 13, lineHeight: 18 },
+  lunchNote: { fontSize: 12, fontStyle: 'italic', marginTop: 8, marginLeft: 44 },
   activityCard: { flexDirection: 'row', borderRadius: 12, padding: 14, marginBottom: 8, gap: 12 },
   activityIcon: { width: 36, height: 36, borderRadius: 10, justifyContent: 'center', alignItems: 'center' },
   activityContent: { flex: 1 },

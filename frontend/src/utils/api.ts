@@ -230,6 +230,22 @@ class ApiClient {
     });
   }
 
+  // Kids - School Lunch Box
+  async generateLunchBox(data: { kid_name: string; age_group: string; preferences?: string; allergies?: string; language?: string; days?: number }) {
+    return this.request('/kids/lunchbox/generate', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
+  // Calendar - AI Me-Time Suggestions
+  async getMeTimeSuggestions(data: { date: string; meetings: any[]; language: string }) {
+    return this.request('/calendar/me-time-suggestions', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
   // AI Chat
   async sendChatMessage(message: string, language: string, history: any[] = []) {
     return this.request('/ai/chat', {

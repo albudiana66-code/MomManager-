@@ -9,9 +9,11 @@ import {
   TextInput,
   Modal,
   Alert,
+  ActivityIndicator,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@expo/vector-icons';
+import { LinearGradient } from 'expo-linear-gradient';
 import { api } from '../../src/utils/api';
 import { format, addDays, startOfWeek, isSameDay } from 'date-fns';
 import { ro, enUS, es, fr, de, it } from 'date-fns/locale';
@@ -56,6 +58,11 @@ export default function WorkScreen() {
   const [newItemTitle, setNewItemTitle] = useState('');
   const [newItemTime, setNewItemTime] = useState('09:00');
   const [newItemType, setNewItemType] = useState<PlannerItem['type']>('meeting');
+
+  // Me-Time state
+  const [meTimeLoading, setMeTimeLoading] = useState(false);
+  const [meTimeSuggestions, setMeTimeSuggestions] = useState<any[]>([]);
+  const [meTimeModal, setMeTimeModal] = useState(false);
 
   const dateLocale = dateLocales[language.code] || dateLocales[language.code.split('-')[0]] || enUS;
 
@@ -162,6 +169,46 @@ export default function WorkScreen() {
       await loadPlannerItems();
     } catch (error) {
       console.error('Error deleting item:', error);
+    }
+  };
+
+  const fetchMeTimeSuggestions = async () => {
+    setMeTimeLoading(true);
+    try {
+      const dateStr = format(selectedDate, 'yyyy-MM-dd');
+      const meetings = plannerItems.filter(i => i.type === 'meeting').map(i => ({
+        title: i.title,
+        start_time: i.time,
+        end_time: i.time,
+      }));
+      const result = await api.getMeTimeSuggestions({
+        date: dateStr,
+        meetings,
+        language: language.code,
+      });
+      setMeTimeSuggestions(result.suggestions || []);
+      setMeTimeModal(true);
+    } catch (error) {
+      console.error('Error getting me-time suggestions:', error);
+    } finally {
+      setMeTimeLoading(false);
+    }
+  };
+
+  const addMeTimeToCalendar = async (suggestion: any) => {
+    try {
+      await api.createMeeting({
+        title: suggestion.suggestion,
+        date: format(selectedDate, 'yyyy-MM-dd'),
+        start_time: suggestion.start,
+        end_time: suggestion.end,
+        description: suggestion.detail || '',
+        color: '#E91E9C',
+      });
+      await loadPlannerItems();
+      setMeTimeModal(false);
+    } catch (error) {
+      console.error('Error adding me-time:', error);
     }
   };
 
@@ -298,25 +345,85 @@ export default function WorkScreen() {
           )}
         </View>
 
-        {/* Self-Care Suggestion */}
-        {plannerItems.length >= 3 && (
-          <View style={styles.selfCareCard}>
+        {/* AI Me-Time Suggestions */}
+        <TouchableOpacity activeOpacity={0.85} onPress={fetchMeTimeSuggestions} disabled={meTimeLoading} data-testid="me-time-btn">
+          <LinearGradient colors={['#E91E9C', '#B8157A']} style={styles.selfCareCard}>
             <View style={styles.selfCareIcon}>
-              <Ionicons name="heart" size={24} color={COLORS.primary} />
+              <Ionicons name={meTimeLoading ? 'hourglass' : 'sparkles'} size={24} color="#fff" />
             </View>
             <View style={styles.selfCareContent}>
-              <Text style={styles.selfCareTitle}>
-                {language.code === 'ro' ? 'Sugestie Self-Care' : 'Self-Care Suggestion'}
+              <Text style={[styles.selfCareTitle, { color: '#fff' }]}>
+                {language.code === 'ro' ? 'AI Me-Time' : 'AI Me-Time'}
               </Text>
-              <Text style={styles.selfCareText}>
-                {language.code === 'ro'
-                  ? 'Ai o zi ocupată! Am rezervat 30 min pentru tine la ora 20:00 🧘‍♀️'
-                  : 'You have a busy day! I\'ve blocked 30 min for you at 8PM 🧘‍♀️'}
+              <Text style={[styles.selfCareText, { color: 'rgba(255,255,255,0.8)' }]}>
+                {meTimeLoading
+                  ? (language.code === 'ro' ? 'AI analizeaza calendarul...' : 'AI analyzing schedule...')
+                  : (language.code === 'ro' ? 'Gaseste timp liber pentru tine' : 'Find free time for yourself')}
               </Text>
             </View>
-          </View>
+            {meTimeLoading && <ActivityIndicator size="small" color="#fff" />}
+          </LinearGradient>
+        </TouchableOpacity>
+
+        {/* Me-Time suggestions preview */}
+        {meTimeSuggestions.length > 0 && !meTimeModal && (
+          <TouchableOpacity style={{ marginTop: 8, marginHorizontal: 16 }} onPress={() => setMeTimeModal(true)}>
+            <View style={[styles.meTimePreview, { backgroundColor: C.surface, borderColor: C.border }]}>
+              <Ionicons name="heart" size={18} color={C.primary} />
+              <Text style={[styles.meTimePreviewText, { color: C.text }]}>
+                {meTimeSuggestions.length} {language.code === 'ro' ? 'sugestii disponibile' : 'suggestions available'}
+              </Text>
+              <Ionicons name="chevron-forward" size={18} color={C.textMuted} />
+            </View>
+          </TouchableOpacity>
         )}
       </ScrollView>
+
+      {/* Me-Time Modal */}
+      <Modal visible={meTimeModal} animationType="slide" transparent>
+        <View style={styles.modalOverlay}>
+          <View style={[styles.modalContent, { maxHeight: '80%' }]}>
+            <View style={[styles.modalHeader, { backgroundColor: C.bg }]}>
+              <Text style={[styles.modalTitle, { color: C.text }]}>
+                {language.code === 'ro' ? 'Sugestii Me-Time' : 'Me-Time Suggestions'}
+              </Text>
+              <TouchableOpacity onPress={() => setMeTimeModal(false)}>
+                <Ionicons name="close" size={24} color={C.textMuted} />
+              </TouchableOpacity>
+            </View>
+            <ScrollView style={{ backgroundColor: C.bg, padding: 16 }}>
+              {meTimeSuggestions.map((s: any, i: number) => {
+                const catIcons: any = { beauty: 'color-palette', wellness: 'leaf', fun: 'cafe', books: 'book' };
+                const catColors: any = { beauty: C.primary, wellness: C.green, fun: C.gold, books: C.purple };
+                return (
+                  <View key={i} style={[styles.meTimeCard, { backgroundColor: C.surface }]}>
+                    <View style={styles.meTimeCardHeader}>
+                      <View style={[styles.meTimeIconCircle, { backgroundColor: `${catColors[s.category] || C.primary}20` }]}>
+                        <Ionicons name={catIcons[s.category] || 'heart'} size={20} color={catColors[s.category] || C.primary} />
+                      </View>
+                      <View style={{ flex: 1 }}>
+                        <Text style={[styles.meTimeName, { color: C.text }]}>{s.suggestion}</Text>
+                        <Text style={[styles.meTimeTime, { color: C.textMuted }]}>{s.start} - {s.end}</Text>
+                      </View>
+                    </View>
+                    {s.detail && (
+                      <Text style={[styles.meTimeDetail, { color: C.textSecondary }]}>{s.detail}</Text>
+                    )}
+                    <TouchableOpacity style={styles.meTimeAddBtn} onPress={() => addMeTimeToCalendar(s)}>
+                      <LinearGradient colors={['#E91E9C', '#B8157A']} style={styles.meTimeAddGrad}>
+                        <Ionicons name="add-circle" size={16} color="#fff" />
+                        <Text style={styles.meTimeAddText}>
+                          {language.code === 'ro' ? 'Adauga in calendar' : 'Add to calendar'}
+                        </Text>
+                      </LinearGradient>
+                    </TouchableOpacity>
+                  </View>
+                );
+              })}
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
 
       {/* Add Item Modal */}
       <Modal visible={addModalVisible} animationType="slide" transparent>
@@ -632,6 +739,66 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: COLORS.textSecondary,
     lineHeight: 18,
+  },
+  meTimePreview: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    padding: 14,
+    borderRadius: 14,
+    gap: 10,
+    borderWidth: 1,
+  },
+  meTimePreviewText: {
+    flex: 1,
+    fontSize: 14,
+    fontWeight: '600',
+  },
+  meTimeCard: {
+    borderRadius: 16,
+    padding: 16,
+    marginBottom: 12,
+  },
+  meTimeCardHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 12,
+    marginBottom: 10,
+  },
+  meTimeIconCircle: {
+    width: 40,
+    height: 40,
+    borderRadius: 12,
+    justifyContent: 'center',
+    alignItems: 'center',
+  },
+  meTimeName: {
+    fontSize: 15,
+    fontWeight: '600',
+  },
+  meTimeTime: {
+    fontSize: 12,
+    marginTop: 2,
+  },
+  meTimeDetail: {
+    fontSize: 13,
+    lineHeight: 18,
+    marginBottom: 12,
+  },
+  meTimeAddBtn: {
+    borderRadius: 12,
+    overflow: 'hidden',
+  },
+  meTimeAddGrad: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'center',
+    paddingVertical: 10,
+    gap: 6,
+  },
+  meTimeAddText: {
+    color: '#fff',
+    fontSize: 13,
+    fontWeight: '600',
   },
   modalOverlay: {
     flex: 1,
