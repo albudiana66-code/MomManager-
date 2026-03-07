@@ -18,11 +18,12 @@ Build a "Modern 2026" mobile app called 'MomManager 2026' for working mothers. T
 5. **AI Direct Responses** - All AI interactions direct and concise
 6. **Subscription Plans** - £9.99/month (7-day trial), £79.99/year (no discount)
 7. **Multilingual** - RO, EN, FR, PT, ES, DE, IT, PL, AR, UK, RU with full translation files
-8. **Delete functionality** - All items (meals, stories, meetings, kids) have visible delete buttons
+8. **Delete functionality** - All items (meals, stories, meetings, kids) have visible delete buttons - NO window.confirm
 9. **AI Chat** - Full chat modal from dashboard pink AI bar (no floating button)
 10. **Calendar AI** - AI should help with meeting/task organization
-11. **AI Me-Time Suggestions** - Find free calendar slots and suggest self-care activities
+11. **AI Me-Time Suggestions** - Find free calendar slots and suggest self-care activities (categories: beauty, wellness, fun)
 12. **School Lunch Box AI** - Generate healthy lunch menus for school children
+13. **AI Skincare Routine** - Skin type selector (acneic, normal, gras, mixt, uscat) -> AI generates morning/evening routines with products, ingredients, tips
 
 ## What's Been Implemented
 - [x] Dynamic Day/Night theme system (SettingsContext)
@@ -33,15 +34,15 @@ Build a "Modern 2026" mobile app called 'MomManager 2026' for working mothers. T
 - [x] Settings: Theme toggle, £9.99/£79.99 prices, no annual discount
 - [x] AI prompts updated for directness (Romanian + English)
 - [x] Backend: POST /api/kitchen/generate-meals-from-image (GPT-4o vision)
-- [x] Delete functions: meal plans (window.confirm on web), stories, meetings, kids
-- [x] Portuguese translation file (pt.json)
+- [x] Delete functions: Fixed across ALL screens - removed window.confirm, fixed nested TouchableOpacity for stories
+- [x] Translation files: pt, pl, ar, uk, ru (complete translations)
 - [x] Translation keys use t() instead of isRo ternary
-- [x] Self-Care module (workouts, physical profile, strength meals) - partial theme
-- [x] Work/Planner screen - partial theme + meeting delete buttons
-- [x] AI Me-Time Suggestions: Backend endpoint + Frontend UI (work.tsx with LinearGradient)
-- [x] School Lunch Box AI: Backend endpoint + Frontend UI (kids.tsx with lunch box card/modal)
-- [x] New languages added: Polish (pl), Arabic (ar), Ukrainian (uk), Russian (ru) - translated files
-- [x] SettingsContext updated to import and register new language files
+- [x] Self-Care module (workouts, physical profile, strength meals)
+- [x] Work/Planner screen with meeting management
+- [x] AI Me-Time Suggestions: Backend + Frontend (categories: beauty, wellness, fun - books REMOVED)
+- [x] School Lunch Box AI: Backend endpoint + Frontend UI
+- [x] AI Skincare Routine: Backend POST /api/selfcare/skincare-routine/generate + Frontend with skin type selector + morning/evening/weekly results modal
+- [x] Inline delete confirmation (deleteConfirmId state pattern) instead of window.confirm
 
 ## P0/P1/P2 Backlog
 ### P0 (Critical)
@@ -59,3 +60,22 @@ Build a "Modern 2026" mobile app called 'MomManager 2026' for working mothers. T
 - [ ] Stripe Payment Integration
 - [ ] GDPR Export Data endpoint
 - [ ] Delete workouts (selfcare) with visible button
+
+## Key API Endpoints
+- GET /api/health
+- POST /api/auth/google (Google OAuth)
+- GET/POST /api/meetings
+- DELETE /api/meetings/:id
+- GET/POST /api/kids
+- DELETE /api/kids/:id
+- POST /api/stories/generate
+- GET /api/stories
+- DELETE /api/stories/:id
+- POST /api/kitchen/generate-meals-from-image
+- GET /api/mealplans
+- DELETE /api/mealplans/:id
+- POST /api/calendar/me-time-suggestions
+- POST /api/kids/lunchbox/generate
+- POST /api/selfcare/skincare-routine/generate (NEW)
+- POST /api/selfcare/workout-ai/generate
+- POST /api/ai/chat
