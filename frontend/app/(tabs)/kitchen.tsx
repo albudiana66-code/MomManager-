@@ -110,8 +110,6 @@ export default function KitchenScreen() {
   };
 
   const deleteMealPlan = async (id: string) => {
-    const msg = isRo ? 'Esti sigura ca vrei sa stergi planul?' : 'Are you sure you want to delete this plan?';
-    if (typeof window !== 'undefined' && !window.confirm(msg)) return;
     try {
       await api.deleteMealPlan(id);
       const updatedPlans = mealPlans.filter((p) => p.id !== id);

@@ -246,6 +246,14 @@ class ApiClient {
     });
   }
 
+  // Skincare Routine AI
+  async generateSkincareRoutine(data: { skin_type: string; language: string }) {
+    return this.request('/selfcare/skincare-routine/generate', {
+      method: 'POST',
+      body: JSON.stringify(data),
+    });
+  }
+
   // AI Chat
   async sendChatMessage(message: string, language: string, history: any[] = []) {
     return this.request('/ai/chat', {

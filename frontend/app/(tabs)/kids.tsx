@@ -190,8 +190,6 @@ export default function KidsScreen() {
   };
 
   const deleteKid = async (id: string) => {
-    const msg = isRo ? 'Esti sigura ca vrei sa stergi?' : 'Are you sure you want to delete?';
-    if (typeof window !== 'undefined' && !window.confirm(msg)) return;
     try {
       await api.deleteKid(id);
       const updatedKids = kids.filter((k) => k.id !== id);
@@ -203,8 +201,6 @@ export default function KidsScreen() {
   };
 
   const deleteStory = async (id: string) => {
-    const msg = isRo ? 'Esti sigura ca vrei sa stergi povestea?' : 'Are you sure you want to delete this story?';
-    if (typeof window !== 'undefined' && !window.confirm(msg)) return;
     try {
       await api.deleteStory(id);
       setSavedStories(savedStories.filter((st) => st.id !== id));
@@ -327,7 +323,7 @@ export default function KidsScreen() {
             </View>
           ) : (
             savedStories.map((story: any, index: number) => (
-              <View key={story.id || index} style={s.storyCard}>
+              <View key={story.id || index} style={[s.storyCard, { flexDirection: 'row', alignItems: 'center' }]}>
                 <TouchableOpacity onPress={() => { setCurrentStory(story); setViewStoryModal(true); }} style={{ flex: 1 }}>
                   <LinearGradient colors={gradCard} style={[s.storyGradient, borderStyle]}>
                     <View style={[s.storyIcon, { backgroundColor: C.purpleGlow }]}>
@@ -339,10 +335,10 @@ export default function KidsScreen() {
                         {story.age_group} {story.created_at ? `- ${format(new Date(story.created_at), 'dd MMM', { locale: isRo ? ro : enUS })}` : ''}
                       </Text>
                     </View>
-                    <TouchableOpacity onPress={(e) => { e.stopPropagation(); deleteStory(story.id); }} style={s.storyDeleteBtn}>
-                      <Ionicons name="trash-outline" size={18} color={C.red} />
-                    </TouchableOpacity>
                   </LinearGradient>
+                </TouchableOpacity>
+                <TouchableOpacity onPress={() => deleteStory(story.id)} style={{ padding: 12 }} data-testid={`delete-story-${story.id || index}`}>
+                  <Ionicons name="trash-outline" size={20} color={C.red} />
                 </TouchableOpacity>
               </View>
             ))

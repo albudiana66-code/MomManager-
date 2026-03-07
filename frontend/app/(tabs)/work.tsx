@@ -64,6 +64,16 @@ export default function WorkScreen() {
   const [meTimeSuggestions, setMeTimeSuggestions] = useState<any[]>([]);
   const [meTimeModal, setMeTimeModal] = useState(false);
 
+  // Skincare Routine state
+  const [skincareLoading, setSkincareLoading] = useState(false);
+  const [skincareModal, setSkincareModal] = useState(false);
+  const [skincareResultModal, setSkincareResultModal] = useState(false);
+  const [selectedSkinType, setSelectedSkinType] = useState('normal');
+  const [skincareRoutine, setSkincareRoutine] = useState<any>(null);
+
+  // Delete confirmation state
+  const [deleteConfirmId, setDeleteConfirmId] = useState<string | null>(null);
+
   const dateLocale = dateLocales[language.code] || dateLocales[language.code.split('-')[0]] || enUS;
 
   useEffect(() => {
@@ -160,13 +170,12 @@ export default function WorkScreen() {
 
   const deleteItem = async (item: PlannerItem) => {
     if (item.aiGenerated) return;
-    const msg = language.code === 'ro' ? 'Esti sigura ca vrei sa stergi?' : 'Are you sure you want to delete?';
-    if (typeof window !== 'undefined' && !window.confirm(msg)) return;
     try {
       if (item.type === 'meeting') {
         await api.deleteMeeting(item.id);
       }
       await loadPlannerItems();
+      setDeleteConfirmId(null);
     } catch (error) {
       console.error('Error deleting item:', error);
     }
@@ -211,6 +220,31 @@ export default function WorkScreen() {
       console.error('Error adding me-time:', error);
     }
   };
+
+  const generateSkincareRoutine = async () => {
+    setSkincareLoading(true);
+    try {
+      const result = await api.generateSkincareRoutine({
+        skin_type: selectedSkinType,
+        language: language.code,
+      });
+      setSkincareRoutine(result);
+      setSkincareModal(false);
+      setSkincareResultModal(true);
+    } catch (error) {
+      console.error('Error generating skincare routine:', error);
+    } finally {
+      setSkincareLoading(false);
+    }
+  };
+
+  const SKIN_TYPES = [
+    { id: 'normal', label: language.code === 'ro' ? 'Normal' : 'Normal', icon: 'happy-outline' },
+    { id: 'dry', label: language.code === 'ro' ? 'Uscat' : 'Dry', icon: 'water-outline' },
+    { id: 'oily', label: language.code === 'ro' ? 'Gras' : 'Oily', icon: 'sunny-outline' },
+    { id: 'combination', label: language.code === 'ro' ? 'Mixt' : 'Combination', icon: 'contrast-outline' },
+    { id: 'acneic', label: language.code === 'ro' ? 'Acneic' : 'Acne-prone', icon: 'alert-circle-outline' },
+  ];
 
   const getTypeIcon = (type: PlannerItem['type']) => {
     switch (type) {
@@ -334,9 +368,20 @@ export default function WorkScreen() {
                       )}
                     </View>
                     {!item.aiGenerated && (
-                      <TouchableOpacity onPress={() => deleteItem(item)} style={{ padding: 8 }}>
-                        <Ionicons name="trash-outline" size={18} color={C.red || '#EF4444'} />
-                      </TouchableOpacity>
+                      deleteConfirmId === item.id ? (
+                        <View style={{ flexDirection: 'row', gap: 4 }}>
+                          <TouchableOpacity onPress={() => deleteItem(item)} style={{ padding: 8, backgroundColor: '#EF4444', borderRadius: 8 }} data-testid={`confirm-delete-${item.id}`}>
+                            <Ionicons name="checkmark" size={16} color="#fff" />
+                          </TouchableOpacity>
+                          <TouchableOpacity onPress={() => setDeleteConfirmId(null)} style={{ padding: 8, backgroundColor: C.surface, borderRadius: 8 }}>
+                            <Ionicons name="close" size={16} color={C.textMuted} />
+                          </TouchableOpacity>
+                        </View>
+                      ) : (
+                        <TouchableOpacity onPress={() => setDeleteConfirmId(item.id)} style={{ padding: 8 }} data-testid={`delete-item-${item.id}`}>
+                          <Ionicons name="trash-outline" size={18} color={C.red || '#EF4444'} />
+                        </TouchableOpacity>
+                      )
                     )}
                   </View>
                 </View>
@@ -377,6 +422,37 @@ export default function WorkScreen() {
             </View>
           </TouchableOpacity>
         )}
+
+        {/* AI Skincare Routine */}
+        <TouchableOpacity activeOpacity={0.85} onPress={() => setSkincareModal(true)} style={{ marginTop: 16 }} data-testid="skincare-btn">
+          <LinearGradient colors={['#8B5CF6', '#6D28D9']} style={styles.selfCareCard}>
+            <View style={styles.selfCareIcon}>
+              <Ionicons name="flower-outline" size={24} color="#fff" />
+            </View>
+            <View style={styles.selfCareContent}>
+              <Text style={[styles.selfCareTitle, { color: '#fff' }]}>
+                {language.code === 'ro' ? 'Rutina de Ingrijire' : 'Skincare Routine'}
+              </Text>
+              <Text style={[styles.selfCareText, { color: 'rgba(255,255,255,0.8)' }]}>
+                {language.code === 'ro' ? 'AI genereaza rutina perfecta pentru tenul tau' : 'AI generates the perfect routine for your skin'}
+              </Text>
+            </View>
+            <Ionicons name="chevron-forward" size={20} color="rgba(255,255,255,0.7)" />
+          </LinearGradient>
+        </TouchableOpacity>
+
+        {/* Skincare Result Preview */}
+        {skincareRoutine && !skincareResultModal && (
+          <TouchableOpacity style={{ marginTop: 8, marginHorizontal: 16 }} onPress={() => setSkincareResultModal(true)}>
+            <View style={[styles.meTimePreview, { backgroundColor: C.surface, borderColor: C.border }]}>
+              <Ionicons name="flower" size={18} color="#8B5CF6" />
+              <Text style={[styles.meTimePreviewText, { color: C.text }]}>
+                {language.code === 'ro' ? 'Vezi rutina ta de ingrijire' : 'View your skincare routine'}
+              </Text>
+              <Ionicons name="chevron-forward" size={18} color={C.textMuted} />
+            </View>
+          </TouchableOpacity>
+        )}
       </ScrollView>
 
       {/* Me-Time Modal */}
@@ -393,8 +469,8 @@ export default function WorkScreen() {
             </View>
             <ScrollView style={{ backgroundColor: C.bg, padding: 16 }}>
               {meTimeSuggestions.map((s: any, i: number) => {
-                const catIcons: any = { beauty: 'color-palette', wellness: 'leaf', fun: 'cafe', books: 'book' };
-                const catColors: any = { beauty: C.primary, wellness: C.green, fun: C.gold, books: C.purple };
+                const catIcons: any = { beauty: 'color-palette', wellness: 'leaf', fun: 'cafe' };
+                const catColors: any = { beauty: C.primary, wellness: C.green, fun: C.gold };
                 return (
                   <View key={i} style={[styles.meTimeCard, { backgroundColor: C.surface }]}>
                     <View style={styles.meTimeCardHeader}>
@@ -420,6 +496,160 @@ export default function WorkScreen() {
                   </View>
                 );
               })}
+            </ScrollView>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Skincare Skin Type Modal */}
+      <Modal visible={skincareModal} animationType="slide" transparent>
+        <View style={styles.modalOverlay}>
+          <View style={[styles.modalContent, { backgroundColor: C.bg }]}>
+            <View style={[styles.modalHeader, { backgroundColor: C.bg }]}>
+              <Text style={[styles.modalTitle, { color: C.text }]}>
+                {language.code === 'ro' ? 'Rutina de Ingrijire AI' : 'AI Skincare Routine'}
+              </Text>
+              <TouchableOpacity onPress={() => setSkincareModal(false)}>
+                <Ionicons name="close" size={24} color={C.textMuted} />
+              </TouchableOpacity>
+            </View>
+            <View style={[styles.modalBody, { backgroundColor: C.bg }]}>
+              <Text style={[styles.inputLabel, { color: C.textSecondary }]}>
+                {language.code === 'ro' ? 'Selecteaza tipul de ten' : 'Select your skin type'}
+              </Text>
+              <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 8, marginBottom: 20 }}>
+                {SKIN_TYPES.map((st) => (
+                  <TouchableOpacity
+                    key={st.id}
+                    onPress={() => setSelectedSkinType(st.id)}
+                    style={{
+                      flexDirection: 'row', alignItems: 'center', gap: 6,
+                      paddingHorizontal: 14, paddingVertical: 10, borderRadius: 12,
+                      backgroundColor: selectedSkinType === st.id ? '#8B5CF6' : C.surface,
+                      borderWidth: 1,
+                      borderColor: selectedSkinType === st.id ? '#8B5CF6' : C.border,
+                    }}
+                    data-testid={`skin-type-${st.id}`}
+                  >
+                    <Ionicons name={st.icon as any} size={16} color={selectedSkinType === st.id ? '#fff' : C.textMuted} />
+                    <Text style={{ fontSize: 13, fontWeight: '600', color: selectedSkinType === st.id ? '#fff' : C.text }}>{st.label}</Text>
+                  </TouchableOpacity>
+                ))}
+              </View>
+
+              <TouchableOpacity
+                style={[styles.saveButton, { backgroundColor: '#8B5CF6' }]}
+                onPress={generateSkincareRoutine}
+                disabled={skincareLoading}
+                data-testid="generate-skincare-btn"
+              >
+                {skincareLoading ? (
+                  <ActivityIndicator color="#fff" size="small" />
+                ) : (
+                  <Text style={styles.saveButtonText}>
+                    {language.code === 'ro' ? 'Genereaza Rutina AI' : 'Generate AI Routine'}
+                  </Text>
+                )}
+              </TouchableOpacity>
+            </View>
+          </View>
+        </View>
+      </Modal>
+
+      {/* Skincare Result Modal */}
+      <Modal visible={skincareResultModal} animationType="slide" transparent>
+        <View style={styles.modalOverlay}>
+          <View style={[styles.modalContent, { maxHeight: '85%', backgroundColor: C.bg }]}>
+            <View style={[styles.modalHeader, { backgroundColor: C.bg }]}>
+              <Text style={[styles.modalTitle, { color: C.text }]}>
+                {language.code === 'ro' ? 'Rutina Ta de Ingrijire' : 'Your Skincare Routine'}
+              </Text>
+              <TouchableOpacity onPress={() => setSkincareResultModal(false)}>
+                <Ionicons name="close" size={24} color={C.textMuted} />
+              </TouchableOpacity>
+            </View>
+            <ScrollView style={{ backgroundColor: C.bg, padding: 16 }}>
+              {skincareRoutine && (
+                <>
+                  {/* Morning Routine */}
+                  <View style={{ marginBottom: 20 }}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+                      <Ionicons name="sunny" size={20} color="#F59E0B" />
+                      <Text style={{ fontSize: 17, fontWeight: '700', color: C.text }}>
+                        {language.code === 'ro' ? 'Rutina de Dimineata' : 'Morning Routine'}
+                      </Text>
+                    </View>
+                    {(skincareRoutine.morning_routine || []).map((step: any, i: number) => (
+                      <View key={i} style={[styles.meTimeCard, { backgroundColor: C.surface }]}>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 6 }}>
+                          <View style={{ width: 28, height: 28, borderRadius: 14, backgroundColor: '#FEF3C7', justifyContent: 'center', alignItems: 'center' }}>
+                            <Text style={{ fontSize: 12, fontWeight: '700', color: '#F59E0B' }}>{step.step}</Text>
+                          </View>
+                          <Text style={{ fontSize: 14, fontWeight: '600', color: C.text, flex: 1 }}>{step.name}</Text>
+                        </View>
+                        <Text style={{ fontSize: 13, color: '#8B5CF6', fontWeight: '600', marginBottom: 2 }}>{step.product}</Text>
+                        {step.ingredient && <Text style={{ fontSize: 12, color: C.textMuted, marginBottom: 4 }}>{step.ingredient}</Text>}
+                        {step.tip && <Text style={{ fontSize: 12, color: C.textSecondary, fontStyle: 'italic' }}>{step.tip}</Text>}
+                      </View>
+                    ))}
+                  </View>
+
+                  {/* Evening Routine */}
+                  <View style={{ marginBottom: 20 }}>
+                    <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+                      <Ionicons name="moon" size={20} color="#6D28D9" />
+                      <Text style={{ fontSize: 17, fontWeight: '700', color: C.text }}>
+                        {language.code === 'ro' ? 'Rutina de Seara' : 'Evening Routine'}
+                      </Text>
+                    </View>
+                    {(skincareRoutine.evening_routine || []).map((step: any, i: number) => (
+                      <View key={i} style={[styles.meTimeCard, { backgroundColor: C.surface }]}>
+                        <View style={{ flexDirection: 'row', alignItems: 'center', gap: 10, marginBottom: 6 }}>
+                          <View style={{ width: 28, height: 28, borderRadius: 14, backgroundColor: '#EDE9FE', justifyContent: 'center', alignItems: 'center' }}>
+                            <Text style={{ fontSize: 12, fontWeight: '700', color: '#6D28D9' }}>{step.step}</Text>
+                          </View>
+                          <Text style={{ fontSize: 14, fontWeight: '600', color: C.text, flex: 1 }}>{step.name}</Text>
+                        </View>
+                        <Text style={{ fontSize: 13, color: '#8B5CF6', fontWeight: '600', marginBottom: 2 }}>{step.product}</Text>
+                        {step.ingredient && <Text style={{ fontSize: 12, color: C.textMuted, marginBottom: 4 }}>{step.ingredient}</Text>}
+                        {step.tip && <Text style={{ fontSize: 12, color: C.textSecondary, fontStyle: 'italic' }}>{step.tip}</Text>}
+                      </View>
+                    ))}
+                  </View>
+
+                  {/* Weekly Extras */}
+                  {skincareRoutine.weekly_extras && skincareRoutine.weekly_extras.length > 0 && (
+                    <View style={{ marginBottom: 20 }}>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+                        <Ionicons name="calendar" size={20} color="#EC4899" />
+                        <Text style={{ fontSize: 17, fontWeight: '700', color: C.text }}>
+                          {language.code === 'ro' ? 'Tratamente Saptamanale' : 'Weekly Treatments'}
+                        </Text>
+                      </View>
+                      {skincareRoutine.weekly_extras.map((extra: any, i: number) => (
+                        <View key={i} style={[styles.meTimeCard, { backgroundColor: C.surface }]}>
+                          <Text style={{ fontSize: 14, fontWeight: '600', color: C.text, marginBottom: 4 }}>{extra.name}</Text>
+                          <Text style={{ fontSize: 12, color: '#EC4899', fontWeight: '500', marginBottom: 2 }}>{extra.frequency}</Text>
+                          {extra.tip && <Text style={{ fontSize: 12, color: C.textSecondary, fontStyle: 'italic' }}>{extra.tip}</Text>}
+                        </View>
+                      ))}
+                    </View>
+                  )}
+
+                  {/* General Tips */}
+                  {skincareRoutine.tips && (
+                    <View style={[styles.meTimeCard, { backgroundColor: '#EDE9FE', marginBottom: 20 }]}>
+                      <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 }}>
+                        <Ionicons name="bulb" size={18} color="#6D28D9" />
+                        <Text style={{ fontSize: 14, fontWeight: '700', color: '#6D28D9' }}>
+                          {language.code === 'ro' ? 'Sfaturi' : 'Tips'}
+                        </Text>
+                      </View>
+                      <Text style={{ fontSize: 13, color: '#4C1D95', lineHeight: 20 }}>{skincareRoutine.tips}</Text>
+                    </View>
+                  )}
+                </>
+              )}
             </ScrollView>
           </View>
         </View>

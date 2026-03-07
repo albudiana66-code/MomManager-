@@ -1495,10 +1495,9 @@ async def get_me_time_suggestions(request: Request, current_user: User = Depends
         session_id=f"metime_{uuid.uuid4().hex[:8]}",
         system_message=f"""You help working moms find free time in their schedule for self-care.
 Analyze the calendar and find gaps of 1-2 hours. Suggest relaxing activities:
-- Beauty: nails, hair, lashes, facial
-- Wellness: reading, yoga, meditation, bath
+- Beauty: nails, hair, lashes, facial, skincare
+- Wellness: yoga, meditation, bath, massage
 - Fun: coffee date, shopping, podcast
-- Books: suggest real books available as PDF/ebook on Google
 Be direct. Return ONLY valid JSON:
 {{
     "free_slots": [
@@ -1506,8 +1505,8 @@ Be direct. Return ONLY valid JSON:
             "start": "10:00",
             "end": "12:00",
             "suggestion": "Activity suggestion",
-            "category": "beauty|wellness|fun|books",
-            "detail": "Brief detail or book recommendation with Google search link"
+            "category": "beauty|wellness|fun",
+            "detail": "Brief detail about the activity"
         }}
     ]
 }}
@@ -1531,6 +1530,91 @@ Respond in {'Romanian' if is_ro else 'English'}."""
             data = {"free_slots": []}
 
         return {"date": date, "suggestions": data.get("free_slots", [])}
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"AI error: {str(e)}")
+
+# ============== AI Skincare Routine ==============
+
+@app.post("/api/selfcare/skincare-routine/generate")
+async def generate_skincare_routine(request: Request, current_user: User = Depends(require_auth)):
+    """Generate personalized skincare routine based on skin type"""
+    body = await request.json()
+    skin_type = body.get("skin_type", "normal")
+    language = body.get("language", "ro")
+
+    if not EMERGENT_LLM_KEY:
+        raise HTTPException(status_code=500, detail="AI service not configured")
+
+    from emergentintegrations.llm.chat import LlmChat, UserMessage
+    import json
+
+    lang_code = language.split("-")[0] if "-" in language else language
+    is_ro = lang_code == "ro"
+
+    skin_labels = {
+        "acneic": "acneic/prone to breakouts",
+        "normal": "normal",
+        "oily": "oily/gras",
+        "combination": "combination/mixt",
+        "dry": "dry/uscat"
+    }
+    skin_desc = skin_labels.get(skin_type, skin_type)
+
+    chat = LlmChat(
+        api_key=EMERGENT_LLM_KEY,
+        session_id=f"skincare_{uuid.uuid4().hex[:8]}",
+        system_message=f"""You are an expert dermatologist and skincare advisor for busy working moms.
+Create a complete skincare routine for {skin_desc} skin.
+Include specific product types and active ingredients.
+Be direct. Return ONLY valid JSON:
+{{
+    "skin_type": "{skin_type}",
+    "morning_routine": [
+        {{"step": 1, "name": "Step name", "product": "Product type", "ingredient": "Key active ingredient", "tip": "Brief how-to tip"}}
+    ],
+    "evening_routine": [
+        {{"step": 1, "name": "Step name", "product": "Product type", "ingredient": "Key active ingredient", "tip": "Brief how-to tip"}}
+    ],
+    "weekly_extras": [
+        {{"name": "Treatment name", "frequency": "1-2x/week", "tip": "Brief tip"}}
+    ],
+    "tips": "General skincare advice for this skin type"
+}}
+Morning must include: cleanser, toner/serum, moisturizer, SPF.
+Evening must include: double cleanse, treatment/acid, serum, night cream.
+Respond in {'Romanian' if is_ro else 'English'}."""
+    ).with_model("openai", "gpt-5.2")
+
+    msg = UserMessage(text=f"Create a complete skincare routine for {skin_desc} skin type.")
+
+    try:
+        response = await chat.send_message(msg)
+
+        try:
+            if "```json" in response:
+                json_str = response.split("```json")[1].split("```")[0]
+            elif "```" in response:
+                json_str = response.split("```")[1].split("```")[0]
+            else:
+                json_str = response
+            data = json.loads(json_str.strip())
+        except:
+            data = {"morning_routine": [], "evening_routine": [], "tips": ""}
+
+        result_doc = {
+            "id": f"skincare_{uuid.uuid4().hex[:12]}",
+            "user_id": current_user.user_id,
+            "skin_type": skin_type,
+            "morning_routine": data.get("morning_routine", []),
+            "evening_routine": data.get("evening_routine", []),
+            "weekly_extras": data.get("weekly_extras", []),
+            "tips": data.get("tips", ""),
+            "created_at": datetime.now(timezone.utc)
+        }
+        await db.skincare_routines.insert_one(result_doc)
+        return {k: v for k, v in result_doc.items() if k != "_id"}
     except HTTPException:
         raise
     except Exception as e:
