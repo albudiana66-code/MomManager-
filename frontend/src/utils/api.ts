@@ -247,7 +247,7 @@ class ApiClient {
   }
 
   // Skincare Routine AI
-  async generateSkincareRoutine(data: { skin_type: string; language: string }) {
+  async generateSkincareRoutine(data: { skin_type: string; season: string; language: string }) {
     return this.request('/selfcare/skincare-routine/generate', {
       method: 'POST',
       body: JSON.stringify(data),

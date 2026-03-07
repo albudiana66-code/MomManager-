@@ -1543,6 +1543,7 @@ async def generate_skincare_routine(request: Request, current_user: User = Depen
     body = await request.json()
     skin_type = body.get("skin_type", "normal")
     language = body.get("language", "ro")
+    season = body.get("season", "spring")
 
     if not EMERGENT_LLM_KEY:
         raise HTTPException(status_code=500, detail="AI service not configured")
@@ -1562,15 +1563,25 @@ async def generate_skincare_routine(request: Request, current_user: User = Depen
     }
     skin_desc = skin_labels.get(skin_type, skin_type)
 
+    season_labels = {
+        "spring": "spring/primavara",
+        "summer": "summer/vara",
+        "autumn": "autumn/toamna",
+        "winter": "winter/iarna"
+    }
+    season_desc = season_labels.get(season, season)
+
     chat = LlmChat(
         api_key=EMERGENT_LLM_KEY,
         session_id=f"skincare_{uuid.uuid4().hex[:8]}",
         system_message=f"""You are an expert dermatologist and skincare advisor for busy working moms.
-Create a complete skincare routine for {skin_desc} skin.
+Create a complete skincare routine for {skin_desc} skin during {season_desc} season.
+Adapt products and ingredients to the season (e.g., heavier moisturizer in winter, lighter SPF in summer, etc.).
 Include specific product types and active ingredients.
 Be direct. Return ONLY valid JSON:
 {{
     "skin_type": "{skin_type}",
+    "season": "{season}",
     "morning_routine": [
         {{"step": 1, "name": "Step name", "product": "Product type", "ingredient": "Key active ingredient", "tip": "Brief how-to tip"}}
     ],
@@ -1580,7 +1591,7 @@ Be direct. Return ONLY valid JSON:
     "weekly_extras": [
         {{"name": "Treatment name", "frequency": "1-2x/week", "tip": "Brief tip"}}
     ],
-    "tips": "General skincare advice for this skin type"
+    "tips": "General skincare advice for this skin type in this season"
 }}
 Morning must include: cleanser, toner/serum, moisturizer, SPF.
 Evening must include: double cleanse, treatment/acid, serum, night cream.

@@ -244,26 +244,13 @@ export default function SelfCareScreen() {
   };
 
   const deleteWorkout = async (id: string) => {
-    Alert.alert(
-      isRo ? 'Șterge antrenamentul' : 'Delete workout',
-      isRo ? 'Ești sigură?' : 'Are you sure?',
-      [
-        { text: isRo ? 'Anulează' : 'Cancel', style: 'cancel' },
-        {
-          text: isRo ? 'Șterge' : 'Delete',
-          style: 'destructive',
-          onPress: async () => {
-            try {
-              await api.deleteWorkout(id);
-              setSavedWorkouts(savedWorkouts.filter((w) => w.id !== id));
-              setViewWorkoutModal(false);
-            } catch (error) {
-              console.error('Error deleting workout:', error);
-            }
-          },
-        },
-      ]
-    );
+    try {
+      await api.deleteWorkout(id);
+      setSavedWorkouts(savedWorkouts.filter((w) => w.id !== id));
+      setViewWorkoutModal(false);
+    } catch (error) {
+      console.error('Error deleting workout:', error);
+    }
   };
 
   const getBMI = () => {

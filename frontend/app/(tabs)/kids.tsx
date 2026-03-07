@@ -595,7 +595,7 @@ const s = StyleSheet.create({
   kidChip: { flexDirection: 'row', alignItems: 'center', paddingLeft: 4, paddingRight: 4, paddingVertical: 4, borderRadius: 25 },
   kidChipInner: { flexDirection: 'row', alignItems: 'center', paddingVertical: 6, paddingHorizontal: 12, gap: 6 },
   kidChipText: { fontSize: 14, fontWeight: '600' },
-  kidDeleteBtn: { padding: 4, marginRight: 4 },
+  kidDeleteBtn: { padding: 10, marginRight: 2 },
   section: { paddingHorizontal: 20, marginBottom: 24 },
   sectionHeader: { flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 },
   sectionTitle: { fontSize: 18, fontWeight: '700', marginBottom: 16 },

@@ -69,6 +69,7 @@ export default function WorkScreen() {
   const [skincareModal, setSkincareModal] = useState(false);
   const [skincareResultModal, setSkincareResultModal] = useState(false);
   const [selectedSkinType, setSelectedSkinType] = useState('normal');
+  const [selectedSeason, setSelectedSeason] = useState('spring');
   const [skincareRoutine, setSkincareRoutine] = useState<any>(null);
 
   // Delete confirmation state
@@ -226,6 +227,7 @@ export default function WorkScreen() {
     try {
       const result = await api.generateSkincareRoutine({
         skin_type: selectedSkinType,
+        season: selectedSeason,
         language: language.code,
       });
       setSkincareRoutine(result);
@@ -244,6 +246,13 @@ export default function WorkScreen() {
     { id: 'oily', label: language.code === 'ro' ? 'Gras' : 'Oily', icon: 'sunny-outline' },
     { id: 'combination', label: language.code === 'ro' ? 'Mixt' : 'Combination', icon: 'contrast-outline' },
     { id: 'acneic', label: language.code === 'ro' ? 'Acneic' : 'Acne-prone', icon: 'alert-circle-outline' },
+  ];
+
+  const SEASONS = [
+    { id: 'spring', label: language.code === 'ro' ? 'Primavara' : 'Spring', icon: 'flower-outline', color: '#10B981' },
+    { id: 'summer', label: language.code === 'ro' ? 'Vara' : 'Summer', icon: 'sunny-outline', color: '#F59E0B' },
+    { id: 'autumn', label: language.code === 'ro' ? 'Toamna' : 'Autumn', icon: 'leaf-outline', color: '#F97316' },
+    { id: 'winter', label: language.code === 'ro' ? 'Iarna' : 'Winter', icon: 'snow-outline', color: '#6366F1' },
   ];
 
   const getTypeIcon = (type: PlannerItem['type']) => {
@@ -276,21 +285,91 @@ export default function WorkScreen() {
           </TouchableOpacity>
         </View>
 
-        {/* AI Insight Card */}
-        <View style={[styles.aiCard, { backgroundColor: C.surface, borderColor: C.border }]}>
-          <View style={[styles.aiIconContainer, { backgroundColor: C.primaryGlow }]}>
-            <Ionicons name="sparkles" size={24} color={C.primary} />
+        {/* Skincare Routine Section */}
+        <View style={[styles.aiCard, { backgroundColor: C.surface, borderColor: C.border }]} data-testid="skincare-section">
+          <View style={{ flexDirection: 'row', alignItems: 'center', marginBottom: 12 }}>
+            <View style={[styles.aiIconContainer, { backgroundColor: '#EDE9FE' }]}>
+              <Ionicons name="flower-outline" size={24} color="#8B5CF6" />
+            </View>
+            <View style={styles.aiContent}>
+              <Text style={[styles.aiTitle, { color: C.text }]}>
+                {language.code === 'ro' ? 'Rutina de Ingrijire AI' : 'AI Skincare Routine'}
+              </Text>
+              <Text style={[styles.aiText, { color: C.textMuted }]}>
+                {language.code === 'ro' ? 'Selecteaza tenul si sezonul' : 'Select skin type and season'}
+              </Text>
+            </View>
           </View>
-          <View style={styles.aiContent}>
-            <Text style={[styles.aiTitle, { color: C.text }]}>
-              {language.code === 'ro' ? 'Insight AI' : 'AI Insight'}
-            </Text>
-            <Text style={[styles.aiText, { color: C.textMuted }]}>
-              {language.code === 'ro' 
-                ? 'Intreaba-ma orice in chat si voi completa calendarul automat pentru tine.'
-                : 'Ask me anything in chat and I\'ll fill your calendar automatically.'}
-            </Text>
+
+          {/* Skin Type Selector */}
+          <Text style={{ fontSize: 12, fontWeight: '600', color: C.textMuted, marginBottom: 6 }}>
+            {language.code === 'ro' ? 'Tip ten:' : 'Skin type:'}
+          </Text>
+          <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 10 }}>
+            <View style={{ flexDirection: 'row', gap: 6 }}>
+              {SKIN_TYPES.map((st) => (
+                <TouchableOpacity
+                  key={st.id}
+                  onPress={() => setSelectedSkinType(st.id)}
+                  style={{
+                    flexDirection: 'row', alignItems: 'center', gap: 4,
+                    paddingHorizontal: 12, paddingVertical: 7, borderRadius: 20,
+                    backgroundColor: selectedSkinType === st.id ? '#8B5CF6' : C.bg,
+                    borderWidth: 1,
+                    borderColor: selectedSkinType === st.id ? '#8B5CF6' : C.border,
+                  }}
+                  data-testid={`skin-type-${st.id}`}
+                >
+                  <Ionicons name={st.icon as any} size={14} color={selectedSkinType === st.id ? '#fff' : C.textMuted} />
+                  <Text style={{ fontSize: 12, fontWeight: '600', color: selectedSkinType === st.id ? '#fff' : C.text }}>{st.label}</Text>
+                </TouchableOpacity>
+              ))}
+            </View>
+          </ScrollView>
+
+          {/* Season Selector */}
+          <Text style={{ fontSize: 12, fontWeight: '600', color: C.textMuted, marginBottom: 6 }}>
+            {language.code === 'ro' ? 'Sezon:' : 'Season:'}
+          </Text>
+          <View style={{ flexDirection: 'row', gap: 6, marginBottom: 12 }}>
+            {SEASONS.map((s) => (
+              <TouchableOpacity
+                key={s.id}
+                onPress={() => setSelectedSeason(s.id)}
+                style={{
+                  flex: 1, alignItems: 'center', gap: 2,
+                  paddingVertical: 8, borderRadius: 12,
+                  backgroundColor: selectedSeason === s.id ? s.color : C.bg,
+                  borderWidth: 1,
+                  borderColor: selectedSeason === s.id ? s.color : C.border,
+                }}
+                data-testid={`season-${s.id}`}
+              >
+                <Ionicons name={s.icon as any} size={16} color={selectedSeason === s.id ? '#fff' : s.color} />
+                <Text style={{ fontSize: 10, fontWeight: '600', color: selectedSeason === s.id ? '#fff' : C.text }}>{s.label}</Text>
+              </TouchableOpacity>
+            ))}
           </View>
+
+          {/* Generate Button */}
+          <TouchableOpacity
+            onPress={generateSkincareRoutine}
+            disabled={skincareLoading}
+            data-testid="generate-skincare-btn"
+          >
+            <LinearGradient colors={['#8B5CF6', '#6D28D9']} style={{ flexDirection: 'row', alignItems: 'center', justifyContent: 'center', paddingVertical: 12, borderRadius: 12, gap: 8 }}>
+              {skincareLoading ? (
+                <ActivityIndicator color="#fff" size="small" />
+              ) : (
+                <>
+                  <Ionicons name="sparkles" size={18} color="#fff" />
+                  <Text style={{ color: '#fff', fontSize: 14, fontWeight: '700' }}>
+                    {language.code === 'ro' ? 'Genereaza Rutina' : 'Generate Routine'}
+                  </Text>
+                </>
+              )}
+            </LinearGradient>
+          </TouchableOpacity>
         </View>
 
         {/* Month Display */}
@@ -368,20 +447,9 @@ export default function WorkScreen() {
                       )}
                     </View>
                     {!item.aiGenerated && (
-                      deleteConfirmId === item.id ? (
-                        <View style={{ flexDirection: 'row', gap: 4 }}>
-                          <TouchableOpacity onPress={() => deleteItem(item)} style={{ padding: 8, backgroundColor: '#EF4444', borderRadius: 8 }} data-testid={`confirm-delete-${item.id}`}>
-                            <Ionicons name="checkmark" size={16} color="#fff" />
-                          </TouchableOpacity>
-                          <TouchableOpacity onPress={() => setDeleteConfirmId(null)} style={{ padding: 8, backgroundColor: C.surface, borderRadius: 8 }}>
-                            <Ionicons name="close" size={16} color={C.textMuted} />
-                          </TouchableOpacity>
-                        </View>
-                      ) : (
-                        <TouchableOpacity onPress={() => setDeleteConfirmId(item.id)} style={{ padding: 8 }} data-testid={`delete-item-${item.id}`}>
-                          <Ionicons name="trash-outline" size={18} color={C.red || '#EF4444'} />
-                        </TouchableOpacity>
-                      )
+                      <TouchableOpacity onPress={() => deleteItem(item)} style={{ padding: 10 }} data-testid={`delete-item-${item.id}`}>
+                        <Ionicons name="trash-outline" size={20} color={C.red || '#EF4444'} />
+                      </TouchableOpacity>
                     )}
                   </View>
                 </View>
@@ -417,37 +485,6 @@ export default function WorkScreen() {
               <Ionicons name="heart" size={18} color={C.primary} />
               <Text style={[styles.meTimePreviewText, { color: C.text }]}>
                 {meTimeSuggestions.length} {language.code === 'ro' ? 'sugestii disponibile' : 'suggestions available'}
-              </Text>
-              <Ionicons name="chevron-forward" size={18} color={C.textMuted} />
-            </View>
-          </TouchableOpacity>
-        )}
-
-        {/* AI Skincare Routine */}
-        <TouchableOpacity activeOpacity={0.85} onPress={() => setSkincareModal(true)} style={{ marginTop: 16 }} data-testid="skincare-btn">
-          <LinearGradient colors={['#8B5CF6', '#6D28D9']} style={styles.selfCareCard}>
-            <View style={styles.selfCareIcon}>
-              <Ionicons name="flower-outline" size={24} color="#fff" />
-            </View>
-            <View style={styles.selfCareContent}>
-              <Text style={[styles.selfCareTitle, { color: '#fff' }]}>
-                {language.code === 'ro' ? 'Rutina de Ingrijire' : 'Skincare Routine'}
-              </Text>
-              <Text style={[styles.selfCareText, { color: 'rgba(255,255,255,0.8)' }]}>
-                {language.code === 'ro' ? 'AI genereaza rutina perfecta pentru tenul tau' : 'AI generates the perfect routine for your skin'}
-              </Text>
-            </View>
-            <Ionicons name="chevron-forward" size={20} color="rgba(255,255,255,0.7)" />
-          </LinearGradient>
-        </TouchableOpacity>
-
-        {/* Skincare Result Preview */}
-        {skincareRoutine && !skincareResultModal && (
-          <TouchableOpacity style={{ marginTop: 8, marginHorizontal: 16 }} onPress={() => setSkincareResultModal(true)}>
-            <View style={[styles.meTimePreview, { backgroundColor: C.surface, borderColor: C.border }]}>
-              <Ionicons name="flower" size={18} color="#8B5CF6" />
-              <Text style={[styles.meTimePreviewText, { color: C.text }]}>
-                {language.code === 'ro' ? 'Vezi rutina ta de ingrijire' : 'View your skincare routine'}
               </Text>
               <Ionicons name="chevron-forward" size={18} color={C.textMuted} />
             </View>
@@ -497,61 +534,6 @@ export default function WorkScreen() {
                 );
               })}
             </ScrollView>
-          </View>
-        </View>
-      </Modal>
-
-      {/* Skincare Skin Type Modal */}
-      <Modal visible={skincareModal} animationType="slide" transparent>
-        <View style={styles.modalOverlay}>
-          <View style={[styles.modalContent, { backgroundColor: C.bg }]}>
-            <View style={[styles.modalHeader, { backgroundColor: C.bg }]}>
-              <Text style={[styles.modalTitle, { color: C.text }]}>
-                {language.code === 'ro' ? 'Rutina de Ingrijire AI' : 'AI Skincare Routine'}
-              </Text>
-              <TouchableOpacity onPress={() => setSkincareModal(false)}>
-                <Ionicons name="close" size={24} color={C.textMuted} />
-              </TouchableOpacity>
-            </View>
-            <View style={[styles.modalBody, { backgroundColor: C.bg }]}>
-              <Text style={[styles.inputLabel, { color: C.textSecondary }]}>
-                {language.code === 'ro' ? 'Selecteaza tipul de ten' : 'Select your skin type'}
-              </Text>
-              <View style={{ flexDirection: 'row', flexWrap: 'wrap', gap: 8, marginTop: 8, marginBottom: 20 }}>
-                {SKIN_TYPES.map((st) => (
-                  <TouchableOpacity
-                    key={st.id}
-                    onPress={() => setSelectedSkinType(st.id)}
-                    style={{
-                      flexDirection: 'row', alignItems: 'center', gap: 6,
-                      paddingHorizontal: 14, paddingVertical: 10, borderRadius: 12,
-                      backgroundColor: selectedSkinType === st.id ? '#8B5CF6' : C.surface,
-                      borderWidth: 1,
-                      borderColor: selectedSkinType === st.id ? '#8B5CF6' : C.border,
-                    }}
-                    data-testid={`skin-type-${st.id}`}
-                  >
-                    <Ionicons name={st.icon as any} size={16} color={selectedSkinType === st.id ? '#fff' : C.textMuted} />
-                    <Text style={{ fontSize: 13, fontWeight: '600', color: selectedSkinType === st.id ? '#fff' : C.text }}>{st.label}</Text>
-                  </TouchableOpacity>
-                ))}
-              </View>
-
-              <TouchableOpacity
-                style={[styles.saveButton, { backgroundColor: '#8B5CF6' }]}
-                onPress={generateSkincareRoutine}
-                disabled={skincareLoading}
-                data-testid="generate-skincare-btn"
-              >
-                {skincareLoading ? (
-                  <ActivityIndicator color="#fff" size="small" />
-                ) : (
-                  <Text style={styles.saveButtonText}>
-                    {language.code === 'ro' ? 'Genereaza Rutina AI' : 'Generate AI Routine'}
-                  </Text>
-                )}
-              </TouchableOpacity>
-            </View>
           </View>
         </View>
       </Modal>
