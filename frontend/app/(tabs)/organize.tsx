@@ -225,6 +225,47 @@ export default function OrganizeScreen() {
               </TouchableOpacity>
             </View>
 
+            {/* Quick Add Categories */}
+            <View style={{ flexDirection: 'row', gap: 8, paddingHorizontal: 2, marginBottom: 12 }}>
+              <TouchableOpacity
+                style={{ flex: 1, flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: C.surface, padding: 10, borderRadius: 12, borderWidth: 1, borderColor: C.border }}
+                onPress={() => {
+                  const cleaningTasks = language.code === 'ro'
+                    ? ['Dormitor - schimba lenjeria', 'Baie - curata cada si chiuveta', 'Bucatarie - sterge blatul', 'Aspirat living', 'Spalat pe jos']
+                    : language.code === 'it'
+                    ? ['Camera - cambiare lenzuola', 'Bagno - pulire vasca e lavandino', 'Cucina - pulire piano', 'Aspirare soggiorno', 'Lavare pavimento']
+                    : ['Bedroom - change sheets', 'Bathroom - clean tub and sink', 'Kitchen - wipe counters', 'Vacuum living room', 'Mop floors'];
+                  const newItems = cleaningTasks.map((task) => ({ id: uuidv4(), text: task, completed: false }));
+                  const updated = [...checklistItems, ...newItems];
+                  setChecklistItems(updated);
+                  api.saveChecklist({ date: todayStr, items: updated }).catch(console.error);
+                }}
+                data-testid="quick-add-cleaning"
+              >
+                <Ionicons name="sparkles-outline" size={18} color="#8B5CF6" />
+                <Text style={{ fontSize: 13, fontWeight: '600', color: C.text }}>{language.code === 'ro' ? 'Curatenie' : language.code === 'it' ? 'Pulizia' : 'Cleaning'}</Text>
+              </TouchableOpacity>
+
+              <TouchableOpacity
+                style={{ flex: 1, flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: C.surface, padding: 10, borderRadius: 12, borderWidth: 1, borderColor: C.border }}
+                onPress={() => {
+                  const shoppingTasks = language.code === 'ro'
+                    ? ['Lapte si produse lactate', 'Paine si cereale', 'Fructe si legume', 'Carne/Peste', 'Produse curatenie']
+                    : language.code === 'it'
+                    ? ['Latte e latticini', 'Pane e cereali', 'Frutta e verdura', 'Carne/Pesce', 'Prodotti per la pulizia']
+                    : ['Milk and dairy', 'Bread and cereals', 'Fruits and vegetables', 'Meat/Fish', 'Cleaning products'];
+                  const newItems = shoppingTasks.map((task) => ({ id: uuidv4(), text: task, completed: false }));
+                  const updated = [...checklistItems, ...newItems];
+                  setChecklistItems(updated);
+                  api.saveChecklist({ date: todayStr, items: updated }).catch(console.error);
+                }}
+                data-testid="quick-add-shopping"
+              >
+                <Ionicons name="cart-outline" size={18} color="#10B981" />
+                <Text style={{ fontSize: 13, fontWeight: '600', color: C.text }}>{language.code === 'ro' ? 'Cumparaturi' : language.code === 'it' ? 'Spesa' : 'Shopping'}</Text>
+              </TouchableOpacity>
+            </View>
+
             {checklistItems.map((item) => (
               <TouchableOpacity key={item.id} style={s.taskItem} onPress={() => toggleTask(item.id)}>
                 <LinearGradient colors={gradCard} style={[s.taskGradient, borderStyle]}>

@@ -125,15 +125,6 @@ export default function WorkScreen() {
           aiGenerated: true,
         });
       }
-      if (dayOfWeek === 1) { // Monday
-        items.push({
-          id: 'ai-week-plan',
-          title: language.code === 'ro' ? '📋 Planificare săptămânală' : '📋 Weekly planning',
-          time: '08:00',
-          type: 'task',
-          aiGenerated: true,
-        });
-      }
 
       // Sort by time
       items.sort((a, b) => a.time.localeCompare(b.time));

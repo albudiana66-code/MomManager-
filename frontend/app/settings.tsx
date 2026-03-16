@@ -599,7 +599,7 @@ const styles = StyleSheet.create({
     borderTopLeftRadius: 28,
     borderTopRightRadius: 28,
     overflow: 'hidden',
-    maxHeight: '70%',
+    maxHeight: '85%',
   },
   modalGradient: {
     padding: 0,

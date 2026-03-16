@@ -244,7 +244,7 @@ export default function KidsScreen() {
         {/* Header */}
         <View style={s.header}>
           <View>
-            <Text style={[s.title, { color: C.text }]}>{isRo ? 'Povesti pentru Copii' : 'Kids Stories'}</Text>
+            <Text style={[s.title, { color: C.text }]}>{t('kids.stories')}</Text>
             <Text style={[s.subtitle, { color: C.textMuted }]}>{isRo ? 'Generate de AI, adaptate varstei' : 'AI-generated, age-adapted'}</Text>
           </View>
           <TouchableOpacity style={[s.addButton, { backgroundColor: C.surface }]} onPress={() => setAddKidModal(true)} data-testid="add-kid-btn">
@@ -274,7 +274,7 @@ export default function KidsScreen() {
 
         {/* Age Group Selection */}
         <View style={s.section}>
-          <Text style={[s.sectionTitle, { color: C.text }]}>{isRo ? 'Genereaza Poveste' : 'Generate Story'}</Text>
+          <Text style={[s.sectionTitle, { color: C.text }]}>{t('kids.generateStory')}</Text>
           <View style={s.ageGroupsContainer}>
             {AGE_GROUPS.map((group) => {
               const groupColor = (C as any)[group.colorKey];
@@ -306,7 +306,7 @@ export default function KidsScreen() {
               ) : (
                 <>
                   <Ionicons name="sparkles" size={22} color="#fff" />
-                  <Text style={s.generateText}>{isRo ? 'Genereaza Poveste Noua' : 'Generate New Story'}</Text>
+                  <Text style={s.generateText}>{t('kids.generateNewStory')}</Text>
                 </>
               )}
             </LinearGradient>
@@ -315,11 +315,11 @@ export default function KidsScreen() {
 
         {/* Saved Stories */}
         <View style={s.section}>
-          <Text style={[s.sectionTitle, { color: C.text }]}>{isRo ? 'Povesti Salvate' : 'Saved Stories'}</Text>
+          <Text style={[s.sectionTitle, { color: C.text }]}>{t('kids.savedStories')}</Text>
           {savedStories.length === 0 ? (
             <View style={s.emptyState}>
               <Ionicons name="book-outline" size={48} color={C.textMuted} />
-              <Text style={[s.emptyText, { color: C.textMuted }]}>{isRo ? 'Nicio poveste generata inca' : 'No stories generated yet'}</Text>
+              <Text style={[s.emptyText, { color: C.textMuted }]}>{t('kids.noStories')}</Text>
             </View>
           ) : (
             savedStories.map((story: any, index: number) => (
