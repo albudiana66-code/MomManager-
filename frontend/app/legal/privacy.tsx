@@ -48,8 +48,8 @@ export default function PrivacyScreen() {
           </Text>
           <Text style={styles.sectionText}>
             {isRomanian
-              ? 'MomManager 2026 este operat de Diana-Elena Albu, Sole Trader înregistrat în Regatul Unit. Suntem dedicați protejării confidențialității datelor dumneavoastră personale și ale familiei.'
-              : 'MomManager 2026 is operated by Diana-Elena Albu, a Sole Trader registered in the United Kingdom. We are dedicated to protecting the privacy of your personal and family data.'}
+              ? 'MomManager 2026 este operat de SoldOut Digital LTD, companie înregistrată în Regatul Unit. Suntem dedicați protejării confidențialității datelor dumneavoastră personale și ale familiei.'
+              : 'MomManager 2026 is operated by SoldOut Digital LTD, a company registered in the United Kingdom. We are dedicated to protecting the privacy of your personal and family data.'}
           </Text>
         </View>
 
@@ -171,15 +171,15 @@ export default function PrivacyScreen() {
           </Text>
           <Text style={styles.sectionText}>
             {isRomanian
-              ? 'Pentru întrebări despre confidențialitate sau pentru a vă exercita drepturile GDPR:\n\nDiana-Elena Albu\nProprietar & Data Controller - MomManager 2026\nEmail: dianaalbu661@yahoo.com\n\nAutoritatea de supraveghere: Information Commissioner\'s Office (ICO), UK'
-              : 'For privacy questions or to exercise your GDPR rights:\n\nDiana-Elena Albu\nOwner & Data Controller - MomManager 2026\nEmail: dianaalbu661@yahoo.com\n\nSupervisory authority: Information Commissioner\'s Office (ICO), UK'}
+              ? 'Pentru întrebări despre confidențialitate sau pentru a vă exercita drepturile GDPR:\n\nSoldOut Digital LTD\nData Controller - MomManager 2026\nEmail: support@mommanager.co.uk\n\nAutoritatea de supraveghere: Information Commissioner\'s Office (ICO), UK'
+              : 'For privacy questions or to exercise your GDPR rights:\n\nSoldOut Digital LTD\nData Controller - MomManager 2026\nEmail: support@mommanager.co.uk\n\nSupervisory authority: Information Commissioner\'s Office (ICO), UK'}
           </Text>
         </View>
 
         {/* Copyright Footer */}
         <View style={styles.copyrightContainer}>
           <Text style={styles.copyrightText}>
-            © 2026 MomManager by Diana-Elena Albu. All rights reserved. Unauthorized reproduction or distribution of this app's content, code, or design is strictly prohibited.
+            © 2026 MomManager by SoldOut Digital LTD. All rights reserved. Unauthorized reproduction or distribution of this app's content, code, or design is strictly prohibited.
           </Text>
         </View>
       </ScrollView>

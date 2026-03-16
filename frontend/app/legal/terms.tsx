@@ -40,8 +40,8 @@ export default function TermsScreen() {
           </Text>
           <Text style={styles.sectionText}>
             {isRomanian
-              ? 'Aplicația MomManager 2026 este proprietatea exclusivă a Dianei-Elena Albu, operând ca Sole Trader în Regatul Unit. Toate drepturile asupra codului sursă, designului, conținutului și funcționalităților aplicației sunt rezervate proprietarului.'
-              : 'MomManager 2026 application is the exclusive property of Diana-Elena Albu, operating as a Sole Trader in the United Kingdom. All rights to the source code, design, content, and functionality of the application are reserved to the owner.'}
+              ? 'Aplicația MomManager 2026 este proprietatea exclusivă a SoldOut Digital LTD, companie înregistrată în Regatul Unit. Toate drepturile asupra codului sursă, designului, conținutului și funcționalităților aplicației sunt rezervate proprietarului.'
+              : 'MomManager 2026 application is the exclusive property of SoldOut Digital LTD, a company registered in the United Kingdom. All rights to the source code, design, content, and functionality of the application are reserved to the owner.'}
           </Text>
         </View>
 
@@ -114,15 +114,15 @@ export default function TermsScreen() {
           </Text>
           <Text style={styles.sectionText}>
             {isRomanian
-              ? 'Pentru întrebări despre acești termeni, vă rugăm să ne contactați:\n\nDiana-Elena Albu\nProprietar MomManager 2026\nEmail: dianaalbu661@yahoo.com'
-              : 'For questions about these terms, please contact us:\n\nDiana-Elena Albu\nOwner of MomManager 2026\nEmail: dianaalbu661@yahoo.com'}
+              ? 'Pentru întrebări despre acești termeni, vă rugăm să ne contactați:\n\nSoldOut Digital LTD\nProprietar MomManager 2026\nEmail: support@mommanager.co.uk'
+              : 'For questions about these terms, please contact us:\n\nSoldOut Digital LTD\nOwner of MomManager 2026\nEmail: support@mommanager.co.uk'}
           </Text>
         </View>
 
         {/* Copyright Footer */}
         <View style={styles.copyrightContainer}>
           <Text style={styles.copyrightText}>
-            © 2026 MomManager by Diana-Elena Albu. All rights reserved. Unauthorized reproduction or distribution of this app's content, code, or design is strictly prohibited.
+            © 2026 MomManager by SoldOut Digital LTD. All rights reserved. Unauthorized reproduction or distribution of this app's content, code, or design is strictly prohibited.
           </Text>
         </View>
       </ScrollView>

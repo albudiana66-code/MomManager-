@@ -294,7 +294,7 @@ export default function SettingsScreen() {
         </View>
 
         {/* Copyright */}
-        <Text style={[styles.copyright, { color: C.textMuted }]}>© 2026 MomManager by Diana-Elena Albu</Text>
+        <Text style={[styles.copyright, { color: C.textMuted }]}>© 2026 MomManager by SoldOut Digital LTD</Text>
         
         {/* Legal Links */}
         <View style={styles.legalLinks}>
@@ -316,9 +316,9 @@ export default function SettingsScreen() {
       <Modal visible={languageModalVisible} animationType="slide" transparent>
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            <LinearGradient colors={['#1E1E2A', '#0F0F14']} style={styles.modalGradient}>
+            <View style={[styles.modalGradient, { backgroundColor: C.bg }]}>
               <View style={styles.modalHeader}>
-                <Text style={styles.modalTitle}>{t('settings.selectLanguage')}</Text>
+                <Text style={[styles.modalTitle, { color: C.text }]}>{t('settings.selectLanguage')}</Text>
                 <TouchableOpacity onPress={() => setLanguageModalVisible(false)}>
                   <Ionicons name="close" size={24} color={C.textMuted} />
                 </TouchableOpacity>
@@ -329,7 +329,8 @@ export default function SettingsScreen() {
                     key={lang.code}
                     style={[
                       styles.optionRow,
-                      language.code === lang.code && styles.optionRowActive,
+                      { borderBottomColor: C.border },
+                      language.code === lang.code && [styles.optionRowActive, { backgroundColor: `${C.primary}15` }],
                     ]}
                     onPress={() => {
                       setLanguageCode(lang.code);
@@ -339,6 +340,7 @@ export default function SettingsScreen() {
                     <Text style={styles.optionFlag}>{lang.flag}</Text>
                     <Text style={[
                       styles.optionText,
+                      { color: C.text },
                       language.code === lang.code && styles.optionTextActive,
                     ]}>
                       {lang.name}
@@ -349,7 +351,7 @@ export default function SettingsScreen() {
                   </TouchableOpacity>
                 ))}
               </ScrollView>
-            </LinearGradient>
+            </View>
           </View>
         </View>
       </Modal>
@@ -358,9 +360,9 @@ export default function SettingsScreen() {
       <Modal visible={currencyModalVisible} animationType="slide" transparent>
         <View style={styles.modalOverlay}>
           <View style={styles.modalContent}>
-            <LinearGradient colors={['#1E1E2A', '#0F0F14']} style={styles.modalGradient}>
+            <View style={[styles.modalGradient, { backgroundColor: C.bg }]}>
               <View style={styles.modalHeader}>
-                <Text style={styles.modalTitle}>{t('settings.selectCurrency')}</Text>
+                <Text style={[styles.modalTitle, { color: C.text }]}>{t('settings.selectCurrency')}</Text>
                 <TouchableOpacity onPress={() => setCurrencyModalVisible(false)}>
                   <Ionicons name="close" size={24} color={C.textMuted} />
                 </TouchableOpacity>
@@ -371,24 +373,26 @@ export default function SettingsScreen() {
                     key={curr.code}
                     style={[
                       styles.optionRow,
-                      currency.code === curr.code && styles.optionRowActive,
+                      { borderBottomColor: C.border },
+                      currency.code === curr.code && [styles.optionRowActive, { backgroundColor: `${C.primary}15` }],
                     ]}
                     onPress={() => {
                       setCurrencyCode(curr.code);
                       setCurrencyModalVisible(false);
                     }}
                   >
-                    <View style={styles.currencySymbolBox}>
-                      <Text style={styles.currencySymbolText}>{curr.symbol}</Text>
+                    <View style={[styles.currencySymbolBox, { backgroundColor: C.surface }]}>
+                      <Text style={[styles.currencySymbolText, { color: C.text }]}>{curr.symbol}</Text>
                     </View>
                     <View style={styles.currencyInfo}>
                       <Text style={[
                         styles.optionText,
+                        { color: C.text },
                         currency.code === curr.code && styles.optionTextActive,
                       ]}>
                         {curr.name}
                       </Text>
-                      <Text style={styles.currencyCode}>{curr.code}</Text>
+                      <Text style={[styles.currencyCode, { color: C.textMuted }]}>{curr.code}</Text>
                     </View>
                     {currency.code === curr.code && (
                       <Ionicons name="checkmark-circle" size={24} color={C.primary} />
@@ -396,7 +400,7 @@ export default function SettingsScreen() {
                   </TouchableOpacity>
                 ))}
               </ScrollView>
-            </LinearGradient>
+            </View>
           </View>
         </View>
       </Modal>

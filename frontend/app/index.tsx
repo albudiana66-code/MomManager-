@@ -154,7 +154,7 @@ export default function LandingPage() {
             </TouchableOpacity>
           </View>
           <Text style={styles.copyright}>
-            © 2026 MomManager by Diana-Elena Albu
+            © 2026 MomManager by SoldOut Digital LTD
           </Text>
           <Text style={styles.copyrightSub}>
             All rights reserved
