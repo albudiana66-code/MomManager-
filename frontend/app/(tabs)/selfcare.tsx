@@ -92,7 +92,7 @@ type TabType = 'workouts' | 'nutrition' | 'profile';
 
 export default function SelfCareScreen() {
   const { language, t, colors: TC, isDarkMode } = useSettings();
-  const isRo = language.code === 'ro';
+
   const gradCard = isDarkMode ? ['#252532', '#1E1E2A'] as const : ['#F8F9FA', '#FFFFFF'] as const;
   const gradModal = isDarkMode ? ['#1E1E2A', '#0F0F14'] as const : ['#F8F9FA', '#E5E7EB'] as const;
   const borderStyle = !isDarkMode ? { borderWidth: 1, borderColor: TC.border } : {};
@@ -178,12 +178,12 @@ export default function SelfCareScreen() {
       setSavedProfile(profile);
       setProfileModalVisible(false);
       Alert.alert(
-        isRo ? 'Succes!' : 'Success!',
-        isRo ? 'Profilul a fost salvat' : 'Profile saved'
+        t('common.success'),
+        t('common.success')
       );
     } catch (error) {
       console.error('Error saving profile:', error);
-      Alert.alert(isRo ? 'Eroare' : 'Error', isRo ? 'Nu s-a putut salva profilul' : 'Could not save profile');
+      Alert.alert(t('common.error'), t('common.error'));
     }
   };
 
@@ -204,8 +204,8 @@ export default function SelfCareScreen() {
     } catch (error) {
       console.error('Error generating workout:', error);
       Alert.alert(
-        isRo ? 'Eroare' : 'Error', 
-        isRo ? 'Nu s-a putut genera antrenamentul' : 'Could not generate workout'
+        t('common.error'), 
+        t('common.error')
       );
     } finally {
       setGeneratingWorkout(false);
@@ -215,8 +215,8 @@ export default function SelfCareScreen() {
   const generateStrengthMeals = async () => {
     if (!savedProfile?.current_weight || !savedProfile?.target_weight) {
       Alert.alert(
-        isRo ? 'Completează profilul' : 'Complete profile',
-        isRo ? 'Te rog completează greutatea actuală și greutatea dorită în secțiunea Profil' : 'Please complete current and target weight in Profile section'
+        t('common.error'),
+        t('common.error')
       );
       setActiveTab('profile');
       return;
@@ -235,8 +235,8 @@ export default function SelfCareScreen() {
     } catch (error) {
       console.error('Error generating meals:', error);
       Alert.alert(
-        isRo ? 'Eroare' : 'Error', 
-        isRo ? 'Nu s-a putut genera planul de mese' : 'Could not generate meal plan'
+        t('common.error'), 
+        t('common.error')
       );
     } finally {
       setGeneratingMeals(false);
@@ -286,7 +286,7 @@ export default function SelfCareScreen() {
             color={activeTab === 'workouts' ? '#fff' : C.green}
           />
           <Text style={[styles.tabText, activeTab === 'workouts' && styles.tabTextActive]}>
-            {isRo ? 'Exerciții' : 'Workouts'}
+            {t('selfcare.sport')}
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
@@ -299,7 +299,7 @@ export default function SelfCareScreen() {
             color={activeTab === 'nutrition' ? '#fff' : C.orange}
           />
           <Text style={[styles.tabText, activeTab === 'nutrition' && styles.tabTextActive]}>
-            {isRo ? 'Mese Forță' : 'Strength Meals'}
+            {t('selfcare.nutrition')}
           </Text>
         </TouchableOpacity>
         <TouchableOpacity
@@ -312,7 +312,7 @@ export default function SelfCareScreen() {
             color={activeTab === 'profile' ? '#fff' : C.purple}
           />
           <Text style={[styles.tabText, activeTab === 'profile' && styles.tabTextActive]}>
-            {isRo ? 'Profil' : 'Profile'}
+            {t('settings.profile')}
           </Text>
         </TouchableOpacity>
       </View>
@@ -331,19 +331,19 @@ export default function SelfCareScreen() {
                 <View style={styles.profileSummaryRow}>
                   <View style={styles.profileSummaryItem}>
                     <Text style={styles.profileSummaryValue}>{savedProfile.current_weight} kg</Text>
-                    <Text style={styles.profileSummaryLabel}>{isRo ? 'Actual' : 'Current'}</Text>
+                    <Text style={styles.profileSummaryLabel}>{t('selfcare.current')}</Text>
                   </View>
                   <View style={styles.profileSummaryDivider} />
                   <View style={styles.profileSummaryItem}>
                     <Text style={styles.profileSummaryValue}>{savedProfile.target_weight} kg</Text>
-                    <Text style={styles.profileSummaryLabel}>{isRo ? 'Țintă' : 'Target'}</Text>
+                    <Text style={styles.profileSummaryLabel}>{t('selfcare.target')}</Text>
                   </View>
                   <View style={styles.profileSummaryDivider} />
                   <View style={styles.profileSummaryItem}>
                     <Text style={[styles.profileSummaryValue, { color: weightDiff && parseFloat(weightDiff) > 0 ? C.orange : C.green }]}>
                       {weightDiff ? `${parseFloat(weightDiff) > 0 ? '-' : '+'}${Math.abs(parseFloat(weightDiff))} kg` : '-'}
                     </Text>
-                    <Text style={styles.profileSummaryLabel}>{isRo ? 'De slăbit' : 'To lose'}</Text>
+                    <Text style={styles.profileSummaryLabel}>{t('selfcare.toLose')}</Text>
                   </View>
                 </View>
               </LinearGradient>
@@ -352,7 +352,7 @@ export default function SelfCareScreen() {
             {/* Location Selection */}
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>
-                {isRo ? 'Unde faci sport?' : 'Where do you workout?'}
+                {t('selfcare.whereWorkout')}
               </Text>
               
               <View style={styles.locationsContainer}>
@@ -378,10 +378,10 @@ export default function SelfCareScreen() {
                         styles.locationLabel,
                         selectedLocation.id === loc.id && styles.locationLabelActive
                       ]}>
-                        {isRo ? loc.label : loc.labelEn}
+                        {language.code === 'ro' ? loc.label : loc.labelEn}
                       </Text>
                       <Text style={styles.locationDesc}>
-                        {isRo ? loc.description : loc.descriptionEn}
+                        {language.code === 'ro' ? loc.description : loc.descriptionEn}
                       </Text>
                     </LinearGradient>
                   </TouchableOpacity>
@@ -392,7 +392,7 @@ export default function SelfCareScreen() {
             {/* Workout Type Selection */}
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>
-                {isRo ? 'Tip de antrenament' : 'Workout type'}
+                {t('selfcare.workoutType')}
               </Text>
               
               <ScrollView
@@ -418,7 +418,7 @@ export default function SelfCareScreen() {
                       styles.typeLabel,
                       selectedType.id === type.id && styles.typeLabelActive
                     ]}>
-                      {isRo ? (type.label || type.id) : (type.labelEn || type.label || type.id)}
+                      {language.code === 'ro' ? (type.label || type.id) : (type.labelEn || type.label || type.id)}
                     </Text>
                   </TouchableOpacity>
                 ))}
@@ -430,9 +430,7 @@ export default function SelfCareScreen() {
               <View style={styles.healthNote}>
                 <Ionicons name="medical" size={16} color={C.orange} />
                 <Text style={styles.healthNoteText}>
-                  {isRo 
-                    ? 'AI va adapta exercițiile pentru condițiile tale de sănătate'
-                    : 'AI will adapt exercises for your health conditions'}
+                  {t('selfcare.aiAdaptExercises')}
                 </Text>
               </View>
             )}
@@ -456,7 +454,7 @@ export default function SelfCareScreen() {
                     <>
                       <Ionicons name="sparkles" size={22} color="#fff" />
                       <Text style={styles.generateText}>
-                        {isRo ? 'Generează Antrenament' : 'Generate Workout'}
+                        {t('selfcare.generateNewWorkout')}
                       </Text>
                     </>
                   )}
@@ -467,14 +465,14 @@ export default function SelfCareScreen() {
             {/* Saved Workouts */}
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>
-                {isRo ? 'Antrenamente Salvate' : 'Saved Workouts'}
+                {t('selfcare.savedWorkouts')}
               </Text>
               
               {savedWorkouts.length === 0 ? (
                 <View style={styles.emptyState}>
                   <Ionicons name="fitness-outline" size={48} color={C.textMuted} />
                   <Text style={styles.emptyText}>
-                    {isRo ? 'Niciun antrenament salvat' : 'No saved workouts'}
+                    {t('selfcare.noWorkouts')}
                   </Text>
                 </View>
               ) : (
@@ -500,7 +498,7 @@ export default function SelfCareScreen() {
                           <Ionicons name="time-outline" size={14} color={C.textMuted} />
                           <Text style={styles.workoutDuration}>{workout.duration}</Text>
                           <Text style={styles.workoutExercises}>
-                            • {workout.exercises?.length || 0} {isRo ? 'exerciții' : 'exercises'}
+                            • {workout.exercises?.length || 0} {t('selfcare.exercises')}
                           </Text>
                         </View>
                       </View>
@@ -528,12 +526,10 @@ export default function SelfCareScreen() {
               </View>
               <View style={styles.nutritionContent}>
                 <Text style={styles.nutritionTitle}>
-                  {isRo ? 'Mese pentru Masă Musculară' : 'Muscle Building Meals'}
+                  {t('selfcare.strengthMeals')}
                 </Text>
                 <Text style={styles.nutritionSubtitle}>
-                  {isRo 
-                    ? 'Plan de mese AI bazat pe profilul tău fizic'
-                    : 'AI meal plan based on your physical profile'}
+                  {t('selfcare.mealPlanSubtitle')}
                 </Text>
               </View>
             </LinearGradient>
@@ -547,12 +543,10 @@ export default function SelfCareScreen() {
                 <Ionicons name="warning" size={24} color={C.orange} />
                 <View style={styles.warningContent}>
                   <Text style={styles.warningTitle}>
-                    {isRo ? 'Completează profilul' : 'Complete your profile'}
+                    {t('selfcare.completeProfile')}
                   </Text>
                   <Text style={styles.warningText}>
-                    {isRo 
-                      ? 'Pentru mese personalizate, completează greutatea actuală și țintă'
-                      : 'For personalized meals, complete your current and target weight'}
+                    {t('selfcare.completeProfileHint')}
                   </Text>
                 </View>
                 <Ionicons name="chevron-forward" size={20} color={C.textMuted} />
@@ -578,7 +572,7 @@ export default function SelfCareScreen() {
                     <>
                       <Ionicons name="sparkles" size={22} color="#fff" />
                       <Text style={styles.generateText}>
-                        {isRo ? 'Generează Plan Mese' : 'Generate Meal Plan'}
+                        {t('selfcare.generatePlan')}
                       </Text>
                     </>
                   )}
@@ -598,10 +592,10 @@ export default function SelfCareScreen() {
                   </View>
                   <View style={styles.mealsContent}>
                     <Text style={styles.mealsTitle}>
-                      {isRo ? 'Planul tău de mese' : 'Your meal plan'}
+                      {t('selfcare.yourMealPlan')}
                     </Text>
                     <Text style={styles.mealsSubtitle}>
-                      {strengthMeals.daily_calories} kcal / {isRo ? 'zi' : 'day'}
+                      {strengthMeals.daily_calories} kcal / {t('selfcare.day')}
                     </Text>
                   </View>
                   <Ionicons name="chevron-forward" size={20} color={C.textMuted} />
@@ -611,11 +605,11 @@ export default function SelfCareScreen() {
 
             {/* Nutrition Tips */}
             <View style={styles.section}>
-              <Text style={styles.sectionTitle}>{isRo ? 'Sfaturi' : 'Tips'}</Text>
+              <Text style={styles.sectionTitle}>{t('selfcare.tips')}</Text>
               {[
-                { icon: 'water', text: isRo ? 'Bea 2-3L apă zilnic' : 'Drink 2-3L water daily', color: C.blue },
-                { icon: 'egg', text: isRo ? 'Proteină la fiecare masă' : 'Protein at every meal', color: C.orange },
-                { icon: 'time', text: isRo ? 'Mănâncă la 3-4 ore' : 'Eat every 3-4 hours', color: C.green },
+                { icon: 'water', text: t('selfcare.tipWater'), color: C.blue },
+                { icon: 'egg', text: t('selfcare.tipProtein'), color: C.orange },
+                { icon: 'time', text: t('selfcare.tipEat'), color: C.green },
               ].map((tip, i) => (
                 <View key={i} style={styles.tipCard}>
                   <View style={[styles.tipIcon, { backgroundColor: `${tip.color}20` }]}>
@@ -640,7 +634,7 @@ export default function SelfCareScreen() {
                 <Text style={styles.statValue}>
                   {savedProfile?.current_weight || '-'} <Text style={styles.statUnit}>kg</Text>
                 </Text>
-                <Text style={styles.statLabel}>{isRo ? 'Greutate' : 'Weight'}</Text>
+                <Text style={styles.statLabel}>{t('selfcare.weight')}</Text>
               </LinearGradient>
               
               <LinearGradient colors={['#252532', '#1E1E2A']} style={styles.statCard}>
@@ -650,7 +644,7 @@ export default function SelfCareScreen() {
                 <Text style={styles.statValue}>
                   {savedProfile?.target_weight || '-'} <Text style={styles.statUnit}>kg</Text>
                 </Text>
-                <Text style={styles.statLabel}>{isRo ? 'Țintă' : 'Target'}</Text>
+                <Text style={styles.statLabel}>{t('selfcare.target')}</Text>
               </LinearGradient>
               
               <LinearGradient colors={['#252532', '#1E1E2A']} style={styles.statCard}>
@@ -660,7 +654,7 @@ export default function SelfCareScreen() {
                 <Text style={styles.statValue}>
                   {savedProfile?.height || '-'} <Text style={styles.statUnit}>cm</Text>
                 </Text>
-                <Text style={styles.statLabel}>{isRo ? 'Înălțime' : 'Height'}</Text>
+                <Text style={styles.statLabel}>{t('selfcare.height')}</Text>
               </LinearGradient>
             </View>
 
@@ -672,10 +666,10 @@ export default function SelfCareScreen() {
                   <Text style={styles.bmiValue}>{bmi}</Text>
                 </View>
                 <Text style={styles.bmiStatus}>
-                  {parseFloat(bmi) < 18.5 ? (isRo ? 'Subponderal' : 'Underweight') :
-                   parseFloat(bmi) < 25 ? (isRo ? 'Normal' : 'Normal') :
-                   parseFloat(bmi) < 30 ? (isRo ? 'Supraponderal' : 'Overweight') :
-                   (isRo ? 'Obezitate' : 'Obese')}
+                  {parseFloat(bmi) < 18.5 ? (t('selfcare.underweight')) :
+                   parseFloat(bmi) < 25 ? (t('selfcare.normalWeight')) :
+                   parseFloat(bmi) < 30 ? (t('selfcare.overweight')) :
+                   (t('selfcare.obese'))}
                 </Text>
               </LinearGradient>
             )}
@@ -683,7 +677,7 @@ export default function SelfCareScreen() {
             {/* Health Conditions */}
             <View style={styles.section}>
               <Text style={styles.sectionTitle}>
-                {isRo ? 'Condiții de sănătate' : 'Health Conditions'}
+                {t('selfcare.healthConditions')}
               </Text>
               <View style={styles.conditionsContainer}>
                 {savedProfile?.health_conditions?.map((condId: string) => {
@@ -693,7 +687,7 @@ export default function SelfCareScreen() {
                     <View key={condId} style={styles.conditionBadge}>
                       <Ionicons name="medical" size={14} color={C.orange} />
                       <Text style={styles.conditionText}>
-                        {isRo ? cond.label : cond.labelEn}
+                        {language.code === 'ro' ? cond.label : cond.labelEn}
                       </Text>
                     </View>
                   );
@@ -702,7 +696,7 @@ export default function SelfCareScreen() {
                   <View style={[styles.conditionBadge, { backgroundColor: C.greenGlow }]}>
                     <Ionicons name="checkmark-circle" size={14} color={C.green} />
                     <Text style={[styles.conditionText, { color: C.green }]}>
-                      {isRo ? 'Fără probleme de sănătate' : 'No health issues'}
+                      {t('selfcare.noHealthIssues')}
                     </Text>
                   </View>
                 )}
@@ -720,7 +714,7 @@ export default function SelfCareScreen() {
               >
                 <Ionicons name="create" size={22} color="#fff" />
                 <Text style={styles.editProfileText}>
-                  {isRo ? 'Editează Profilul' : 'Edit Profile'}
+                  {t('selfcare.editProfile')}
                 </Text>
               </LinearGradient>
             </TouchableOpacity>
@@ -741,7 +735,7 @@ export default function SelfCareScreen() {
             >
               <View style={styles.modalHeader}>
                 <Text style={styles.modalTitle}>
-                  {isRo ? 'Profilul tău fizic' : 'Your physical profile'}
+                  {t('selfcare.physicalProfile')}
                 </Text>
                 <TouchableOpacity onPress={() => setProfileModalVisible(false)}>
                   <Ionicons name="close-circle" size={32} color={C.textMuted} />
@@ -752,7 +746,7 @@ export default function SelfCareScreen() {
                 {/* Weight Inputs */}
                 <View style={styles.inputRow}>
                   <View style={styles.inputHalf}>
-                    <Text style={styles.inputLabel}>{isRo ? 'Greutate actuală (kg)' : 'Current weight (kg)'}</Text>
+                    <Text style={styles.inputLabel}>{t('selfcare.currentWeight')}</Text>
                     <TextInput
                       style={styles.input}
                       value={currentWeight}
@@ -763,7 +757,7 @@ export default function SelfCareScreen() {
                     />
                   </View>
                   <View style={styles.inputHalf}>
-                    <Text style={styles.inputLabel}>{isRo ? 'Greutate dorită (kg)' : 'Target weight (kg)'}</Text>
+                    <Text style={styles.inputLabel}>{t('selfcare.targetWeight')}</Text>
                     <TextInput
                       style={styles.input}
                       value={targetWeight}
@@ -776,7 +770,7 @@ export default function SelfCareScreen() {
                 </View>
 
                 {/* Height */}
-                <Text style={styles.inputLabel}>{isRo ? 'Înălțime (cm)' : 'Height (cm)'}</Text>
+                <Text style={styles.inputLabel}>{t('selfcare.heightCm')}</Text>
                 <TextInput
                   style={styles.input}
                   value={height}
@@ -787,7 +781,7 @@ export default function SelfCareScreen() {
                 />
 
                 {/* Health Conditions */}
-                <Text style={styles.inputLabel}>{isRo ? 'Probleme de sănătate' : 'Health conditions'}</Text>
+                <Text style={styles.inputLabel}>{t('selfcare.healthConditions')}</Text>
                 <View style={styles.conditionsGrid}>
                   {HEALTH_CONDITIONS.map((cond) => (
                     <TouchableOpacity
@@ -802,7 +796,7 @@ export default function SelfCareScreen() {
                         styles.conditionChipText,
                         selectedConditions.includes(cond.id) && styles.conditionChipTextActive,
                       ]}>
-                        {isRo ? cond.label : cond.labelEn}
+                        {language.code === 'ro' ? cond.label : cond.labelEn}
                       </Text>
                     </TouchableOpacity>
                   ))}
@@ -811,12 +805,12 @@ export default function SelfCareScreen() {
                 {/* Other Condition */}
                 {selectedConditions.includes('other') && (
                   <>
-                    <Text style={styles.inputLabel}>{isRo ? 'Specifică' : 'Specify'}</Text>
+                    <Text style={styles.inputLabel}>{t('selfcare.specify')}</Text>
                     <TextInput
                       style={styles.input}
                       value={otherCondition}
                       onChangeText={setOtherCondition}
-                      placeholder={isRo ? 'Descrie problema...' : 'Describe the issue...'}
+                      placeholder={t('selfcare.describeIssue')}
                       placeholderTextColor={C.textMuted}
                     />
                   </>
@@ -826,7 +820,7 @@ export default function SelfCareScreen() {
               <TouchableOpacity style={styles.saveProfileButton} onPress={saveProfile}>
                 <LinearGradient colors={['#10B981', '#059669']} style={styles.saveProfileGradient}>
                   <Ionicons name="checkmark" size={22} color="#fff" />
-                  <Text style={styles.saveProfileText}>{isRo ? 'Salvează' : 'Save'}</Text>
+                  <Text style={styles.saveProfileText}>{t('common.save')}</Text>
                 </LinearGradient>
               </TouchableOpacity>
             </LinearGradient>
@@ -860,8 +854,8 @@ export default function SelfCareScreen() {
                   <Ionicons name="location" size={16} color={C.primary} />
                   <Text style={[styles.workoutBadgeText, { color: C.primary }]}>
                     {currentWorkout?.location === 'home' 
-                      ? (isRo ? 'Acasă' : 'At Home') 
-                      : (isRo ? 'Sala' : 'Gym')}
+                      ? (t('selfcare.atHome')) 
+                      : (t('selfcare.atGym'))}
                   </Text>
                 </View>
               </View>
@@ -906,7 +900,7 @@ export default function SelfCareScreen() {
                   onPress={() => currentWorkout && deleteWorkout(currentWorkout.id)}
                 >
                   <Ionicons name="trash-outline" size={20} color="#ef4444" />
-                  <Text style={styles.deleteText}>{isRo ? 'Șterge' : 'Delete'}</Text>
+                  <Text style={styles.deleteText}>{t('common.delete')}</Text>
                 </TouchableOpacity>
               </View>
             </LinearGradient>
@@ -924,7 +918,7 @@ export default function SelfCareScreen() {
             >
               <View style={styles.modalHeader}>
                 <Text style={styles.modalTitle}>
-                  {isRo ? 'Plan Mese Forță' : 'Strength Meal Plan'}
+                  {t('selfcare.strengthMealPlan')}
                 </Text>
                 <TouchableOpacity onPress={() => setViewMealsModal(false)}>
                   <Ionicons name="close-circle" size={32} color={C.textMuted} />
@@ -935,13 +929,13 @@ export default function SelfCareScreen() {
                 <View style={[styles.workoutBadge, { backgroundColor: C.orangeGlow }]}>
                   <Ionicons name="flame" size={16} color={C.orange} />
                   <Text style={[styles.workoutBadgeText, { color: C.orange }]}>
-                    {strengthMeals?.daily_calories} kcal/{isRo ? 'zi' : 'day'}
+                    {strengthMeals?.daily_calories} kcal/{t('selfcare.day')}
                   </Text>
                 </View>
                 <View style={[styles.workoutBadge, { backgroundColor: C.greenGlow }]}>
                   <Ionicons name="nutrition" size={16} color={C.green} />
                   <Text style={[styles.workoutBadgeText, { color: C.green }]}>
-                    {strengthMeals?.protein_grams}g {isRo ? 'proteină' : 'protein'}
+                    {strengthMeals?.protein_grams}g {t('selfcare.protein')}
                   </Text>
                 </View>
               </View>
@@ -989,13 +983,13 @@ export default function SelfCareScreen() {
             <ActivityIndicator size="large" color={generatingMeals ? C.orange : C.green} />
             <Text style={styles.loadingText}>
               {generatingMeals 
-                ? (isRo ? 'Se generează planul de mese...' : 'Generating meal plan...')
-                : (isRo ? 'Se generează antrenamentul...' : 'Generating workout...')}
+                ? (t('selfcare.generatingMeals'))
+                : (t('selfcare.creatingWorkout'))}
             </Text>
             <Text style={styles.loadingSubtext}>
               {generatingMeals
-                ? (isRo ? 'AI calculează necesarul caloric' : 'AI is calculating caloric needs')
-                : (isRo ? 'AI adaptează exercițiile pentru tine' : 'AI is adapting exercises for you')}
+                ? (t('selfcare.calculatingCalories'))
+                : (t('selfcare.adaptingExercises'))}
             </Text>
           </LinearGradient>
         </View>

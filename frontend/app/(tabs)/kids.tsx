@@ -53,7 +53,8 @@ const AGE_GROUPS = [
 
 export default function KidsScreen() {
   const { language, t, colors: C, isDarkMode } = useSettings();
-  const isRo = language.code === 'ro';
+
+  const dateLocale = language.code === 'ro' ? ro : enUS;
 
   const gradCard = isDarkMode ? ['#252532', '#1E1E2A'] as const : ['#F8F9FA', '#FFFFFF'] as const;
   const gradModal = isDarkMode ? ['#1E1E2A', '#0F0F14'] as const : ['#F8F9FA', '#E5E7EB'] as const;
@@ -127,8 +128,8 @@ export default function KidsScreen() {
     const birth = parseISO(birthDate);
     const years = differenceInYears(new Date(), birth);
     const months = differenceInMonths(new Date(), birth) % 12;
-    if (years === 0) return `${months} ${isRo ? 'luni' : 'months'}`;
-    return `${years} ${isRo ? 'ani' : 'years'}${months > 0 ? ` ${isRo ? 'si' : 'and'} ${months} ${isRo ? 'luni' : 'months'}` : ''}`;
+    if (years === 0) return `${months} ${t('kids.months')}`;
+    return `${years} ${t('kids.years')}${months > 0 ? ` ${t('kids.and')} ${months} ${t('kids.months')}` : ''}`;
   };
 
   const generateStory = async () => {
@@ -136,7 +137,7 @@ export default function KidsScreen() {
     try {
       const story = await api.generateStory({
         age_group: selectedAgeGroup.id,
-        themes: isRo ? selectedAgeGroup.themes : selectedAgeGroup.themesEn,
+        themes: language.code === 'ro' ? selectedAgeGroup.themes : selectedAgeGroup.themesEn,
         language: language.code,
       });
       setGeneratedStory(story);
@@ -145,7 +146,7 @@ export default function KidsScreen() {
       loadStories();
     } catch (error) {
       console.error('Error generating story:', error);
-      Alert.alert(isRo ? 'Eroare' : 'Error', isRo ? 'Nu s-a putut genera povestea' : 'Could not generate story');
+      Alert.alert(t('common.error'), t('common.error'));
     } finally {
       setGeneratingStory(false);
     }
@@ -153,7 +154,7 @@ export default function KidsScreen() {
 
   const addKid = async () => {
     if (!kidName.trim()) {
-      Alert.alert(isRo ? 'Eroare' : 'Error', isRo ? 'Te rog introdu numele copilului' : 'Please enter child name');
+      Alert.alert(t('common.error'), t('common.error'));
       return;
     }
     try {
@@ -164,13 +165,13 @@ export default function KidsScreen() {
       setKidName('');
       setKidBirthDate('');
     } catch (error) {
-      Alert.alert(isRo ? 'Eroare' : 'Error', isRo ? 'Nu s-a putut adauga copilul' : 'Could not add child');
+      Alert.alert(t('common.error'), t('common.error'));
     }
   };
 
   const addActivity = async () => {
     if (!selectedKid || !activityName.trim()) {
-      Alert.alert(isRo ? 'Eroare' : 'Error', isRo ? 'Te rog introdu numele activitatii' : 'Please enter activity name');
+      Alert.alert(t('common.error'), t('common.error'));
       return;
     }
     try {
@@ -185,7 +186,7 @@ export default function KidsScreen() {
       setActivityName('');
       setActivityNotes('');
     } catch (error) {
-      Alert.alert(isRo ? 'Eroare' : 'Error', isRo ? 'Nu s-a putut adauga activitatea' : 'Could not add activity');
+      Alert.alert(t('common.error'), t('common.error'));
     }
   };
 
@@ -211,7 +212,7 @@ export default function KidsScreen() {
 
   const generateLunchBox = async () => {
     if (!selectedKid && kids.length === 0) {
-      Alert.alert(isRo ? 'Eroare' : 'Error', isRo ? 'Adauga un copil mai intai' : 'Add a child first');
+      Alert.alert(t('common.error'), t('common.error'));
       return;
     }
     setLunchBoxLoading(true);
@@ -228,7 +229,7 @@ export default function KidsScreen() {
       setLunchBoxModal(true);
     } catch (error) {
       console.error('Error generating lunch box:', error);
-      Alert.alert(isRo ? 'Eroare' : 'Error', isRo ? 'Nu s-a putut genera meniul' : 'Could not generate menu');
+      Alert.alert(t('common.error'), t('common.error'));
     } finally {
       setLunchBoxLoading(false);
     }
@@ -245,7 +246,7 @@ export default function KidsScreen() {
         <View style={s.header}>
           <View>
             <Text style={[s.title, { color: C.text }]}>{t('kids.stories')}</Text>
-            <Text style={[s.subtitle, { color: C.textMuted }]}>{isRo ? 'Generate de AI, adaptate varstei' : 'AI-generated, age-adapted'}</Text>
+            <Text style={[s.subtitle, { color: C.textMuted }]}>{t('kids.storiesSubtitle')}</Text>
           </View>
           <TouchableOpacity style={[s.addButton, { backgroundColor: C.surface }]} onPress={() => setAddKidModal(true)} data-testid="add-kid-btn">
             <Ionicons name="person-add" size={20} color={C.text} />
@@ -288,10 +289,10 @@ export default function KidsScreen() {
                       <Ionicons name={group.icon as any} size={24} color={groupColor} />
                     </View>
                     <Text style={[s.ageGroupLabel, { color: C.text }, selectedAgeGroup.id === group.id && { color: '#fff' }]}>
-                      {isRo ? group.label : group.labelEn}
+                      {language.code === 'ro' ? group.label : group.labelEn}
                     </Text>
                     <Text style={[s.ageGroupThemes, { color: C.textMuted }]}>
-                      {(isRo ? group.themes : group.themesEn).slice(0, 2).join(', ')}
+                      {(language.code === 'ro' ? group.themes : group.themesEn).slice(0, 2).join(', ')}
                     </Text>
                   </LinearGradient>
                 </TouchableOpacity>
@@ -332,7 +333,7 @@ export default function KidsScreen() {
                     <View style={s.storyContent}>
                       <Text style={[s.storyTitle, { color: C.text }]} numberOfLines={1}>{story.title}</Text>
                       <Text style={[s.storyMetaText, { color: C.textMuted }]}>
-                        {story.age_group} {story.created_at ? `- ${format(new Date(story.created_at), 'dd MMM', { locale: isRo ? ro : enUS })}` : ''}
+                        {story.age_group} {story.created_at ? `- ${format(new Date(story.created_at), 'dd MMM', { locale: dateLocale })}` : ''}
                       </Text>
                     </View>
                   </LinearGradient>
@@ -347,7 +348,7 @@ export default function KidsScreen() {
 
         {/* School Lunch Box */}
         <View style={s.section}>
-          <Text style={[s.sectionTitle, { color: C.text }]}>{isRo ? 'School Lunch Box' : 'School Lunch Box'}</Text>
+          <Text style={[s.sectionTitle, { color: C.text }]}>{t('kids.lunchBox')}</Text>
           <TouchableOpacity activeOpacity={0.85} onPress={generateLunchBox} disabled={lunchBoxLoading} data-testid="generate-lunchbox-btn">
             <LinearGradient colors={['#F5A623', '#D4920B']} style={s.lunchBoxCard}>
               <View style={s.lunchBoxContent}>
@@ -355,8 +356,8 @@ export default function KidsScreen() {
                   <Ionicons name="fast-food" size={24} color="#F5A623" />
                 </View>
                 <View style={{ flex: 1 }}>
-                  <Text style={s.lunchBoxTitle}>{isRo ? 'Meniu Scoala' : 'School Menu'}</Text>
-                  <Text style={s.lunchBoxSub}>{isRo ? 'AI genereaza meniuri sanatoase pentru scoala' : 'AI generates healthy school menus'}</Text>
+                  <Text style={s.lunchBoxTitle}>{t('kids.lunchBox')}</Text>
+                  <Text style={s.lunchBoxSub}>{t('kids.lunchBoxDesc')}</Text>
                 </View>
                 {lunchBoxLoading ? (
                   <ActivityIndicator size="small" color="#fff" />
@@ -373,8 +374,8 @@ export default function KidsScreen() {
                   <Ionicons name="checkmark-circle" size={20} color={C.gold} />
                 </View>
                 <View style={{ flex: 1 }}>
-                  <Text style={[s.lunchBoxPreviewTitle, { color: C.text }]}>{isRo ? 'Meniu generat' : 'Menu generated'}</Text>
-                  <Text style={[s.lunchBoxPreviewSub, { color: C.textMuted }]}>{lunchBoxResult.lunches?.length || 0} {isRo ? 'zile' : 'days'}</Text>
+                  <Text style={[s.lunchBoxPreviewTitle, { color: C.text }]}>{t('kids.lunchBox')}</Text>
+                  <Text style={[s.lunchBoxPreviewSub, { color: C.textMuted }]}>{lunchBoxResult.lunches?.length || 0} {t('kitchen.days.monday')}</Text>
                 </View>
                 <Ionicons name="chevron-forward" size={20} color={C.textMuted} />
               </LinearGradient>
@@ -387,7 +388,7 @@ export default function KidsScreen() {
           <View style={s.section}>
             <View style={s.sectionHeader}>
               <Text style={[s.sectionTitle, { color: C.text }]}>
-                {isRo ? `Activitatile lui ${selectedKid.kid_name}` : `${selectedKid.kid_name}'s Activities`}
+                {language.code === 'ro' ? `Activitatile lui ${selectedKid.kid_name}` : `${selectedKid.kid_name}'s ${t('kids.activities')}`}
               </Text>
               <TouchableOpacity onPress={() => setAddActivityModal(true)}>
                 <Ionicons name="add-circle" size={28} color={C.primary} />
@@ -395,7 +396,7 @@ export default function KidsScreen() {
             </View>
             {selectedKid.activities?.length === 0 ? (
               <View style={s.emptyStateSmall}>
-                <Text style={[s.emptyTextSmall, { color: C.textMuted }]}>{isRo ? 'Nicio activitate inregistrata' : 'No activities recorded'}</Text>
+                <Text style={[s.emptyTextSmall, { color: C.textMuted }]}>{t('kids.noActivities')}</Text>
               </View>
             ) : (
               selectedKid.activities?.slice(0, 3).reverse().map((activity: any) => (
@@ -406,7 +407,7 @@ export default function KidsScreen() {
                   <View style={s.activityContent}>
                     <Text style={[s.activityName, { color: C.text }]}>{activity.name}</Text>
                     <Text style={[s.activityDate, { color: C.textMuted }]}>
-                      {format(parseISO(activity.date), 'd MMM yyyy', { locale: isRo ? ro : enUS })}
+                      {format(parseISO(activity.date), 'd MMM yyyy', { locale: dateLocale })}
                     </Text>
                   </View>
                 </View>
@@ -418,11 +419,11 @@ export default function KidsScreen() {
         {kids.length === 0 && (
           <View style={s.emptyStateLarge}>
             <Ionicons name="people-outline" size={64} color={C.textMuted} />
-            <Text style={[s.emptyLargeTitle, { color: C.text }]}>{isRo ? 'Niciun copil adaugat' : 'No children added'}</Text>
-            <Text style={[s.emptyLargeSub, { color: C.textMuted }]}>{isRo ? 'Adauga copiii tai pentru povesti personalizate' : 'Add your children for personalized stories'}</Text>
+            <Text style={[s.emptyLargeTitle, { color: C.text }]}>{t('kids.noKids')}</Text>
+            <Text style={[s.emptyLargeSub, { color: C.textMuted }]}>{t('kids.noKidsHint')}</Text>
             <TouchableOpacity style={[s.emptyLargeBtn, { backgroundColor: C.primary }]} onPress={() => setAddKidModal(true)}>
               <Ionicons name="add" size={20} color="#fff" />
-              <Text style={s.emptyLargeBtnText}>{isRo ? 'Adauga copil' : 'Add child'}</Text>
+              <Text style={s.emptyLargeBtnText}>{t('kids.addKid')}</Text>
             </TouchableOpacity>
           </View>
         )}
@@ -465,19 +466,19 @@ export default function KidsScreen() {
           <View style={s.modalContent}>
             <LinearGradient colors={gradModal} style={s.modalGradientPad}>
               <View style={[s.modalHeaderBorder, { borderBottomColor: C.border }]}>
-                <Text style={[s.modalTitle, { color: C.text }]}>{isRo ? 'Adauga copil' : 'Add child'}</Text>
+                <Text style={[s.modalTitle, { color: C.text }]}>{t('kids.addKid')}</Text>
                 <TouchableOpacity onPress={() => setAddKidModal(false)}>
                   <Ionicons name="close" size={24} color={C.textMuted} />
                 </TouchableOpacity>
               </View>
               <View style={s.modalBody}>
-                <Text style={[s.inputLabel, { color: C.textSecondary }]}>{isRo ? 'Nume' : 'Name'}</Text>
-                <TextInput style={[s.input, { backgroundColor: C.surface, color: C.text, borderColor: C.border }]} value={kidName} onChangeText={setKidName} placeholder={isRo ? 'Ex: Maria' : 'Ex: Maria'} placeholderTextColor={C.textMuted} />
-                <Text style={[s.inputLabel, { color: C.textSecondary }]}>{isRo ? 'Data nasterii (optional)' : 'Birth date (optional)'}</Text>
+                <Text style={[s.inputLabel, { color: C.textSecondary }]}>{t('kids.name')}</Text>
+                <TextInput style={[s.input, { backgroundColor: C.surface, color: C.text, borderColor: C.border }]} value={kidName} onChangeText={setKidName} placeholder={t('kids.exampleName')} placeholderTextColor={C.textMuted} />
+                <Text style={[s.inputLabel, { color: C.textSecondary }]}>{t('kids.birthDate')}</Text>
                 <TextInput style={[s.input, { backgroundColor: C.surface, color: C.text, borderColor: C.border }]} value={kidBirthDate} onChangeText={setKidBirthDate} placeholder="YYYY-MM-DD" placeholderTextColor={C.textMuted} />
                 <TouchableOpacity style={s.saveButton} onPress={addKid}>
                   <LinearGradient colors={['#E91E9C', '#B8157A']} style={s.saveGradient}>
-                    <Text style={s.saveButtonText}>{isRo ? 'Salveaza' : 'Save'}</Text>
+                    <Text style={s.saveButtonText}>{t('common.save')}</Text>
                   </LinearGradient>
                 </TouchableOpacity>
               </View>
@@ -492,19 +493,19 @@ export default function KidsScreen() {
           <View style={s.modalContent}>
             <LinearGradient colors={gradModal} style={s.modalGradientPad}>
               <View style={[s.modalHeaderBorder, { borderBottomColor: C.border }]}>
-                <Text style={[s.modalTitle, { color: C.text }]}>{isRo ? 'Adauga activitate' : 'Add activity'}</Text>
+                <Text style={[s.modalTitle, { color: C.text }]}>{t('kids.addActivity')}</Text>
                 <TouchableOpacity onPress={() => setAddActivityModal(false)}>
                   <Ionicons name="close" size={24} color={C.textMuted} />
                 </TouchableOpacity>
               </View>
               <View style={s.modalBody}>
-                <Text style={[s.inputLabel, { color: C.textSecondary }]}>{isRo ? 'Numele activitatii' : 'Activity name'}</Text>
-                <TextInput style={[s.input, { backgroundColor: C.surface, color: C.text, borderColor: C.border }]} value={activityName} onChangeText={setActivityName} placeholder={isRo ? 'Ex: Cursuri de inot' : 'Ex: Swimming lessons'} placeholderTextColor={C.textMuted} />
-                <Text style={[s.inputLabel, { color: C.textSecondary }]}>{isRo ? 'Note (optional)' : 'Notes (optional)'}</Text>
-                <TextInput style={[s.input, s.textArea, { backgroundColor: C.surface, color: C.text, borderColor: C.border }]} value={activityNotes} onChangeText={setActivityNotes} placeholder={isRo ? 'Detalii...' : 'Details...'} placeholderTextColor={C.textMuted} multiline numberOfLines={3} />
+                <Text style={[s.inputLabel, { color: C.textSecondary }]}>{t('kids.activityName')}</Text>
+                <TextInput style={[s.input, { backgroundColor: C.surface, color: C.text, borderColor: C.border }]} value={activityName} onChangeText={setActivityName} placeholder={t('kids.exampleActivity')} placeholderTextColor={C.textMuted} />
+                <Text style={[s.inputLabel, { color: C.textSecondary }]}>{t('kids.notes')}</Text>
+                <TextInput style={[s.input, s.textArea, { backgroundColor: C.surface, color: C.text, borderColor: C.border }]} value={activityNotes} onChangeText={setActivityNotes} placeholder={t('kids.activityDetails')} placeholderTextColor={C.textMuted} multiline numberOfLines={3} />
                 <TouchableOpacity style={s.saveButton} onPress={addActivity}>
                   <LinearGradient colors={['#E91E9C', '#B8157A']} style={s.saveGradient}>
-                    <Text style={s.saveButtonText}>{isRo ? 'Salveaza' : 'Save'}</Text>
+                    <Text style={s.saveButtonText}>{t('common.save')}</Text>
                   </LinearGradient>
                 </TouchableOpacity>
               </View>
@@ -519,7 +520,7 @@ export default function KidsScreen() {
           <View style={[s.modalContentFull, { maxHeight: '85%' }]}>
             <LinearGradient colors={gradModal} style={{ flex: 1 }}>
               <View style={[s.modalHeaderBorder, { borderBottomColor: C.border }]}>
-                <Text style={[s.modalTitle, { color: C.text }]}>{isRo ? 'Meniu Scoala' : 'School Lunch Box'}</Text>
+                <Text style={[s.modalTitle, { color: C.text }]}>{t('kids.lunchBox')}</Text>
                 <TouchableOpacity onPress={() => setLunchBoxModal(false)}>
                   <Ionicons name="close" size={24} color={C.textMuted} />
                 </TouchableOpacity>
@@ -575,8 +576,8 @@ export default function KidsScreen() {
         <View style={s.loadingOverlay}>
           <LinearGradient colors={['rgba(15,15,20,0.95)', 'rgba(15,15,20,0.98)']} style={s.loadingContent}>
             <ActivityIndicator size="large" color={C.primary} />
-            <Text style={[s.loadingText, { color: C.text }]}>{isRo ? 'Se genereaza povestea...' : 'Generating story...'}</Text>
-            <Text style={[s.loadingSubtext, { color: C.textMuted }]}>{isRo ? 'AI creeaza o poveste magica' : 'AI is creating a magical story'}</Text>
+            <Text style={[s.loadingText, { color: C.text }]}>{t('kids.generatingStory')}</Text>
+            <Text style={[s.loadingSubtext, { color: C.textMuted }]}>{t('kids.generatingStory')}</Text>
           </LinearGradient>
         </View>
       )}

@@ -23,7 +23,7 @@ import * as ImagePicker from 'expo-image-picker';
 
 export default function KitchenScreen() {
   const { t, language, colors: C, isDarkMode } = useSettings();
-  const isRo = language.code === 'ro';
+
 
   const DAYS_KEYS = ['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'];
   const DAYS = DAYS_KEYS.map(key => t(`kitchen.days.${key}`));
@@ -88,10 +88,10 @@ export default function KitchenScreen() {
       });
       setMealPlans([newPlan, ...mealPlans]);
       setCurrentPlan(newPlan);
-      Alert.alert(t('common.success'), isRo ? 'Plan generat cu succes!' : 'Plan generated!');
+      Alert.alert(t('common.success'), t('common.success'));
     } catch (error) {
       console.error('Error generating meal plan:', error);
-      Alert.alert(t('common.error'), isRo ? 'Nu s-a putut genera planul' : 'Could not generate plan');
+      Alert.alert(t('common.error'), t('common.error'));
     } finally {
       setGenerating(false);
     }
@@ -127,14 +127,14 @@ export default function KitchenScreen() {
       if (useCamera) {
         const perm = await ImagePicker.requestCameraPermissionsAsync();
         if (!perm.granted) {
-          Alert.alert(t('common.error'), isRo ? 'Permisiune camera necesara' : 'Camera permission required');
+          Alert.alert(t('common.error'), t('common.error'));
           return;
         }
         result = await ImagePicker.launchCameraAsync({ base64: true, quality: 0.5 });
       } else {
         const perm = await ImagePicker.requestMediaLibraryPermissionsAsync();
         if (!perm.granted) {
-          Alert.alert(t('common.error'), isRo ? 'Permisiune galerie necesara' : 'Gallery permission required');
+          Alert.alert(t('common.error'), t('common.error'));
           return;
         }
         result = await ImagePicker.launchImageLibraryAsync({ base64: true, quality: 0.5 });
@@ -148,7 +148,7 @@ export default function KitchenScreen() {
           setScanResultModal(true);
         } catch (error) {
           console.error('Error scanning image:', error);
-          Alert.alert(t('common.error'), isRo ? 'Nu s-a putut analiza imaginea' : 'Could not analyze image');
+          Alert.alert(t('common.error'), t('common.error'));
         } finally {
           setScanLoading(false);
         }
@@ -179,7 +179,7 @@ export default function KitchenScreen() {
           <View>
             <Text style={[s.title, { color: C.text }]}>{t('kitchen.mealPlan')}</Text>
             <Text style={[s.subtitle, { color: C.textMuted }]}>
-              {isRo ? 'Plan saptamanal generat de AI' : 'AI-generated weekly plan'}
+              {t('kitchen.mealPlan')}
             </Text>
           </View>
           <TouchableOpacity
@@ -194,7 +194,7 @@ export default function KitchenScreen() {
               ) : (
                 <>
                   <Ionicons name="sparkles" size={18} color="#fff" />
-                  <Text style={s.generateButtonText}>{isRo ? 'Genereaza' : 'Generate'}</Text>
+                  <Text style={s.generateButtonText}>{t('kitchen.generate')}</Text>
                 </>
               )}
             </LinearGradient>
@@ -210,10 +210,10 @@ export default function KitchenScreen() {
               </View>
               <View style={s.scanInfo}>
                 <Text style={[s.scanTitle, { color: C.text }]}>
-                  {isRo ? 'Scanare Alimente' : 'Food Scanner'}
+                  {t('kitchen.foodScanner')}
                 </Text>
                 <Text style={[s.scanSubtitle, { color: C.textMuted }]}>
-                  {isRo ? 'Fotografiaza bonul sau alimentele' : 'Photo receipt or food items'}
+                  {t('kitchen.foodScannerHint')}
                 </Text>
               </View>
             </View>
@@ -226,7 +226,7 @@ export default function KitchenScreen() {
               >
                 <LinearGradient colors={['#E91E9C', '#B8157A']} style={s.scanBtnGradient}>
                   <Ionicons name="camera-outline" size={20} color="#fff" />
-                  <Text style={s.scanBtnText}>{isRo ? 'Camera' : 'Camera'}</Text>
+                  <Text style={s.scanBtnText}>{t('organize.camera')}</Text>
                 </LinearGradient>
               </TouchableOpacity>
               <TouchableOpacity
@@ -237,7 +237,7 @@ export default function KitchenScreen() {
               >
                 <LinearGradient colors={['#8B5CF6', '#6D28D9']} style={s.scanBtnGradient}>
                   <Ionicons name="images-outline" size={20} color="#fff" />
-                  <Text style={s.scanBtnText}>{isRo ? 'Galerie' : 'Gallery'}</Text>
+                  <Text style={s.scanBtnText}>{t('organize.gallery')}</Text>
                 </LinearGradient>
               </TouchableOpacity>
             </View>
@@ -245,7 +245,7 @@ export default function KitchenScreen() {
               <View style={s.scanLoading}>
                 <ActivityIndicator size="large" color={C.primary} />
                 <Text style={[s.scanLoadingText, { color: C.textMuted }]}>
-                  {isRo ? 'AI analizeaza imaginea...' : 'AI analyzing image...'}
+                  {t('organize.processingAI')}
                 </Text>
               </View>
             )}
@@ -264,10 +264,10 @@ export default function KitchenScreen() {
               </View>
               <View style={{ flex: 1 }}>
                 <Text style={[s.scanResultTitle, { color: C.text }]}>
-                  {isRo ? 'Sugestii mese disponibile' : 'Meal suggestions available'}
+                  {t('kitchen.mealSuggestions')}
                 </Text>
                 <Text style={[s.scanResultSub, { color: C.textMuted }]}>
-                  {scanResult.food_items?.length || 0} {isRo ? 'alimente' : 'items'} - {scanResult.meals?.length || 0} {isRo ? 'retete' : 'recipes'}
+                  {scanResult.food_items?.length || 0} {t('kitchen.foodItems')} - {scanResult.meals?.length || 0} {t('kitchen.recipes')}
                 </Text>
               </View>
               <Ionicons name="chevron-forward" size={20} color={C.textMuted} />
@@ -406,11 +406,11 @@ export default function KitchenScreen() {
               </View>
               <ScrollView style={s.modalBody}>
                 <Text style={[s.inputLabel, { color: C.textSecondary }]}>{t('kitchen.adultPreferences')}</Text>
-                <TextInput style={[s.input, { backgroundColor: C.surface, color: C.text, borderColor: C.border }]} value={adultPrefs} onChangeText={setAdultPrefs} placeholder={isRo ? 'Ex: mancaruri sanatoase' : 'Ex: healthy meals'} placeholderTextColor={C.textMuted} />
+                <TextInput style={[s.input, { backgroundColor: C.surface, color: C.text, borderColor: C.border }]} value={adultPrefs} onChangeText={setAdultPrefs} placeholder={t('kitchen.exHealthy')} placeholderTextColor={C.textMuted} />
                 <Text style={[s.inputLabel, { color: C.textSecondary }]}>{t('kitchen.kidPreferences')}</Text>
-                <TextInput style={[s.input, { backgroundColor: C.surface, color: C.text, borderColor: C.border }]} value={kidPrefs} onChangeText={setKidPrefs} placeholder={isRo ? 'Ex: paste, cartofi' : 'Ex: pasta, potatoes'} placeholderTextColor={C.textMuted} />
+                <TextInput style={[s.input, { backgroundColor: C.surface, color: C.text, borderColor: C.border }]} value={kidPrefs} onChangeText={setKidPrefs} placeholder={t('kitchen.exKidFood')} placeholderTextColor={C.textMuted} />
                 <Text style={[s.inputLabel, { color: C.textSecondary }]}>{t('kitchen.dietaryRestrictions')}</Text>
-                <TextInput style={[s.input, { backgroundColor: C.surface, color: C.text, borderColor: C.border }]} value={restrictions} onChangeText={setRestrictions} placeholder={isRo ? 'Ex: fara lactate' : 'Ex: dairy-free'} placeholderTextColor={C.textMuted} />
+                <TextInput style={[s.input, { backgroundColor: C.surface, color: C.text, borderColor: C.border }]} value={restrictions} onChangeText={setRestrictions} placeholder={t('kitchen.exRestrictions')} placeholderTextColor={C.textMuted} />
                 <View style={s.numberRow}>
                   <View style={s.numberInput}>
                     <Text style={[s.inputLabel, { color: C.textSecondary }]}>{t('kitchen.numAdults')}</Text>
@@ -465,7 +465,7 @@ export default function KitchenScreen() {
             <LinearGradient colors={gradModal} style={s.modalGradient}>
               <View style={[s.modalHeader, { borderBottomColor: C.border }]}>
                 <Text style={[s.modalTitle, { color: C.text }]}>
-                  {isRo ? 'Sugestii Mese' : 'Meal Suggestions'}
+                  {t('kitchen.mealSuggestions')}
                 </Text>
                 <TouchableOpacity onPress={() => setScanResultModal(false)}>
                   <Ionicons name="close" size={24} color={C.textMuted} />
@@ -474,7 +474,7 @@ export default function KitchenScreen() {
               <ScrollView style={s.modalBody}>
                 {/* Food Items */}
                 <Text style={[s.scanSectionLabel, { color: C.textSecondary }]}>
-                  {isRo ? 'Alimente detectate' : 'Detected items'}
+                  {t('kitchen.detectedItems')}
                 </Text>
                 <View style={s.foodChips}>
                   {scanResult?.food_items?.map((item: string, i: number) => (
@@ -486,7 +486,7 @@ export default function KitchenScreen() {
 
                 {/* Meal Suggestions */}
                 <Text style={[s.scanSectionLabel, { color: C.textSecondary, marginTop: 20 }]}>
-                  {isRo ? 'Retete sugerate' : 'Suggested recipes'}
+                  {t('kitchen.suggestedRecipes')}
                 </Text>
                 {scanResult?.meals?.map((meal: any, i: number) => (
                   <View key={i} style={[s.suggMealCard, { backgroundColor: C.surface }]}>
@@ -501,7 +501,7 @@ export default function KitchenScreen() {
                     </View>
                     {meal.ingredients && (
                       <Text style={[s.suggMealDetail, { color: C.textSecondary }]}>
-                        {isRo ? 'Ingrediente' : 'Ingredients'}: {meal.ingredients}
+                        {t('kitchen.ingredients')}: {meal.ingredients}
                       </Text>
                     )}
                     {meal.instructions && (

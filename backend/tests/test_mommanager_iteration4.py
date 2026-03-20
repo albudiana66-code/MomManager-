@@ -10,7 +10,7 @@ import pytest
 import requests
 import os
 
-BASE_URL = os.environ.get('EXPO_PUBLIC_BACKEND_URL', 'https://mommanager-ai.preview.emergentagent.com')
+BASE_URL = os.environ.get('EXPO_PUBLIC_BACKEND_URL', 'https://mommanager-preview.preview.emergentagent.com')
 
 class TestHealthEndpoint:
     """Health endpoint tests"""

@@ -29,7 +29,7 @@ const dateLocales: { [key: string]: any } = {
 
 export default function OrganizeScreen() {
   const { t, currencySymbol, language, colors: C, isDarkMode } = useSettings();
-  const isRo = language.code === 'ro';
+
   const [activeTab, setActiveTab] = useState<TabType>('checklist');
   const [refreshing, setRefreshing] = useState(false);
   const today = new Date();
@@ -137,7 +137,7 @@ export default function OrganizeScreen() {
   const updateTotalBudget = async () => {
     const newTotal = parseFloat(totalBudgetInput);
     if (!newTotal || newTotal <= 0) {
-      Alert.alert(t('common.error'), isRo ? 'Te rog introdu o suma valida' : 'Please enter a valid amount');
+      Alert.alert(t('common.error'), t('common.error'));
       return;
     }
     const currentTotal = budget.categories.reduce((sum: number, cat: any) => sum + cat.budget, 0);
@@ -152,7 +152,7 @@ export default function OrganizeScreen() {
     try {
       const permission = await ImagePicker.requestCameraPermissionsAsync();
       if (!permission.granted) {
-        Alert.alert(t('common.error'), isRo ? 'Permisiune camera necesara' : 'Camera permission required');
+        Alert.alert(t('common.error'), t('common.error'));
         return;
       }
       const result = await ImagePicker.launchCameraAsync({ base64: true, quality: 0.5 });
@@ -161,9 +161,9 @@ export default function OrganizeScreen() {
         try {
           const receipt = await api.scanReceipt(result.assets[0].base64);
           setReceipts([receipt, ...receipts]);
-          Alert.alert(t('common.success'), isRo ? 'Bon scanat cu succes!' : 'Receipt scanned!');
+          Alert.alert(t('common.success'), t('common.success'));
         } catch (error) {
-          Alert.alert(t('common.error'), isRo ? 'Nu s-a putut procesa bonul' : 'Could not process receipt');
+          Alert.alert(t('common.error'), t('common.error'));
         } finally {
           setScanning(false);
         }
@@ -226,45 +226,63 @@ export default function OrganizeScreen() {
             </View>
 
             {/* Quick Add Categories */}
-            <View style={{ flexDirection: 'row', gap: 8, paddingHorizontal: 2, marginBottom: 12 }}>
-              <TouchableOpacity
-                style={{ flex: 1, flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: C.surface, padding: 10, borderRadius: 12, borderWidth: 1, borderColor: C.border }}
-                onPress={() => {
-                  const cleaningTasks = language.code === 'ro'
-                    ? ['Dormitor - schimba lenjeria', 'Baie - curata cada si chiuveta', 'Bucatarie - sterge blatul', 'Aspirat living', 'Spalat pe jos']
-                    : language.code === 'it'
-                    ? ['Camera - cambiare lenzuola', 'Bagno - pulire vasca e lavandino', 'Cucina - pulire piano', 'Aspirare soggiorno', 'Lavare pavimento']
-                    : ['Bedroom - change sheets', 'Bathroom - clean tub and sink', 'Kitchen - wipe counters', 'Vacuum living room', 'Mop floors'];
-                  const newItems = cleaningTasks.map((task) => ({ id: uuidv4(), text: task, completed: false }));
-                  const updated = [...checklistItems, ...newItems];
-                  setChecklistItems(updated);
-                  api.saveChecklist({ date: todayStr, items: updated }).catch(console.error);
-                }}
-                data-testid="quick-add-cleaning"
-              >
-                <Ionicons name="sparkles-outline" size={18} color="#8B5CF6" />
-                <Text style={{ fontSize: 13, fontWeight: '600', color: C.text }}>{language.code === 'ro' ? 'Curatenie' : language.code === 'it' ? 'Pulizia' : 'Cleaning'}</Text>
-              </TouchableOpacity>
+            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 12 }}>
+              <View style={{ flexDirection: 'row', gap: 8, paddingHorizontal: 2 }}>
+                <TouchableOpacity
+                  style={{ flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: C.surface, paddingHorizontal: 12, paddingVertical: 10, borderRadius: 12, borderWidth: 1, borderColor: C.border }}
+                  onPress={() => {
+                    const items = [
+                      t('checklist.cleanBedroom'), t('checklist.cleanBathroom'),
+                      t('checklist.cleanKitchen'), t('checklist.vacuum'), t('checklist.mopFloors'),
+                    ];
+                    const newItems = items.map((task) => ({ id: uuidv4(), text: task, completed: false }));
+                    const updated = [...checklistItems, ...newItems];
+                    setChecklistItems(updated);
+                    api.saveChecklist({ date: todayStr, items: updated }).catch(console.error);
+                  }}
+                  data-testid="quick-add-cleaning"
+                >
+                  <Ionicons name="sparkles-outline" size={18} color="#8B5CF6" />
+                  <Text style={{ fontSize: 13, fontWeight: '600', color: C.text }}>{t('checklist.cleaning')}</Text>
+                </TouchableOpacity>
 
-              <TouchableOpacity
-                style={{ flex: 1, flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: C.surface, padding: 10, borderRadius: 12, borderWidth: 1, borderColor: C.border }}
-                onPress={() => {
-                  const shoppingTasks = language.code === 'ro'
-                    ? ['Lapte si produse lactate', 'Paine si cereale', 'Fructe si legume', 'Carne/Peste', 'Produse curatenie']
-                    : language.code === 'it'
-                    ? ['Latte e latticini', 'Pane e cereali', 'Frutta e verdura', 'Carne/Pesce', 'Prodotti per la pulizia']
-                    : ['Milk and dairy', 'Bread and cereals', 'Fruits and vegetables', 'Meat/Fish', 'Cleaning products'];
-                  const newItems = shoppingTasks.map((task) => ({ id: uuidv4(), text: task, completed: false }));
-                  const updated = [...checklistItems, ...newItems];
-                  setChecklistItems(updated);
-                  api.saveChecklist({ date: todayStr, items: updated }).catch(console.error);
-                }}
-                data-testid="quick-add-shopping"
-              >
-                <Ionicons name="cart-outline" size={18} color="#10B981" />
-                <Text style={{ fontSize: 13, fontWeight: '600', color: C.text }}>{language.code === 'ro' ? 'Cumparaturi' : language.code === 'it' ? 'Spesa' : 'Shopping'}</Text>
-              </TouchableOpacity>
-            </View>
+                <TouchableOpacity
+                  style={{ flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: C.surface, paddingHorizontal: 12, paddingVertical: 10, borderRadius: 12, borderWidth: 1, borderColor: C.border }}
+                  onPress={() => {
+                    const items = [
+                      t('checklist.milk'), t('checklist.bread'),
+                      t('checklist.fruits'), t('checklist.meat'), t('checklist.eggs'),
+                    ];
+                    const newItems = items.map((task) => ({ id: uuidv4(), text: task, completed: false }));
+                    const updated = [...checklistItems, ...newItems];
+                    setChecklistItems(updated);
+                    api.saveChecklist({ date: todayStr, items: updated }).catch(console.error);
+                  }}
+                  data-testid="quick-add-food"
+                >
+                  <Ionicons name="cart-outline" size={18} color="#10B981" />
+                  <Text style={{ fontSize: 13, fontWeight: '600', color: C.text }}>{t('checklist.food')}</Text>
+                </TouchableOpacity>
+
+                <TouchableOpacity
+                  style={{ flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: C.surface, paddingHorizontal: 12, paddingVertical: 10, borderRadius: 12, borderWidth: 1, borderColor: C.border }}
+                  onPress={() => {
+                    const items = [
+                      t('checklist.shampoo'), t('checklist.soap'),
+                      t('checklist.cream'), t('checklist.deodorant'), t('checklist.toothpaste'),
+                    ];
+                    const newItems = items.map((task) => ({ id: uuidv4(), text: task, completed: false }));
+                    const updated = [...checklistItems, ...newItems];
+                    setChecklistItems(updated);
+                    api.saveChecklist({ date: todayStr, items: updated }).catch(console.error);
+                  }}
+                  data-testid="quick-add-personal"
+                >
+                  <Ionicons name="heart-outline" size={18} color="#EC4899" />
+                  <Text style={{ fontSize: 13, fontWeight: '600', color: C.text }}>{t('checklist.personalCare')}</Text>
+                </TouchableOpacity>
+              </View>
+            </ScrollView>
 
             {checklistItems.map((item) => (
               <TouchableOpacity key={item.id} style={s.taskItem} onPress={() => toggleTask(item.id)}>
@@ -332,12 +350,12 @@ export default function OrganizeScreen() {
           <View>
             <LinearGradient colors={gradCard} style={[s.headerCard, borderStyle]}>
               <Text style={[s.headerTitle, { color: C.text }]}>{t('organize.scannedReceipts')}</Text>
-              <Text style={[s.headerSubtitle, { color: C.textMuted }]}>{isRo ? 'Scaneaza bonuri cu AI' : 'Scan receipts with AI'}</Text>
+              <Text style={[s.headerSubtitle, { color: C.textMuted }]}>{t('organize.scanReceiptsHint')}</Text>
               <View style={s.scanButtons}>
                 <TouchableOpacity style={s.scanButton} onPress={scanReceipt} disabled={scanning}>
                   <LinearGradient colors={['#8B5CF6', '#6D28D9']} style={s.scanGradient}>
                     <Ionicons name="camera" size={22} color="#fff" />
-                    <Text style={s.scanButtonText}>{isRo ? 'Camera' : 'Camera'}</Text>
+                    <Text style={s.scanButtonText}>{t('organize.camera')}</Text>
                   </LinearGradient>
                 </TouchableOpacity>
               </View>
@@ -346,7 +364,7 @@ export default function OrganizeScreen() {
             {scanning && (
               <View style={s.scanningContainer}>
                 <ActivityIndicator size="large" color={C.purple} />
-                <Text style={[s.scanningText, { color: C.textMuted }]}>{isRo ? 'AI proceseaza...' : 'AI processing...'}</Text>
+                <Text style={[s.scanningText, { color: C.textMuted }]}>{t('organize.processingAI')}</Text>
               </View>
             )}
 
@@ -355,7 +373,7 @@ export default function OrganizeScreen() {
                 <LinearGradient colors={gradCard} style={[s.receiptGradient, borderStyle]}>
                   <View style={s.receiptHeader}>
                     <View>
-                      <Text style={[s.receiptStore, { color: C.text }]}>{receipt.parsed_data?.store || (isRo ? 'Magazin necunoscut' : 'Unknown store')}</Text>
+                      <Text style={[s.receiptStore, { color: C.text }]}>{receipt.parsed_data?.store || (t('organize.unknownStore'))}</Text>
                       <Text style={[s.receiptDate, { color: C.textMuted }]}>{receipt.parsed_data?.date || format(new Date(receipt.created_at), 'dd/MM/yyyy')}</Text>
                     </View>
                     <TouchableOpacity onPress={() => deleteReceipt(receipt.id)}>
@@ -392,9 +410,9 @@ export default function OrganizeScreen() {
                 </TouchableOpacity>
               </View>
               <View style={s.modalBody}>
-                <Text style={[s.inputLabel, { color: C.textSecondary }]}>{isRo ? 'Buget categorie' : 'Category budget'} ({currencySymbol})</Text>
+                <Text style={[s.inputLabel, { color: C.textSecondary }]}>{t('organize.categoryBudget')} ({currencySymbol})</Text>
                 <TextInput style={[s.input, { backgroundColor: C.surface, color: C.text, borderColor: C.border }]} value={categoryBudgetAmount} onChangeText={setCategoryBudgetAmount} keyboardType="numeric" placeholder="0" placeholderTextColor={C.textMuted} />
-                <Text style={[s.inputLabel, { color: C.textSecondary }]}>{isRo ? 'Suma cheltuita' : 'Amount spent'} ({currencySymbol})</Text>
+                <Text style={[s.inputLabel, { color: C.textSecondary }]}>{t('organize.spentAmount')} ({currencySymbol})</Text>
                 <TextInput style={[s.input, { backgroundColor: C.surface, color: C.text, borderColor: C.border }]} value={categorySpent} onChangeText={setCategorySpent} keyboardType="numeric" placeholder="0" placeholderTextColor={C.textMuted} />
                 <TouchableOpacity style={s.saveButton} onPress={updateCategory}>
                   <LinearGradient colors={['#10B981', '#059669']} style={s.saveGradient}>
@@ -419,7 +437,7 @@ export default function OrganizeScreen() {
                 </TouchableOpacity>
               </View>
               <View style={s.modalBody}>
-                <Text style={[s.inputLabel, { color: C.textSecondary }]}>{isRo ? 'Buget total' : 'Total budget'} ({currencySymbol})</Text>
+                <Text style={[s.inputLabel, { color: C.textSecondary }]}>{t('organize.setBudget')} ({currencySymbol})</Text>
                 <TextInput style={[s.input, { backgroundColor: C.surface, color: C.text, borderColor: C.border }]} value={totalBudgetInput} onChangeText={setTotalBudgetInput} keyboardType="numeric" placeholder={totalBudget.toString()} placeholderTextColor={C.textMuted} />
                 <TouchableOpacity style={s.saveButton} onPress={updateTotalBudget}>
                   <LinearGradient colors={['#10B981', '#059669']} style={s.saveGradient}>
