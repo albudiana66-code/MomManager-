@@ -85,6 +85,7 @@ export default function KitchenScreen() {
         restrictions: restrictions,
         num_adults: parseInt(numAdults) || 2,
         num_kids: parseInt(numKids) || 1,
+        language: language.code,
       });
       setMealPlans([newPlan, ...mealPlans]);
       setCurrentPlan(newPlan);

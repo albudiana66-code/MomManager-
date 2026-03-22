@@ -29,6 +29,17 @@ MONGO_URL = os.getenv("MONGO_URL", "mongodb://localhost:27017")
 DB_NAME = os.getenv("DB_NAME", "test_database")
 EMERGENT_LLM_KEY = os.getenv("EMERGENT_LLM_KEY")
 
+# Language helper for AI prompts
+LANG_NAMES = {
+    "ro": "Romanian", "en": "English", "es": "Spanish", "fr": "French",
+    "de": "German", "it": "Italian", "pt": "Portuguese", "pl": "Polish",
+    "ru": "Russian", "uk": "Ukrainian", "ar": "Arabic",
+}
+
+def get_lang_name(language: str) -> str:
+    lang_code = language.split("-")[0] if "-" in language else language
+    return LANG_NAMES.get(lang_code, "English")
+
 client = AsyncIOMotorClient(MONGO_URL)
 db = client[DB_NAME]
 
@@ -592,29 +603,33 @@ async def generate_meal_plan(request: Request, current_user: User = Depends(requ
     
     from emergentintegrations.llm.chat import LlmChat, UserMessage
     
+    language = preferences.get("language", body.get("language", "ro"))
+    lang_name = get_lang_name(language)
+
     chat = LlmChat(
         api_key=EMERGENT_LLM_KEY,
         session_id=f"mealplan_{uuid.uuid4().hex[:8]}",
-        system_message="""You are a meal planning assistant for busy moms. Create balanced, easy-to-prepare meals.
+        system_message=f"""You are a meal planning assistant for busy moms. Create balanced, easy-to-prepare meals.
 Return ONLY valid JSON in this format:
-{
+{{
     "adult_meals": [
-        {"day": "Monday", "breakfast": "...", "lunch": "...", "dinner": "..."},
+        {{"day": "Monday", "breakfast": "...", "lunch": "...", "dinner": "..."}},
         ...for all 7 days
     ],
     "kid_meals": [
-        {"day": "Monday", "breakfast": "...", "lunch": "...", "dinner": "..."},
+        {{"day": "Monday", "breakfast": "...", "lunch": "...", "dinner": "..."}},
         ...for all 7 days
     ],
     "shopping_list": [
-        {"item": "Item name", "quantity": "2 kg"},
+        {{"item": "Item name", "quantity": "2 kg"}},
         ...
     ]
-}
-Kid meals should be simpler and more kid-friendly."""
+}}
+Kid meals should be simpler and more kid-friendly.
+IMPORTANT: Respond ENTIRELY in {lang_name}. All day names, meal names, descriptions must be in {lang_name}."""
     ).with_model("openai", "gpt-5.2")
     
-    prompt = f"""Create a weekly meal plan for a family.
+    prompt = f"""Create a weekly meal plan for a family. Respond in {lang_name}.
 Adult preferences: {preferences.get('adult_preferences', 'healthy, balanced meals')}
 Kid preferences: {preferences.get('kid_preferences', 'kid-friendly, simple meals')}
 Dietary restrictions: {preferences.get('restrictions', 'none')}
@@ -740,7 +755,7 @@ Return ONLY valid JSON:
         {{"name": "Meal name", "ingredients": "key ingredients", "instructions": "Brief steps", "time": "30 min"}}
     ]
 }}
-Respond in {'Romanian' if lang_code == 'ro' else 'English'}."""
+Respond in {get_lang_name(language)}."""
         ).with_model("openai", "gpt-5.2")
 
         items_str = ", ".join(food_items) if isinstance(food_items, list) else str(food_items)
@@ -874,6 +889,8 @@ async def get_selfcare(current_user: User = Depends(require_auth)):
 async def generate_nutrition_plan(request: Request, current_user: User = Depends(require_auth)):
     """Generate nutrition plan with AI"""
     body = await request.json()
+    language = body.get("language", "ro")
+    lang_name = get_lang_name(language)
     
     if not EMERGENT_LLM_KEY:
         raise HTTPException(status_code=500, detail="AI service not configured")
@@ -883,9 +900,9 @@ async def generate_nutrition_plan(request: Request, current_user: User = Depends
     chat = LlmChat(
         api_key=EMERGENT_LLM_KEY,
         session_id=f"nutrition_{uuid.uuid4().hex[:8]}",
-        system_message="""You are a nutrition expert for busy working moms. Create personalized nutrition plans.
+        system_message=f"""You are a nutrition expert for busy working moms. Create personalized nutrition plans.
 Return ONLY valid JSON in this format:
-{
+{{
     "goal": "weight loss/maintenance/energy boost",
     "daily_calories": 1800,
     "meals": [
@@ -895,11 +912,12 @@ Return ONLY valid JSON in this format:
         "Snack: ...",
         "Dinner: ..."
     ]
-}
-Keep meals simple, quick to prepare, and nutritious."""
+}}
+Keep meals simple, quick to prepare, and nutritious.
+IMPORTANT: Respond ENTIRELY in {lang_name}. All meal names and descriptions must be in {lang_name}."""
     ).with_model("openai", "gpt-5.2")
     
-    prompt = f"""Create a nutrition plan for a working mom.
+    prompt = f"""Create a nutrition plan for a working mom. Respond in {lang_name}.
 Goal: {body.get('goal', 'maintain energy and healthy weight')}
 Age: {body.get('age', '30')}
 Activity level: {body.get('activity_level', 'moderate')}
@@ -940,6 +958,8 @@ Time for cooking: {body.get('cooking_time', '30 minutes or less')}"""
 async def generate_workout(request: Request, current_user: User = Depends(require_auth)):
     """Generate workout routine with AI"""
     body = await request.json()
+    language = body.get("language", "ro")
+    lang_name = get_lang_name(language)
     
     if not EMERGENT_LLM_KEY:
         raise HTTPException(status_code=500, detail="AI service not configured")
@@ -949,21 +969,22 @@ async def generate_workout(request: Request, current_user: User = Depends(requir
     chat = LlmChat(
         api_key=EMERGENT_LLM_KEY,
         session_id=f"workout_{uuid.uuid4().hex[:8]}",
-        system_message="""You are a fitness expert for busy working moms. Create short, effective workout routines (15-20 minutes).
+        system_message=f"""You are a fitness expert for busy working moms. Create short, effective workout routines (15-20 minutes).
 Return ONLY valid JSON in this format:
-{
+{{
     "name": "Workout name",
     "duration": "15-20 min",
     "exercises": [
-        {"name": "Exercise 1", "duration": "30 sec", "reps": "10"},
-        {"name": "Exercise 2", "duration": "1 min", "reps": null},
+        {{"name": "Exercise 1", "duration": "30 sec", "reps": "10"}},
+        {{"name": "Exercise 2", "duration": "1 min", "reps": null}},
         ...
     ]
-}
-Include warm-up and cool-down. No equipment needed."""
+}}
+Include warm-up and cool-down. No equipment needed.
+IMPORTANT: Respond ENTIRELY in {lang_name}. All exercise names and descriptions must be in {lang_name}."""
     ).with_model("openai", "gpt-5.2")
     
-    prompt = f"""Create a short workout routine for a busy working mom.
+    prompt = f"""Create a short workout routine for a busy working mom. Respond in {lang_name}.
 Focus area: {body.get('focus', 'full body')}
 Fitness level: {body.get('fitness_level', 'beginner')}
 Available time: {body.get('duration', '15-20 minutes')}
@@ -1088,7 +1109,7 @@ Returnează DOAR JSON valid în acest format:
     "tips": "Sfaturi pentru masă musculară..."
 }}
 
-Răspunde în limba {'română' if lang_code == 'ro' else 'engleză'}. Calculează caloriile corect pentru obiectiv."""
+Răspunde în limba {lang_name}. Calculează caloriile corect pentru obiectiv."""
 
     chat = LlmChat(
         api_key=EMERGENT_LLM_KEY,
@@ -1146,6 +1167,7 @@ async def generate_workout_ai(request: Request, current_user: User = Depends(req
     from emergentintegrations.llm.chat import LlmChat, UserMessage
     
     lang_code = language.split("-")[0] if "-" in language else language
+    lang_name = get_lang_name(language)
     
     # Health conditions handling
     health_conditions = profile.get("health_conditions", ["none"]) if profile else ["none"]
@@ -1209,7 +1231,7 @@ Returnează DOAR JSON valid în acest format:
     "tips": "Sfaturi pentru execuție corectă"
 }}
 
-Răspunde în limba {'română' if lang_code == 'ro' else 'engleză'}. Include încălzire și relaxare."""
+Răspunde în limba {lang_name}. Include încălzire și relaxare."""
 
     chat = LlmChat(
         api_key=EMERGENT_LLM_KEY,
@@ -1278,59 +1300,38 @@ async def generate_story(request: Request, current_user: User = Depends(require_
     from emergentintegrations.llm.chat import LlmChat, UserMessage
     
     lang_code = language.split("-")[0] if "-" in language else language
+    lang_name = get_lang_name(language)
     
-    # Fictional character names based on age group and language
+    # Fictional character names based on age group
     fictional_characters = {
-        "ro": {
-            "1-4": ["Ursulețul Miki", "Pisicuța Luna", "Cățelușul Max", "Iepurașul Pufi", "Fluturaș"],
-            "4-7": ["Zâna Florilor", "Elfii veseli", "Prințesa Sofia", "Căpitanul Curaj", "Piticii Harnici"],
-            "7+": ["Detectivul Alex", "Exploratoarea Maya", "Magicianul Orion", "Inventatorul Leo", "Aventurierii Curajosi"],
-        },
-        "en": {
-            "1-4": ["Teddy Bear Miki", "Kitten Luna", "Puppy Max", "Bunny Fluffy", "Little Butterfly"],
-            "4-7": ["Flower Fairy", "Happy Elves", "Princess Sofia", "Captain Courage", "Busy Dwarfs"],
-            "7+": ["Detective Alex", "Explorer Maya", "Wizard Orion", "Inventor Leo", "The Brave Adventurers"],
-        }
+        "1-4": ["Teddy Bear Miki", "Kitten Luna", "Puppy Max", "Bunny Fluffy", "Little Butterfly"],
+        "4-7": ["Flower Fairy", "Happy Elves", "Princess Sofia", "Captain Courage", "Busy Dwarfs"],
+        "7+": ["Detective Alex", "Explorer Maya", "Wizard Orion", "Inventor Leo", "The Brave Adventurers"],
     }
     
-    # Get character suggestions for prompt
-    char_lang = "ro" if lang_code == "ro" else "en"
-    suggested_chars = fictional_characters.get(char_lang, fictional_characters["en"]).get(age_group, fictional_characters["en"]["4-7"])
+    suggested_chars = fictional_characters.get(age_group, fictional_characters["4-7"])
     char_suggestions = ", ".join(suggested_chars[:3])
     
-    # Age-specific instructions
-    age_instructions = {
-        "1-4": {
-            "ro": f"Creează o poveste FOARTE simplă pentru copii de 1-4 ani. Folosește propoziții scurte și simple. Temele trebuie să fie despre bucurie, culori, animale drăguțe, familie. Povestea trebuie să fie pozitivă și fericită, fără elemente înfricoșătoare. IMPORTANT: Folosește DOAR personaje fictive precum: {char_suggestions}. NU folosi nume reale de copii. Maximum 300 cuvinte.",
-            "en": f"Create a VERY simple story for children aged 1-4. Use short, simple sentences. Themes should be about joy, colors, cute animals, family. The story must be positive and happy, with no scary elements. IMPORTANT: Use ONLY fictional characters like: {char_suggestions}. Do NOT use real children names. Maximum 300 words."
-        },
-        "4-7": {
-            "ro": f"Creează o poveste pentru copii de 4-7 ani despre prietenie, empatie, înțelegere și încredere de sine. Povestea trebuie să aibă un mesaj moral pozitiv. IMPORTANT: Folosește DOAR personaje fictive precum: {char_suggestions}. NU folosi nume reale de copii. Include situații care învață despre emoții și relații. Maximum 500 cuvinte.",
-            "en": f"Create a story for children aged 4-7 about friendship, empathy, understanding, and self-confidence. The story must have a positive moral message. IMPORTANT: Use ONLY fictional characters like: {char_suggestions}. Do NOT use real children names. Include situations that teach about emotions and relationships. Maximum 500 words."
-        },
-        "7+": {
-            "ro": f"Creează o poveste pentru copii de 7+ ani cu elemente de mister și curiozitate, dar prietenoasă și empatică. IMPORTANT: Folosește DOAR personaje fictive precum: {char_suggestions}. NU folosi nume reale de copii. Povestea trebuie să promoveze curiozitatea, curajul și bunătatea. Include aventuri interesante. Maximum 700 cuvinte.",
-            "en": f"Create a story for children aged 7+ with mystery and curiosity elements, but friendly and empathetic. IMPORTANT: Use ONLY fictional characters like: {char_suggestions}. Do NOT use real children names. The story should promote curiosity, courage, and kindness. Include interesting adventures. Maximum 700 words."
-        }
-    }
+    # Age-specific word limits
+    word_limits = {"1-4": 300, "4-7": 500, "7+": 700}
+    max_words = word_limits.get(age_group, 500)
     
-    instruction = age_instructions.get(age_group, age_instructions["4-7"]).get(lang_code, age_instructions["4-7"]["en"])
-    
-    system_msg = f"""Ești un povestitor magic pentru copii. Creezi povești frumoase, educative și potrivite vârstei.
+    system_msg = f"""You are a magical storyteller for children. You create beautiful, educational, age-appropriate stories.
 
-REGULA IMPORTANTĂ: Folosește ÎNTOTDEAUNA personaje fictive (animale vorbitoare, zâne, elfi, detectivi imaginari, etc.). 
-NU folosi NICIODATĂ nume reale de copii sau persoane.
+IMPORTANT RULE: ALWAYS use fictional characters (talking animals, fairies, elves, imaginary detectives, etc.). 
+NEVER use real children names or real people.
 
-{instruction}
+Create a story for children aged {age_group}. Use fictional characters like: {char_suggestions}.
+Maximum {max_words} words.
 
-Returnează DOAR JSON valid în acest format:
+Return ONLY valid JSON in this format:
 {{
-    "title": "Titlul poveștii",
-    "content": "Povestea completă aici...",
-    "moral": "Mesajul moral al poveștii"
+    "title": "Story title",
+    "content": "The complete story here...",
+    "moral": "The moral message of the story"
 }}
 
-Răspunde în limba {'română' if lang_code == 'ro' else 'engleză'}."""
+CRITICAL: Write the ENTIRE story in {lang_name}. Title, content, moral - everything must be in {lang_name}."""
 
     chat = LlmChat(
         api_key=EMERGENT_LLM_KEY,
@@ -1339,7 +1340,7 @@ Răspunde în limba {'română' if lang_code == 'ro' else 'engleză'}."""
     ).with_model("openai", "gpt-5.2")
     
     themes_str = ", ".join(themes) if themes else ""
-    prompt = f"Creează o poveste cu personaje fictive. Grupa de vârstă: {age_group}. Teme sugerate: {themes_str}. Folosește animale vorbitoare, zâne sau alte personaje imaginare, NU copii reali."
+    prompt = f"Create a story with fictional characters in {lang_name}. Age group: {age_group}. Suggested themes: {themes_str}. Use talking animals, fairies or other imaginary characters, NOT real children."
     
     user_message = UserMessage(text=prompt)
     
@@ -1359,7 +1360,7 @@ Răspunde în limba {'română' if lang_code == 'ro' else 'engleză'}."""
         except:
             # Fallback: use response as content
             story_data = {
-                "title": "Poveste Magică" if lang_code == "ro" else "Magical Story",
+                "title": "Magical Story",
                 "content": response,
                 "moral": ""
             }
@@ -1408,12 +1409,12 @@ async def generate_lunchbox(request: Request, current_user: User = Depends(requi
     import json
 
     lang_code = language.split("-")[0] if "-" in language else language
-    is_ro = lang_code == "ro"
+    lang_name = get_lang_name(language)
 
     chat = LlmChat(
         api_key=EMERGENT_LLM_KEY,
         session_id=f"lunchbox_{uuid.uuid4().hex[:8]}",
-        system_message=f"""You create healthy, practical school lunch box menus for children.
+        system_message=f"""You create healthy, creative, varied school lunch box menus for children.
 Be direct. No questions. Return ONLY valid JSON.
 {f'Allergies to avoid: {allergies}' if allergies else ''}
 {f'Preferences: {preferences}' if preferences else ''}
@@ -1421,19 +1422,22 @@ Return format:
 {{
     "lunches": [
         {{
-            "day": "Monday",
-            "main": "Main item",
+            "day": "Day 1",
+            "main": "Main dish",
+            "alternative_main": "Alternative main dish option",
             "snack": "Snack item",
             "fruit": "Fruit",
             "drink": "Drink",
-            "note": "Brief tip"
+            "note": "Brief nutrition tip"
         }}
     ]
 }}
-Respond in {'Romanian' if is_ro else 'English'}."""
+Include VARIETY - different cuisines, creative ideas, finger foods, wraps, salads, pasta, sandwiches, etc.
+Each day should have a main dish AND an alternative option.
+IMPORTANT: Respond ENTIRELY in {lang_name}. All food names, day names and tips must be in {lang_name}."""
     ).with_model("openai", "gpt-5.2")
 
-    msg = UserMessage(text=f"Generate {days} school lunch box menus for a child aged {age_group}.")
+    msg = UserMessage(text=f"Generate {days} creative and varied school lunch box menus for a child aged {age_group}. Include different cuisines and creative ideas. Respond in {lang_name}.")
 
     try:
         response = await chat.send_message(msg)
@@ -1481,7 +1485,7 @@ async def get_me_time_suggestions(request: Request, current_user: User = Depends
     import json
 
     lang_code = language.split("-")[0] if "-" in language else language
-    is_ro = lang_code == "ro"
+    lang_name = get_lang_name(language)
 
     meetings_text = ""
     if meetings:
@@ -1510,10 +1514,10 @@ Be direct. Return ONLY valid JSON:
         }}
     ]
 }}
-Respond in {'Romanian' if is_ro else 'English'}."""
+Respond in {lang_name}."""
     ).with_model("openai", "gpt-5.2")
 
-    msg = UserMessage(text=f"Date: {date}\nSchedule:\n{meetings_text}\nFind free slots and suggest me-time activities.")
+    msg = UserMessage(text=f"Date: {date}\nSchedule:\n{meetings_text}\nFind free slots and suggest me-time activities. Respond in {lang_name}.")
 
     try:
         response = await chat.send_message(msg)
@@ -1552,7 +1556,7 @@ async def generate_skincare_routine(request: Request, current_user: User = Depen
     import json
 
     lang_code = language.split("-")[0] if "-" in language else language
-    is_ro = lang_code == "ro"
+    lang_name = get_lang_name(language)
 
     skin_labels = {
         "acneic": "acneic/prone to breakouts",
@@ -1595,10 +1599,10 @@ Be direct. Return ONLY valid JSON:
 }}
 Morning must include: cleanser, toner/serum, moisturizer, SPF.
 Evening must include: double cleanse, treatment/acid, serum, night cream.
-Respond in {'Romanian' if is_ro else 'English'}."""
+Respond in {lang_name}."""
     ).with_model("openai", "gpt-5.2")
 
-    msg = UserMessage(text=f"Create a complete skincare routine for {skin_desc} skin type.")
+    msg = UserMessage(text=f"Create a complete skincare routine for {skin_desc} skin type. Respond in {lang_name}.")
 
     try:
         response = await chat.send_message(msg)
@@ -1658,28 +1662,10 @@ async def ai_chat(request: Request):
     
     from emergentintegrations.llm.chat import LlmChat, UserMessage
     
-    # Language-specific system messages
-    system_messages = {
-        "ro": """Ești un asistent digital prietenos și empatic pentru femei ocupate.
+    lang_code = language.split("-")[0] if "-" in language else language
+    lang_name = get_lang_name(language)
 
-REGULI FOARTE IMPORTANTE:
-- Fii mereu caldă, înțelegătoare și suportivă
-- Nu judeca NICIODATĂ o femeie pentru deciziile ei
-- Nu critica, nu jigni, nu folosi un ton negativ NICIODATĂ
-- Oferă sfaturi practice și realizabile
-- Validează sentimentele femeii întotdeauna
-- Folosește un limbaj prietenos și încurajator
-- Adaugă emoji-uri pentru a fi mai prietenoasă
-- Răspunde concis dar cu empatie
-- Răspunde DIRECT la întrebare, fără întrebări suplimentare sau clarificări
-- Oferă soluția sau informația imediat, fără a cere detalii în plus
-- Adresează-te cu "ești o femeie minunată" sau "ești incredibilă"
-- DOAR dacă utilizatoarea menționează explicit că este mamă, poți folosi "mamă minunată" sau "ești o mamă grozavă"
-- Dacă nu știi dacă e mamă, folosește "femeie" nu "mamă"
-
-Ești aici să ajuți cu: organizare, planificare, activități, self-care, sfaturi practice.""",
-        
-        "en": """You are a friendly and empathetic digital assistant for busy women.
+    system_message = f"""You are a friendly and empathetic digital assistant for busy women.
 
 VERY IMPORTANT RULES:
 - Always be warm, understanding and supportive
@@ -1696,11 +1682,9 @@ VERY IMPORTANT RULES:
 - ONLY if the user explicitly mentions being a mom/mother, you can use "amazing mom" or "wonderful mother"
 - If you don't know if she's a mom, use "woman" not "mom"
 
-You're here to help with: organization, planning, activities, self-care, practical tips.""",
-    }
-    
-    lang_code = language.split("-")[0] if "-" in language else language
-    system_message = system_messages.get(lang_code, system_messages["en"])
+You're here to help with: organization, planning, activities, self-care, practical tips.
+
+CRITICAL: You MUST respond ENTIRELY in {lang_name}. Every word of your response must be in {lang_name}."""
     
     chat = LlmChat(
         api_key=EMERGENT_LLM_KEY,

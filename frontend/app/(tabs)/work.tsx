@@ -119,7 +119,7 @@ export default function WorkScreen() {
       if (dayOfWeek === 3) { // Wednesday
         items.push({
           id: 'ai-recycle',
-          title: language.code === 'ro' ? '♻️ Scoate coșul de reciclare' : '♻️ Take out recycling bin',
+          title: `♻️ ${t('work.recyclingReminder')}`,
           time: '07:00',
           type: 'reminder',
           aiGenerated: true,
@@ -234,18 +234,18 @@ export default function WorkScreen() {
   };
 
   const SKIN_TYPES = [
-    { id: 'normal', label: language.code === 'ro' ? 'Normal' : 'Normal', icon: 'happy-outline', desc: language.code === 'ro' ? 'Fara probleme majore, echilibrat' : 'No major issues, balanced' },
-    { id: 'dry', label: language.code === 'ro' ? 'Uscat' : 'Dry', icon: 'water-outline', desc: language.code === 'ro' ? 'Senzatie de strangere, descuamare' : 'Tightness, flaking skin' },
-    { id: 'oily', label: language.code === 'ro' ? 'Gras' : 'Oily', icon: 'sunny-outline', desc: language.code === 'ro' ? 'Luciu excesiv, pori dilatati' : 'Excess shine, enlarged pores' },
-    { id: 'combination', label: language.code === 'ro' ? 'Mixt' : 'Combination', icon: 'contrast-outline', desc: language.code === 'ro' ? 'Zona T grasa, obraji uscati' : 'Oily T-zone, dry cheeks' },
-    { id: 'acneic', label: language.code === 'ro' ? 'Acneic' : 'Acne-prone', icon: 'alert-circle-outline', desc: language.code === 'ro' ? 'Cosuri, puncte negre, inflamatii' : 'Breakouts, blackheads, inflammation' },
+    { id: 'normal', label: t('skincare.normal'), icon: 'happy-outline', desc: t('skincare.normalDesc') },
+    { id: 'dry', label: t('skincare.dry'), icon: 'water-outline', desc: t('skincare.dryDesc') },
+    { id: 'oily', label: t('skincare.oily'), icon: 'sunny-outline', desc: t('skincare.oilyDesc') },
+    { id: 'combination', label: t('skincare.combination'), icon: 'contrast-outline', desc: t('skincare.combinationDesc') },
+    { id: 'acneic', label: t('skincare.acne'), icon: 'alert-circle-outline', desc: t('skincare.acneDesc') },
   ];
 
   const SEASONS = [
-    { id: 'spring', label: language.code === 'ro' ? 'Primavara' : 'Spring', icon: 'flower-outline', color: '#10B981' },
-    { id: 'summer', label: language.code === 'ro' ? 'Vara' : 'Summer', icon: 'sunny-outline', color: '#F59E0B' },
-    { id: 'autumn', label: language.code === 'ro' ? 'Toamna' : 'Autumn', icon: 'leaf-outline', color: '#F97316' },
-    { id: 'winter', label: language.code === 'ro' ? 'Iarna' : 'Winter', icon: 'snow-outline', color: '#6366F1' },
+    { id: 'spring', label: t('skincare.spring'), icon: 'flower-outline', color: '#10B981' },
+    { id: 'summer', label: t('skincare.summer'), icon: 'sunny-outline', color: '#F59E0B' },
+    { id: 'autumn', label: t('skincare.autumn'), icon: 'leaf-outline', color: '#F97316' },
+    { id: 'winter', label: t('skincare.winter'), icon: 'snow-outline', color: '#6366F1' },
   ];
 
   const getTypeIcon = (type: PlannerItem['type']) => {
@@ -270,7 +270,7 @@ export default function WorkScreen() {
           <View>
             <Text style={[styles.title, { color: C.text }]}>AI Smart Planner</Text>
             <Text style={[styles.subtitle, { color: C.textMuted }]}>
-              {language.code === 'ro' ? 'Asistentul tau de organizare' : 'Your organizing assistant'}
+              {t('work.organizingAssistant')}
             </Text>
           </View>
           <TouchableOpacity style={[styles.addButton, { backgroundColor: C.primary }]} onPress={() => setAddModalVisible(true)}>
@@ -290,10 +290,10 @@ export default function WorkScreen() {
           </View>
           <View style={styles.aiContent}>
             <Text style={[styles.aiTitle, { color: C.text }]}>
-              {language.code === 'ro' ? 'Rutina de Ingrijire AI' : 'AI Skincare Routine'}
+              {t('work.aiSkincareRoutine')}
             </Text>
             <Text style={[styles.aiText, { color: C.textMuted }]}>
-              {language.code === 'ro' ? 'Apasa pentru a genera rutina perfecta' : 'Tap to generate your perfect routine'}
+              {t('work.aiSkincareDesc')}
             </Text>
           </View>
           <Ionicons name="chevron-forward" size={20} color={C.textMuted} />
@@ -340,12 +340,10 @@ export default function WorkScreen() {
                 <Ionicons name="calendar-outline" size={40} color={COLORS.primary} />
               </View>
               <Text style={styles.emptyTitle}>
-                {language.code === 'ro' ? 'Ziua ta e liberă' : 'Your day is free'}
+                {t('work.dayFree')}
               </Text>
               <Text style={styles.emptySubtitle}>
-                {language.code === 'ro' 
-                  ? 'Întreabă AI-ul să îți planifice ceva!' 
-                  : 'Ask AI to plan something for you!'}
+                {t('work.dayFreeDesc')}
               </Text>
             </View>
           ) : (
@@ -393,12 +391,12 @@ export default function WorkScreen() {
             </View>
             <View style={styles.selfCareContent}>
               <Text style={[styles.selfCareTitle, { color: '#fff' }]}>
-                {language.code === 'ro' ? 'AI Me-Time' : 'AI Me-Time'}
+                {t('work.aiMeTime')}
               </Text>
               <Text style={[styles.selfCareText, { color: 'rgba(255,255,255,0.8)' }]}>
                 {meTimeLoading
-                  ? (language.code === 'ro' ? 'AI analizeaza calendarul...' : 'AI analyzing schedule...')
-                  : (language.code === 'ro' ? 'Gaseste timp liber pentru tine' : 'Find free time for yourself')}
+                  ? (t('work.aiAnalyzing'))
+                  : (t('work.findFreeTime'))}
               </Text>
             </View>
             {meTimeLoading && <ActivityIndicator size="small" color="#fff" />}
@@ -411,7 +409,7 @@ export default function WorkScreen() {
             <View style={[styles.meTimePreview, { backgroundColor: C.surface, borderColor: C.border }]}>
               <Ionicons name="heart" size={18} color={C.primary} />
               <Text style={[styles.meTimePreviewText, { color: C.text }]}>
-                {meTimeSuggestions.length} {language.code === 'ro' ? 'sugestii disponibile' : 'suggestions available'}
+                {meTimeSuggestions.length} {t('work.suggestionsAvailable')}
               </Text>
               <Ionicons name="chevron-forward" size={18} color={C.textMuted} />
             </View>
@@ -425,7 +423,7 @@ export default function WorkScreen() {
           <View style={[styles.modalContent, { maxHeight: '85%', backgroundColor: C.bg }]}>
             <View style={[styles.modalHeader, { backgroundColor: C.bg }]}>
               <Text style={[styles.modalTitle, { color: C.text }]}>
-                {language.code === 'ro' ? 'Rutina de Ingrijire AI' : 'AI Skincare Routine'}
+                {t('work.aiSkincareRoutine')}
               </Text>
               <TouchableOpacity onPress={() => setSkincareModal(false)}>
                 <Ionicons name="close" size={24} color={C.textMuted} />
@@ -433,15 +431,15 @@ export default function WorkScreen() {
             </View>
             <ScrollView style={{ backgroundColor: C.bg, padding: 16 }}>
               <Text style={{ fontSize: 15, fontWeight: '600', color: C.text, marginBottom: 4 }}>
-                {language.code === 'ro' ? 'Selecteaza tipul de ten' : 'Select your skin type'}
+                {t('work.selectSkinType')}
               </Text>
               <Text style={{ fontSize: 13, color: C.textMuted, marginBottom: 16 }}>
-                {language.code === 'ro' ? 'AI va genera rutina perfecta pentru tine' : 'AI will generate the perfect routine for you'}
+                {t('work.aiWillGenerate')}
               </Text>
 
               {/* Season selector */}
               <Text style={{ fontSize: 13, fontWeight: '600', color: C.textMuted, marginBottom: 8 }}>
-                {language.code === 'ro' ? 'Sezon actual:' : 'Current season:'}
+                {t('work.currentSeason')}
               </Text>
               <View style={{ flexDirection: 'row', gap: 8, marginBottom: 20 }}>
                 {SEASONS.map((s) => (
@@ -465,14 +463,14 @@ export default function WorkScreen() {
 
               {/* Skin types - VERTICAL */}
               <Text style={{ fontSize: 13, fontWeight: '600', color: C.textMuted, marginBottom: 8 }}>
-                {language.code === 'ro' ? 'Tipul tau de ten:' : 'Your skin type:'}
+                {t('work.yourSkinType')}
               </Text>
 
               {skincareLoading ? (
                 <View style={{ alignItems: 'center', paddingVertical: 40 }}>
                   <ActivityIndicator size="large" color="#8B5CF6" />
                   <Text style={{ fontSize: 14, color: C.textMuted, marginTop: 12 }}>
-                    {language.code === 'ro' ? 'AI genereaza rutina ta...' : 'AI is generating your routine...'}
+                    {t('work.aiGenerating')}
                   </Text>
                 </View>
               ) : (
@@ -515,7 +513,7 @@ export default function WorkScreen() {
           <View style={[styles.modalContent, { maxHeight: '80%' }]}>
             <View style={[styles.modalHeader, { backgroundColor: C.bg }]}>
               <Text style={[styles.modalTitle, { color: C.text }]}>
-                {language.code === 'ro' ? 'Sugestii Me-Time' : 'Me-Time Suggestions'}
+                {t('work.meTimeSuggestions')}
               </Text>
               <TouchableOpacity onPress={() => setMeTimeModal(false)}>
                 <Ionicons name="close" size={24} color={C.textMuted} />
@@ -543,7 +541,7 @@ export default function WorkScreen() {
                       <LinearGradient colors={['#E91E9C', '#B8157A']} style={styles.meTimeAddGrad}>
                         <Ionicons name="add-circle" size={16} color="#fff" />
                         <Text style={styles.meTimeAddText}>
-                          {language.code === 'ro' ? 'Adauga in calendar' : 'Add to calendar'}
+                          {t('work.addToCalendar')}
                         </Text>
                       </LinearGradient>
                     </TouchableOpacity>
@@ -561,7 +559,7 @@ export default function WorkScreen() {
           <View style={[styles.modalContent, { maxHeight: '85%', backgroundColor: C.bg }]}>
             <View style={[styles.modalHeader, { backgroundColor: C.bg }]}>
               <Text style={[styles.modalTitle, { color: C.text }]}>
-                {language.code === 'ro' ? 'Rutina Ta de Ingrijire' : 'Your Skincare Routine'}
+                {t('work.yourSkincareRoutine')}
               </Text>
               <TouchableOpacity onPress={() => setSkincareResultModal(false)}>
                 <Ionicons name="close" size={24} color={C.textMuted} />
@@ -575,7 +573,7 @@ export default function WorkScreen() {
                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 12 }}>
                       <Ionicons name="sunny" size={20} color="#F59E0B" />
                       <Text style={{ fontSize: 17, fontWeight: '700', color: C.text }}>
-                        {language.code === 'ro' ? 'Rutina de Dimineata' : 'Morning Routine'}
+                        {t('work.morningRoutine')}
                       </Text>
                     </View>
                     {(skincareRoutine.morning_routine || []).map((step: any, i: number) => (
@@ -598,7 +596,7 @@ export default function WorkScreen() {
                     <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 12 }}>
                       <Ionicons name="moon" size={20} color="#6D28D9" />
                       <Text style={{ fontSize: 17, fontWeight: '700', color: C.text }}>
-                        {language.code === 'ro' ? 'Rutina de Seara' : 'Evening Routine'}
+                        {t('work.eveningRoutine')}
                       </Text>
                     </View>
                     {(skincareRoutine.evening_routine || []).map((step: any, i: number) => (
@@ -622,7 +620,7 @@ export default function WorkScreen() {
                       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 12 }}>
                         <Ionicons name="calendar" size={20} color="#EC4899" />
                         <Text style={{ fontSize: 17, fontWeight: '700', color: C.text }}>
-                          {language.code === 'ro' ? 'Tratamente Saptamanale' : 'Weekly Treatments'}
+                          {t('work.weeklyTreatments')}
                         </Text>
                       </View>
                       {skincareRoutine.weekly_extras.map((extra: any, i: number) => (
@@ -641,7 +639,7 @@ export default function WorkScreen() {
                       <View style={{ flexDirection: 'row', alignItems: 'center', gap: 8, marginBottom: 8 }}>
                         <Ionicons name="bulb" size={18} color="#6D28D9" />
                         <Text style={{ fontSize: 14, fontWeight: '700', color: '#6D28D9' }}>
-                          {language.code === 'ro' ? 'Sfaturi' : 'Tips'}
+                          {t('work.tips')}
                         </Text>
                       </View>
                       <Text style={{ fontSize: 13, color: '#4C1D95', lineHeight: 20 }}>{skincareRoutine.tips}</Text>
@@ -660,7 +658,7 @@ export default function WorkScreen() {
           <View style={styles.modalContent}>
             <View style={styles.modalHeader}>
               <Text style={styles.modalTitle}>
-                {language.code === 'ro' ? 'Adaugă în calendar' : 'Add to calendar'}
+                {t('work.addToCalendar')}
               </Text>
               <TouchableOpacity onPress={() => setAddModalVisible(false)}>
                 <Ionicons name="close" size={24} color={COLORS.textMuted} />
@@ -669,18 +667,18 @@ export default function WorkScreen() {
 
             <View style={styles.modalBody}>
               <Text style={styles.inputLabel}>
-                {language.code === 'ro' ? 'Titlu' : 'Title'}
+                {t('work.meetingTitle')}
               </Text>
               <TextInput
                 style={styles.input}
                 value={newItemTitle}
                 onChangeText={setNewItemTitle}
-                placeholder={language.code === 'ro' ? 'Ex: Call cu clientul' : 'Ex: Client call'}
+                placeholder={t('work.meetingTitlePlaceholder')}
                 placeholderTextColor={COLORS.textMuted}
               />
 
               <Text style={styles.inputLabel}>
-                {language.code === 'ro' ? 'Ora' : 'Time'}
+                {t('work.meetingTime')}
               </Text>
               <TextInput
                 style={styles.input}
@@ -692,7 +690,7 @@ export default function WorkScreen() {
 
               <TouchableOpacity style={styles.saveButton} onPress={addItem}>
                 <Text style={styles.saveButtonText}>
-                  {language.code === 'ro' ? 'Salvează' : 'Save'}
+                  {t('work.meetingSave')}
                 </Text>
               </TouchableOpacity>
             </View>

@@ -64,6 +64,7 @@ export default function OrganizeScreen() {
 
   const [checklistItems, setChecklistItems] = useState<any[]>([]);
   const [newTask, setNewTask] = useState('');
+  const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [budget, setBudget] = useState<any>(null);
   const [editCategoryModal, setEditCategoryModal] = useState(false);
   const [editingCategory, setEditingCategory] = useState<any>(null);
@@ -225,76 +226,96 @@ export default function OrganizeScreen() {
               </TouchableOpacity>
             </View>
 
-            {/* Quick Add Categories */}
-            <ScrollView horizontal showsHorizontalScrollIndicator={false} style={{ marginBottom: 12 }}>
-              <View style={{ flexDirection: 'row', gap: 8, paddingHorizontal: 2 }}>
-                <TouchableOpacity
-                  style={{ flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: C.surface, paddingHorizontal: 12, paddingVertical: 10, borderRadius: 12, borderWidth: 1, borderColor: C.border }}
-                  onPress={() => {
-                    const items = [
-                      t('checklist.cleanBedroom'), t('checklist.cleanBathroom'),
-                      t('checklist.cleanKitchen'), t('checklist.vacuum'), t('checklist.mopFloors'),
-                    ];
-                    const newItems = items.map((task) => ({ id: uuidv4(), text: task, completed: false }));
-                    const updated = [...checklistItems, ...newItems];
-                    setChecklistItems(updated);
-                    api.saveChecklist({ date: todayStr, items: updated }).catch(console.error);
-                  }}
-                  data-testid="quick-add-cleaning"
-                >
-                  <Ionicons name="sparkles-outline" size={18} color="#8B5CF6" />
-                  <Text style={{ fontSize: 13, fontWeight: '600', color: C.text }}>{t('checklist.cleaning')}</Text>
-                </TouchableOpacity>
+            {/* Quick Add Categories - vertical buttons that toggle their own list */}
+            <View style={{ gap: 12, marginBottom: 16 }}>
+              {[
+                { key: 'cleaning', icon: 'sparkles-outline' as any, color: '#8B5CF6', label: t('checklist.cleaning'), items: [
+                  t('checklist.cleanBedroom'), t('checklist.cleanBathroom'),
+                  t('checklist.cleanKitchen'), t('checklist.vacuum'), t('checklist.mopFloors'),
+                ]},
+                { key: 'food', icon: 'cart-outline' as any, color: '#10B981', label: t('checklist.food'), items: [
+                  t('checklist.milk'), t('checklist.bread'),
+                  t('checklist.fruits'), t('checklist.meat'), t('checklist.eggs'),
+                ]},
+                { key: 'personal', icon: 'heart-outline' as any, color: '#EC4899', label: t('checklist.personalCare'), items: [
+                  t('checklist.shampoo'), t('checklist.soap'),
+                  t('checklist.cream'), t('checklist.deodorant'), t('checklist.toothpaste'),
+                ]},
+              ].map((cat) => {
+                const catItems = checklistItems.filter((item) => item.category === cat.key);
+                const isExpanded = activeCategory === cat.key;
+                const completedCat = catItems.filter((i) => i.completed).length;
+                return (
+                  <View key={cat.key}>
+                    <TouchableOpacity
+                      style={[s.categoryBtn, { backgroundColor: C.surface, borderColor: isExpanded ? cat.color : C.border }]}
+                      onPress={() => setActiveCategory(isExpanded ? null : cat.key)}
+                      data-testid={`quick-add-${cat.key}`}
+                    >
+                      <View style={[s.categoryBtnIcon, { backgroundColor: `${cat.color}15` }]}>
+                        <Ionicons name={cat.icon} size={20} color={cat.color} />
+                      </View>
+                      <View style={{ flex: 1 }}>
+                        <Text style={[s.categoryBtnLabel, { color: C.text }]}>{cat.label}</Text>
+                        {catItems.length > 0 && (
+                          <Text style={[s.categoryBtnCount, { color: C.textMuted }]}>{completedCat}/{catItems.length} {t('organize.complete')}</Text>
+                        )}
+                      </View>
+                      {catItems.length === 0 ? (
+                        <TouchableOpacity
+                          style={[s.categoryAddBtn, { backgroundColor: cat.color }]}
+                          onPress={() => {
+                            const newItems = cat.items.map((task) => ({ id: uuidv4(), text: task, completed: false, category: cat.key }));
+                            const updated = [...checklistItems, ...newItems];
+                            setChecklistItems(updated);
+                            setActiveCategory(cat.key);
+                            api.saveChecklist({ date: todayStr, items: updated }).catch(console.error);
+                          }}
+                        >
+                          <Ionicons name="add" size={18} color="#fff" />
+                        </TouchableOpacity>
+                      ) : (
+                        <Ionicons name={isExpanded ? 'chevron-up' : 'chevron-down'} size={20} color={C.textMuted} />
+                      )}
+                    </TouchableOpacity>
 
-                <TouchableOpacity
-                  style={{ flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: C.surface, paddingHorizontal: 12, paddingVertical: 10, borderRadius: 12, borderWidth: 1, borderColor: C.border }}
-                  onPress={() => {
-                    const items = [
-                      t('checklist.milk'), t('checklist.bread'),
-                      t('checklist.fruits'), t('checklist.meat'), t('checklist.eggs'),
-                    ];
-                    const newItems = items.map((task) => ({ id: uuidv4(), text: task, completed: false }));
-                    const updated = [...checklistItems, ...newItems];
-                    setChecklistItems(updated);
-                    api.saveChecklist({ date: todayStr, items: updated }).catch(console.error);
-                  }}
-                  data-testid="quick-add-food"
-                >
-                  <Ionicons name="cart-outline" size={18} color="#10B981" />
-                  <Text style={{ fontSize: 13, fontWeight: '600', color: C.text }}>{t('checklist.food')}</Text>
-                </TouchableOpacity>
+                    {isExpanded && catItems.length > 0 && (
+                      <View style={{ marginTop: 6, gap: 6, paddingLeft: 8 }}>
+                        {catItems.map((item) => (
+                          <TouchableOpacity key={item.id} style={s.taskItem} onPress={() => toggleTask(item.id)}>
+                            <LinearGradient colors={gradCard} style={[s.taskGradient, borderStyle]}>
+                              <Ionicons name={item.completed ? 'checkbox' : 'square-outline'} size={22} color={item.completed ? cat.color : C.textMuted} />
+                              <Text style={[s.taskText, { color: C.text }, item.completed && { textDecorationLine: 'line-through', color: C.textMuted }]}>{item.text}</Text>
+                              <TouchableOpacity onPress={() => deleteTask(item.id)}>
+                                <Ionicons name="close-circle" size={20} color={C.red} />
+                              </TouchableOpacity>
+                            </LinearGradient>
+                          </TouchableOpacity>
+                        ))}
+                      </View>
+                    )}
+                  </View>
+                );
+              })}
+            </View>
 
-                <TouchableOpacity
-                  style={{ flexDirection: 'row', alignItems: 'center', gap: 6, backgroundColor: C.surface, paddingHorizontal: 12, paddingVertical: 10, borderRadius: 12, borderWidth: 1, borderColor: C.border }}
-                  onPress={() => {
-                    const items = [
-                      t('checklist.shampoo'), t('checklist.soap'),
-                      t('checklist.cream'), t('checklist.deodorant'), t('checklist.toothpaste'),
-                    ];
-                    const newItems = items.map((task) => ({ id: uuidv4(), text: task, completed: false }));
-                    const updated = [...checklistItems, ...newItems];
-                    setChecklistItems(updated);
-                    api.saveChecklist({ date: todayStr, items: updated }).catch(console.error);
-                  }}
-                  data-testid="quick-add-personal"
-                >
-                  <Ionicons name="heart-outline" size={18} color="#EC4899" />
-                  <Text style={{ fontSize: 13, fontWeight: '600', color: C.text }}>{t('checklist.personalCare')}</Text>
-                </TouchableOpacity>
-              </View>
-            </ScrollView>
-
-            {checklistItems.map((item) => (
-              <TouchableOpacity key={item.id} style={s.taskItem} onPress={() => toggleTask(item.id)}>
-                <LinearGradient colors={gradCard} style={[s.taskGradient, borderStyle]}>
-                  <Ionicons name={item.completed ? 'checkbox' : 'square-outline'} size={24} color={item.completed ? C.green : C.textMuted} />
-                  <Text style={[s.taskText, { color: C.text }, item.completed && { textDecorationLine: 'line-through', color: C.textMuted }]}>{item.text}</Text>
-                  <TouchableOpacity onPress={() => deleteTask(item.id)}>
-                    <Ionicons name="close-circle" size={22} color={C.red} />
+            {/* Uncategorized items (manually added) */}
+            {checklistItems.filter((i) => !i.category).length > 0 && (
+              <View style={{ marginBottom: 8 }}>
+                <Text style={[s.sectionMiniTitle, { color: C.textMuted }]}>{t('organize.addTask')}</Text>
+                {checklistItems.filter((i) => !i.category).map((item) => (
+                  <TouchableOpacity key={item.id} style={s.taskItem} onPress={() => toggleTask(item.id)}>
+                    <LinearGradient colors={gradCard} style={[s.taskGradient, borderStyle]}>
+                      <Ionicons name={item.completed ? 'checkbox' : 'square-outline'} size={24} color={item.completed ? C.green : C.textMuted} />
+                      <Text style={[s.taskText, { color: C.text }, item.completed && { textDecorationLine: 'line-through', color: C.textMuted }]}>{item.text}</Text>
+                      <TouchableOpacity onPress={() => deleteTask(item.id)}>
+                        <Ionicons name="close-circle" size={22} color={C.red} />
+                      </TouchableOpacity>
+                    </LinearGradient>
                   </TouchableOpacity>
-                </LinearGradient>
-              </TouchableOpacity>
-            ))}
+                ))}
+              </View>
+            )}
           </View>
         )}
 
@@ -475,6 +496,12 @@ const s = StyleSheet.create({
   taskItem: { borderRadius: 14, overflow: 'hidden', marginBottom: 8 },
   taskGradient: { flexDirection: 'row', alignItems: 'center', padding: 14, gap: 12 },
   taskText: { flex: 1, fontSize: 15 },
+  categoryBtn: { flexDirection: 'row', alignItems: 'center', padding: 14, borderRadius: 16, borderWidth: 1.5, gap: 12 },
+  categoryBtnIcon: { width: 40, height: 40, borderRadius: 12, justifyContent: 'center', alignItems: 'center' },
+  categoryBtnLabel: { fontSize: 15, fontWeight: '600' },
+  categoryBtnCount: { fontSize: 12, marginTop: 2 },
+  categoryAddBtn: { width: 32, height: 32, borderRadius: 10, justifyContent: 'center', alignItems: 'center' },
+  sectionMiniTitle: { fontSize: 13, fontWeight: '600', marginBottom: 8, textTransform: 'uppercase', letterSpacing: 0.5 },
   budgetSummary: { flexDirection: 'row', justifyContent: 'space-between', marginTop: 16, paddingTop: 16, borderTopWidth: 1 },
   budgetItem: { alignItems: 'center' },
   budgetLabel: { fontSize: 11, textTransform: 'uppercase' },
